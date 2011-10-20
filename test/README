@@ -11,5 +11,5 @@ cvs co UserCode/wilken
 scramv1 b -k
 rehash
 
-
+mkdir [output directory]
 Zbb_minituples [input file] [output file] [output directory]

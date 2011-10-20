@@ -6,7 +6,7 @@
     Usage:
 
     \verbatim
-    mkdir plots/[directoryName]
+    mkdir [directoryName]
     exampleAnalysis <inputfile> [outputfilename] [directoryName]
     \endverbatim
 
@@ -20,7 +20,7 @@
 
     @date Thu Oct 20 2011
 
-    @version $Id: exampleAnalysis.cc,v 1.3 2011/10/20 16:49:30 wilken Exp $
+    @version $Id: exampleSort.cc,v 1.1 2011/10/20 19:32:10 wilken Exp $
  */
 
 

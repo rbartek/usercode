@@ -1,0 +1,30 @@
+#
+# $Id: BuildFile,v 1.2 2011/10/19 wilken Exp $
+#
+# Package  : UserCode/wilken
+# Filename : bin/BuildFile
+# Author   : Rachel Wilken <rachel.wilken@cern.ch>
+# Purpose  : CMSSW BuildFile for executable in the wilken package
+#
+
+<bin name=templateAnalysis file=templateAnalysis.cc>
+    <use name=root>
+    <use name=rootgraphics>
+    <use name=UserCode/wilken>
+</bin>
+<bin name=exampleAnalysis file=exampleAnalysis.cc>
+    <use name=root>
+    <use name=rootgraphics>
+    <use name=UserCode/wilken>
+</bin>
+#<bin name=HZZntuplePlots file=Zbb_minituples.cc>
+#    <use name=root>
+#    <use name=rootgraphics>
+#    <use name=UserCode/wilken>
+#</bin>
+#<bin name=exampleSort file=exampleSort.cc>
+#    <use name=root>
+#    <use name=rootgraphics>
+#    <use name=UserCode/wilken>
+#</bin>
+

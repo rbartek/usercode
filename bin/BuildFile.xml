@@ -3,3 +3,8 @@
   <use   name="rootgraphics"/>
   <use   name="UserCode/wilken"/>
 </bin>
+<bin   name="exampleAnalysis" file="exampleAnalysis.cc">
+  <use   name="root"/>
+  <use   name="rootgraphics"/>
+  <use   name="UserCode/wilken"/>
+</bin>

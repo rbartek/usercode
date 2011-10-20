@@ -20,7 +20,7 @@
 
     @date Thu Oct 20 2011
 
-    @version $Id: exampleAnalysis.cc,v 1.1 2011/10/20 15:36:46 wilken Exp $
+    @version $Id: exampleAnalysis.cc,v 1.2 2011/10/20 15:40:15 wilken Exp $
  */
 
 
@@ -34,7 +34,12 @@
 
 #include <TFile.h>
 #include <TH1.h>
+#include <TH2.h>
 #include <TCanvas.h>
+#include "TString.h"
+#include <TStyle.h>
+
+using namespace std;
 
 
 
@@ -56,6 +61,12 @@ int main(int argc, char** argv) {
         // If there is a second argument, use it for the output filename.
         ofilename = std::string(argv[2]);
     }
+   if (argc == 4) {
+        // If there is a third argument, use it for the plots drectory
+		ofilename = std::string(argv[2]);
+		directory = std::string(argv[3]);
+	}
+
 
     // Create the hbbReader object.
     hbbReader sample(ifilename,
@@ -88,12 +99,9 @@ int main(int argc, char** argv) {
     // In compiled C++, it possible not to use pointer type (TH1F*) and
     // use the non-pointer type (TH1F) of ROOT object.
 
-    TH1F hRECOELE_PT ("hRECOELE_PT",
-                      "RECO electron p_{T}",
-                      200,0.0,100.0);
-    TH1F hRECOMU_PT  ("hRECOMU_PT",
-                      "RECO muon p_{T}",
-                      200,0.0,100.0);
+    TH1F hnJets ("hnJets",  "Number of Good Jets", 11, -0.5, 10.5);
+    TH1F hnMuons  ("hnMuons","Number of Good Muons", 6, -0.5, 5.5);
+    TH1F hjetPt  ("hjetPt","Pt of all jets in event", 125, 0.0, 250);
 
     // Loop over all events.
     // For other methods to access event/navigate through the sample,
@@ -102,15 +110,12 @@ int main(int argc, char** argv) {
         // Analysis loop.
 
         // One can access the ntuple leaves directly from sample object
-        for (size_t i = 0 ; i != 100 ; ++i) {
-            // 100 is the size of RECOELE_PT and RECOMU_PT array
-            if (sample.RECOELE_PT[i] > 0.0) {
-                hRECOELE_PT.Fill(sample.RECOELE_PT[i]);
-            }
-            if (sample.RECOMU_PT[i] > 0.0) {
-                hRECOMU_PT.Fill(sample.RECOMU_PT[i]);
-            }
-        }
+            if (sample.nJets > -1) { hnJets.Fill(sample.nJets); }
+            if (sample.nMuons > -1) { hnMuons.Fill(sample.nMuons); }
+
+for (int k=0;k<9;k++){
+    if (sample.jetPt[k] > -100) { hjetPt.Fill(sample.jetPt[k]); }
+}// end k for loop
 
     } while (sample.nextEvent());
 
@@ -119,13 +124,19 @@ int main(int argc, char** argv) {
     c1.cd();
 
     c1.SetFillColor(kWhite);
-
-    hRECOELE_PT.Draw();
-    c1.Print("hRECOELE_PT.eps");
+    string suffixps = ".gif";
+    
+    hnJets.Draw();
+    c1.Print((directory+"/nJets"+suffixps).c_str());
 
     c1.Clear(); // don't create a new canvas
-    hRECOMU_PT.Draw();
-    c1.Print("hRECOMU_PT.eps");
+    hnMuons.Draw();
+    c1.Print((directory+"/nMuons"+suffixps).c_str());
+
+    c1.Clear(); // don't create a new canvas
+    hjetPt.Draw();
+    c1.Print((directory+"/jetPt"+suffixps).c_str());
+
 
     // Write and Close the output file.
     ofile.Write();

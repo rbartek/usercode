@@ -1,7 +1,7 @@
 /**
     @file exampleAnalysis.cc
 
-    @brief Example of an analysis code to read  ntuple
+    @brief Example of an analysis code to read hbb ntuple
     and create histogram
     Usage:
 
@@ -20,12 +20,12 @@
 
     @date Thu Oct 20 2011
 
-    @version $Id: exampleAnalysis.cc,v 1.1 2011/10/20 wilken Exp $
+    @version $Id: exampleAnalysis.cc,v 1.1 2011/10/20 15:36:46 wilken Exp $
  */
 
 
-#include <UserCode/RiversideHiggs/interface/HZZ4LeptonsAnalysisReader.h>
-#include <UserCode/RiversideHiggs/interface/GenericTool.h>
+#include <UserCode/wilken/interface/hbbReader.h>
+#include <UserCode/wilken/interface/GenericTool.h>
 #include <string>
 #include <iostream>
 #include <vector>
@@ -57,9 +57,9 @@ int main(int argc, char** argv) {
         ofilename = std::string(argv[2]);
     }
 
-    // Create the HZZ4LeptonsAnalysisReader object.
-    HZZ4LeptonsAnalysisReader sample(ifilename,
-                                     std::string("HZZ4LeptonsAnalysis"));
+    // Create the hbbReader object.
+    hbbReader sample(ifilename,
+                                     std::string("hbb"));
 
     // If the input file(s) doesn't contain any event, exit.
     if (!(sample.readEvent(0))) {

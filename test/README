@@ -1,0 +1,15 @@
+This package contains analysis code for KU-UNL ZH->Zbb analysis
+
+cmsrel CMSSW_4_2_5
+cd CMSSW_4_2_5/src/
+cmsenv
+
+cvs co -d haryo/RootTreeReader UserCode/haryo/RootTreeReader
+
+cvs co UserCode/wilken
+
+scramv1 b -k
+rehash
+
+
+Zbb_minituples [input file] [output file] [output directory]

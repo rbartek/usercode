@@ -1,0 +1,5 @@
+<bin   name="templateAnalysis" file="templateAnalysis.cc">
+  <use   name="root"/>
+  <use   name="rootgraphics"/>
+  <use   name="UserCode/wilken"/>
+</bin>

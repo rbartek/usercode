@@ -43,6 +43,13 @@
 
 using namespace std;
 
+double deltaphi(double phi1, double phi2) {
+	double result = phi1 - phi2;
+	const double mypi  = 3.141592653589;
+    while (result > mypi) result -= 2*mypi;
+    while (result <= -mypi) result += 2*mypi;
+    return result;	
+}// end deltaphi function
 
 
 int main(int argc, char** argv) {
@@ -134,10 +141,10 @@ bool debug = false;
 	TH1F hPtmumu	("hPtmumu","Pt of two muons with highest pt", 300, 0.0, 300);
 	TH1F hCSV1		("hCSV1","Jet with highest CSV",			50, -0.5, 1.25);
 	TH1F hCSV2		("hCSV2","Jet with second highest CSV",		50, -0.5, 1.25);
-//	TH1F hdphiVH	("hdphiVH","Delta phi between Z and Higgs", 50, -3.5, 3.5);
-	TH1F hNaj		("hNaj",  "Number of Additional Jets",		6, -2.5, 10.5);
-//	TH1F hMjj		("hMjj",  "Invariant Mass of two Jets",		75, 0, 150);
-//	TH1F hMmumu		("hMmumu",  "Invariant Mass of two muons",	75, 0, 150);
+	TH1F hdphiVH	("hdphiVH","Delta phi between Z and Higgs", 50, -3.5, 3.5);
+	TH1F hNaj		("hNaj",  "Number of Additional Jets",		13, -2.5, 10.5);
+	TH1F hMjj		("hMjj",  "Invariant Mass of two Jets",		75, 0, 200);
+	TH1F hMmumu		("hMmumu",  "Invariant Mass of two muons",	75, 0, 200);
 	
 	
 if (debug) std::cout << "all histograms declared " << std::endl;
@@ -186,7 +193,35 @@ for (size_t i = 0 ; (i != indexedJetCSV.size()) ; ++i) {   CSVSortedJetIndex.pus
 
 if (event == 31804 )for (size_t i = 0 ; (i != indexedJetCSV.size()) ; ++i) {cout << "Sorted jet CSV: " << indexedJetCSV[i].second << endl; }
 
-for (size_t i = 0 ; i != indexedJetCSV.size() && (i < 8); ++i) {
+double Phi_Z = -99.99, Phi_H = -99.99;
+double Mass_jj = -99.99, Pt_jj = -99.99;
+		if (indexedJetCSV.size() > 1) {
+TLorentzVector FirstJet = TLorentzVector(sample.jetPx[indexedJetCSV[0].first],sample.jetPy[indexedJetCSV[0].first],sample.jetPz[indexedJetCSV[0].first],sample.jetP[indexedJetCSV[0].first]); 
+TLorentzVector SecondJet = TLorentzVector(sample.jetPx[indexedJetCSV[1].first],sample.jetPy[indexedJetCSV[1].first],sample.jetPz[indexedJetCSV[1].first],sample.jetP[indexedJetCSV[1].first]); 
+		
+TLorentzVector jj = FirstJet + SecondJet;
+Mass_jj= jj.M();
+Pt_jj = jj.Pt();
+Phi_H = jj.Phi();
+		
+		} //if have two b jets
+
+double Mass_mumu = -99.99, Pt_mumu;
+		if (sample.nMuons >1){
+TLorentzVector FirstMuon = TLorentzVector(sample.muonPx[0], sample.muonPy[0], sample.muonPz[0], sample.muonP[0]);
+TLorentzVector SecondMuon = TLorentzVector(sample.muonPx[1], sample.muonPy[1], sample.muonPz[1], sample.muonP[1]);
+
+TLorentzVector mumu = FirstMuon + SecondMuon;
+
+Mass_mumu = mumu.M();
+Phi_Z = mumu.Phi();
+Pt_mumu = mumu.Pt();
+		}// if have two muons
+		
+
+double dPhiVH = deltaphi(Phi_H, Phi_Z);
+		
+for (size_t i = 0 ; i != indexedJetCSV.size() && i != indexedJetPt.size() && (i < 8); ++i) {
 				hjetPt[i+1]->Fill(sample.jetPt[indexedJetPt[i].first]);
 				hjetCSV[i+1]->Fill(sample.bDisc_CSV[indexedJetCSV[i].first]);
 			}
@@ -196,13 +231,15 @@ for (size_t i = 0 ; i != indexedJetCSV.size() && (i < 8); ++i) {
 		if (sample.nMuons > -1) { hnMuons.Fill(sample.nMuons); }
 		hPtb1.Fill(sample.jetPt[indexedJetCSV[0].first]);
 		hPtb2.Fill(sample.jetPt[indexedJetCSV[1].first]);
-		hPtjj.Fill(sample.jetPt[indexedJetCSV[0].first]+sample.jetPt[indexedJetCSV[1].first]);
-		if (sample.muonPt[1] > -1) { hPtmumu.Fill(sample.muonPt[0]+sample.muonPt[1]); }
+		hPtjj.Fill(Pt_jj);
+		if (sample.muonPt[1] > -1) { hPtmumu.Fill(Pt_mumu); }
 if (debug) cout << "halfway through filling histos" << endl;
 		hCSV1.Fill(sample.bDisc_CSV[indexedJetCSV[0].first]);
 		hCSV2.Fill(sample.bDisc_CSV[indexedJetCSV[1].first]);
-		//hdphiVH.Fill(dphiVH);
+		hdphiVH.Fill(dPhiVH);
 		hNaj.Fill(AdditionalJets-2);
+		if (sample.nJets > 1) hMjj.Fill(Mass_jj);
+		if (sample.nMuons > 1) hMmumu.Fill(Mass_mumu);
 
 if (debug) cout << "done filling histograms for event: " << event << endl;
 
@@ -266,8 +303,21 @@ if (debug){	std::cout << "Number of events " << event << endl;}
     c1.Print((directory+"/CSV2"+suffixps).c_str());
 	
 	c1.Clear(); // don't create a new canvas
-    hNaj.Draw();
-    c1.Print((directory+"/Naj"+suffixps).c_str());
+	hNaj.Draw();
+	c1.Print((directory+"/Naj"+suffixps).c_str());
+		
+	c1.Clear(); // don't create a new canvas
+	hMjj.Draw();
+	c1.Print((directory+"/Mjj"+suffixps).c_str());
+
+	c1.Clear(); // don't create a new canvas
+	hMmumu.Draw();
+	c1.Print((directory+"/Mmumu"+suffixps).c_str());
+
+	c1.Clear(); // don't create a new canvas
+	hdphiVH.Draw();
+	c1.Print((directory+"/dphiVH"+suffixps).c_str());
+	
 	
     // Write and Close the output file.
     ofile.Write();

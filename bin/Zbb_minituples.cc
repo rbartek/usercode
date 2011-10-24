@@ -128,8 +128,8 @@ bool debug = false;
 	Num[9] = "9";
 
 	for (int i=0; i<9; i++){
-		hjetPt[i] = new TH1F(("jetPt"+Num[i]).c_str(), ("p_{T} of " +Num[i]+ " Jet").c_str(), 100, 0., 200.);
-		hjetCSV[i] = new TH1F(("jetCSV"+Num[i]).c_str(), ("CSV of " +Num[i]+ " Jet").c_str(), 50, -0.5, 1.25);
+		hjetPt[i] = new TH1F(("jetPt"+Num[i]).c_str(), ("p_{T} of Jet " +Num[i]+"(ordered in p_{T})").c_str(), 100, 0., 200.);
+		hjetCSV[i] = new TH1F(("jetCSV"+Num[i]).c_str(), ("CSV of Jet " +Num[i]+"(ordered in CSV)").c_str(), 50, -0.5, 1.25);
 	}// end i loop
 
     TH1F hnJets ("hnJets",  "Number of Good Jets", 11, -0.5, 10.5);
@@ -139,12 +139,15 @@ bool debug = false;
     TH1F hPtb2		("hPtb2","Pt b jet with second highest CSV", 150, 0.0, 150);
 	TH1F hPtjj		("hPtjj","Pt of two b jets with highest CSV", 300, 0.0, 300);
 	TH1F hPtmumu	("hPtmumu","Pt of two muons with highest pt", 300, 0.0, 300);
+	TH1F hPtmu1		("hPtmu1","Pt of muon with highest pt", 75, 0.0, 150);
+	TH1F hPtmu2		("hPtmu2","Pt of muon with second highest pt", 75, 0.0, 150);
 	TH1F hCSV1		("hCSV1","Jet with highest CSV",			50, -0.5, 1.25);
 	TH1F hCSV2		("hCSV2","Jet with second highest CSV",		50, -0.5, 1.25);
 	TH1F hdphiVH	("hdphiVH","Delta phi between Z and Higgs", 50, -3.5, 3.5);
 	TH1F hNaj		("hNaj",  "Number of Additional Jets",		13, -2.5, 10.5);
 	TH1F hMjj		("hMjj",  "Invariant Mass of two Jets",		75, 0, 200);
 	TH1F hMmumu		("hMmumu",  "Invariant Mass of two muons",	75, 0, 200);
+	TH1F hCutFlow	("hCutFlow",  "Selection",					9, 0, 9);
 	
 	
 if (debug) std::cout << "all histograms declared " << std::endl;
@@ -154,7 +157,7 @@ if (debug) std::cout << "all histograms declared " << std::endl;
     // For other methods to access event/navigate through the sample,
     // see the documentation of RootTreeReader class.
 	int event =0, Npreselect =0, NpT_jj =0, NpT_Z =0, NCSV1 =0, NCSV2 =0;
-	int NdPhi =0, N_Naj =0, N_Mjj =0;
+	int NdPhi =0, N_Naj =0, N_Mjj =0, N_HLT =0;
 //	double Zmass = 91.1976;
 
 
@@ -172,16 +175,11 @@ int AdditionalJets = 0;
 
 for (int k=0;k<sample.nJets;k++){
 	if (debug) cout << "for "<< k << "th pass" << endl;
-	if (sample.jetPt[k] > -100) { 
 	indexedJetPt.push_back(std::pair<size_t,double>(k,(double) sample.jetPt[k]));
 	halljetPt.Fill(sample.jetPt[k]); 
-	}// end if
-	if (sample.bDisc_CSV[k] > -1) { 
 	indexedJetCSV.push_back(std::pair<size_t,double>(k,(double) sample.bDisc_CSV[k]));
-	}// end if
-	
 	if ( 	(sample.jetPt[k] > 20) && (sample.jetEta[k] > -2.5 ) && (sample.jetEta[k] < 2.5) ) AdditionalJets++;
-if (debug)	cout << "CSV discriminator: " << sample.bDisc_CSV[k] << endl;
+	if (debug)	cout << "CSV discriminator: " << sample.bDisc_CSV[k] << endl;
 
 }// end k for loop
 
@@ -247,13 +245,18 @@ for (size_t i = 0 ; i != indexedJetCSV.size() && i != indexedJetPt.size() && (i 
 		if (sample.nMuons > 1) {
 		hMmumu.Fill(Mass_mumu);
 		hPtmumu.Fill(Pt_mumu);
+		hPtmu1.Fill(sample.muonPt[0]);
+		hPtmu2.Fill(sample.muonPt[1]);		
 		}
 
 if (debug) cout << "done filling histograms for event: " << event << endl;
 
 //Calculate cut efficiencies
-if ( (sample.HLT_IsoMu17_v5_trig) && (sample.nJets > 1) && (sample.nMuons > 1)){
-	if (sample.jetPt[indexedJetPt[1].first] >= 20 && sample.muonPt[1] >= 20) {
+//		if ( (sample.HLT_IsoMu17_v5_trig) || (sample.HLT_IsoMu13_v4_trig) || (sample.HLT_IsoMu15_v4_trig) || (sample.HLT_IsoMu17_v4_trig) || (sample.HLT_IsoMu17_v6_trig) || (sample.HLT_CentralJet80_MET80_trig) || (sample.HLT_pfMHT150_trig) || (sample.HLT_L1_ETM30_trig) || (sample.HLT_MET100_trig) || (sample.HLT_IsoMu17_v8_trig) || (sample.HLT_IsoMu17_v7_trig)  ){
+			if ( (sample.HLT_IsoMu17_v5_trig) ){
+	N_HLT++;
+	if ((sample.nJets > 1) && (sample.nMuons > 1)){
+	if (sample.jetPt[indexedJetCSV[0].first] >=20 && sample.jetPt[indexedJetCSV[1].first] >= 20 && sample.muonPt[1] >= 20) {
 	Npreselect++;
 		if(Pt_jj >= 100) {
 		NpT_jj++;
@@ -276,10 +279,12 @@ if ( (sample.HLT_IsoMu17_v5_trig) && (sample.nJets > 1) && (sample.nMuons > 1)){
 		}// dijet pt cut
 	}// preselection Pt requirement
 }// preselection number of muons/jets requirement
+	}//trigger requirement
 
 
     } while (sample.nextEvent());
 if (debug){	std::cout << "Number of events " << event << endl;}
+std::cout << "HLT: " << N_HLT << endl;
 std::cout << "PreSelection: " << Npreselect << endl;
 std::cout << "pT_jj: " << NpT_jj << endl;
 std::cout << "pT_Z: " << NpT_Z << endl;
@@ -340,6 +345,14 @@ std::cout << "Number of Events Passing the Selection: " << N_Mjj << endl;
     c1.Print((directory+"/Ptmumu"+suffixps).c_str());
 
 	c1.Clear(); // don't create a new canvas
+    hPtmu1.Draw();
+    c1.Print((directory+"/Ptmu1"+suffixps).c_str());
+	
+	c1.Clear(); // don't create a new canvas
+    hPtmu2.Draw();
+    c1.Print((directory+"/Ptmu2"+suffixps).c_str());
+
+	c1.Clear(); // don't create a new canvas
     hCSV1.Draw();
     c1.Print((directory+"/CSV1"+suffixps).c_str());
 	
@@ -362,6 +375,28 @@ std::cout << "Number of Events Passing the Selection: " << N_Mjj << endl;
 	c1.Clear(); // don't create a new canvas
 	hdphiVH.Draw();
 	c1.Print((directory+"/dphiVH"+suffixps).c_str());
+
+	c1.Clear(); // don't create a new canvas
+/*	hCutFlow.GetXaxis().SetBinLabel(1,"HLT");
+	hCutFlow.GetXaxis().SetBinLabel(2,"PreSelection");
+	hCutFlow.GetXaxis().SetBinLabel(3,"p_{T}(jj)");
+	hCutFlow.GetXaxis().SetBinLabel(4,"p_{T}(Z)");
+	hCutFlow.GetXaxis().SetBinLabel(5,"CSV1");
+	hCutFlow.GetXaxis().SetBinLabel(6,"CSV2");
+	hCutFlow.GetXaxis().SetBinLabel(7,"#Delta#phi");
+	hCutFlow.GetXaxis().SetBinLabel(8,"N_{aj}");
+	hCutFlow.GetXaxis().SetBinLabel(9,"M_{jj}");*/
+	hCutFlow.SetBinContent(1,N_HLT );
+	hCutFlow.SetBinContent(2,Npreselect );
+	hCutFlow.SetBinContent(3,NpT_jj );
+	hCutFlow.SetBinContent(4,NpT_Z );
+	hCutFlow.SetBinContent(5,NCSV1 );
+	hCutFlow.SetBinContent(6,NCSV2 );
+	hCutFlow.SetBinContent(7,NdPhi );
+	hCutFlow.SetBinContent(8,N_Naj );
+	hCutFlow.SetBinContent(9,N_Mjj );
+	hCutFlow.Draw();
+	c1.Print((directory+"/CutFlow"+suffixps).c_str());
 	
 	
     // Write and Close the output file.

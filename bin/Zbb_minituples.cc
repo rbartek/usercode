@@ -144,6 +144,7 @@ bool debug = false;
 	TH1F hCSV1		("hCSV1","Jet with highest CSV",			50, -0.5, 1.25);
 	TH1F hCSV2		("hCSV2","Jet with second highest CSV",		50, -0.5, 1.25);
 	TH1F hdphiVH	("hdphiVH","Delta phi between Z and Higgs", 50, -3.5, 3.5);
+	TH1F hdetaJJ	("hdetaJJ","Delta eta between two jets", 101, -1.5, 1.5);
 	TH1F hNaj		("hNaj",  "Number of Additional Jets",		13, -2.5, 10.5);
 	TH1F hMjj		("hMjj",  "Invariant Mass of two Jets",		75, 0, 200);
 	TH1F hMmumu		("hMmumu",  "Invariant Mass of two muons",	75, 0, 200);
@@ -198,7 +199,7 @@ double Mass_jj = -99.99, Pt_jj = -99.99;
 		if (indexedJetCSV.size() > 1) {
 TLorentzVector FirstJet = TLorentzVector(sample.jetPx[indexedJetCSV[0].first],sample.jetPy[indexedJetCSV[0].first],sample.jetPz[indexedJetCSV[0].first],sample.jetP[indexedJetCSV[0].first]); 
 TLorentzVector SecondJet = TLorentzVector(sample.jetPx[indexedJetCSV[1].first],sample.jetPy[indexedJetCSV[1].first],sample.jetPz[indexedJetCSV[1].first],sample.jetP[indexedJetCSV[1].first]); 
-		
+
 TLorentzVector jj = FirstJet + SecondJet;
 Mass_jj= jj.M();
 Pt_jj = jj.Pt();
@@ -233,6 +234,7 @@ for (size_t i = 0 ; i != indexedJetCSV.size() && i != indexedJetPt.size() && (i 
 			hPtb2.Fill(sample.jetPt[indexedJetCSV[1].first]);
 			hCSV1.Fill(sample.bDisc_CSV[indexedJetCSV[0].first]);
 			hCSV2.Fill(sample.bDisc_CSV[indexedJetCSV[1].first]);
+			hdetaJJ.Fill(sample.jetEta[indexedJetCSV[0].first]-sample.jetEta[indexedJetCSV[1].first]);
 		}
 			hMjj.Fill(Mass_jj);
 		    hPtjj.Fill(Pt_jj);
@@ -373,8 +375,12 @@ std::cout << "Number of Events Passing the Selection: " << N_Mjj << endl;
 	c1.Print((directory+"/Mmumu"+suffixps).c_str());
 
 	c1.Clear(); // don't create a new canvas
+	hdetaJJ.Draw();
+	c1.Print((directory+"/detaJJ"+suffixps).c_str());
+
+	c1.Clear(); // don't create a new canvas
 	hdphiVH.Draw();
-	c1.Print((directory+"/dphiVH"+suffixps).c_str());
+	c1.Print((directory+"/dphiVH"+suffixps).c_str());	
 
 	c1.Clear(); // don't create a new canvas
 /*	hCutFlow.GetXaxis().SetBinLabel(1,"HLT");

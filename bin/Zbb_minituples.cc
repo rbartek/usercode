@@ -129,7 +129,7 @@ bool debug = false;
 
 	for (int i=0; i<9; i++){
 		hjetPt[i] = new TH1F(("jetPt"+Num[i]).c_str(), ("p_{T} of Jet " +Num[i]+"(ordered in p_{T})").c_str(), 100, 0., 200.);
-		hjetCSV[i] = new TH1F(("jetCSV"+Num[i]).c_str(), ("CSV of Jet " +Num[i]+"(ordered in CSV)").c_str(), 50, -0.5, 1.25);
+		hjetCSV[i] = new TH1F(("jetCSV"+Num[i]).c_str(), ("CSV of Jet " +Num[i]+"(ordered in CSV)").c_str(), 50, -0.5, 1.3);
 	}// end i loop
 
     TH1F hnJets ("hnJets",  "Number of Good Jets", 11, -0.5, 10.5);
@@ -139,16 +139,22 @@ bool debug = false;
     TH1F hPtb2		("hPtb2","Pt b jet with second highest CSV", 150, 0.0, 150);
 	TH1F hPtjj		("hPtjj","Pt of two b jets with highest CSV", 300, 0.0, 300);
 	TH1F hPtmumu	("hPtmumu","Pt of two muons with highest pt", 300, 0.0, 300);
-	TH1F hPtmu1		("hPtmu1","Pt of muon with highest pt", 75, 0.0, 150);
+	TH1F hPtbalZH	("hPtbalZH","Pt balance of Z and H", 101, -75.0, 75);
+	TH1F hPtmu1		("hPtmu1","Pt of muon with highest pt", 75, 0.0, 200);
 	TH1F hPtmu2		("hPtmu2","Pt of muon with second highest pt", 75, 0.0, 150);
-	TH1F hCSV1		("hCSV1","Jet with highest CSV",			50, -0.5, 1.25);
-	TH1F hCSV2		("hCSV2","Jet with second highest CSV",		50, -0.5, 1.25);
+	TH1F hEtamu1		("hEtamu1","Eta of muon with highest pt", 75, -3, 3);
+	TH1F hEtamu2		("hEtamu2","Eta of muon with second highest pt", 75, -3, 3);
+	TH1F hCSV1		("hCSV1","Jet with highest CSV",			50, -0.1, 1.2);
+	TH1F hCSV2		("hCSV2","Jet with second highest CSV",		50, -0.1, 1.2);
 	TH1F hdphiVH	("hdphiVH","Delta phi between Z and Higgs", 50, -3.5, 3.5);
-	TH1F hdetaJJ	("hdetaJJ","Delta eta between two jets", 101, -1.5, 1.5);
+	TH1F hdetaJJ	("hdetaJJ","Delta eta between two jets", 101, -3, 3);
+	TH1F hdphiJJ	("hdphiJJ","Delta phi between two jets", 101, -3.5, 3.5);
 	TH1F hNaj		("hNaj",  "Number of Additional Jets",		13, -2.5, 10.5);
 	TH1F hMjj		("hMjj",  "Invariant Mass of two Jets",		75, 0, 200);
+	TH1F hMjj_aftercuts		("hMjj_aftercuts",  "Invariant Mass of two Jets After Cuts",		75, 0, 200);
 	TH1F hMmumu		("hMmumu",  "Invariant Mass of two muons",	75, 0, 200);
 	TH1F hCutFlow	("hCutFlow",  "Selection",					9, 0, 9);
+	TH2F hDphiDetajj("hDphiDetajj", "#Delta#phi vs #Delta#eta JJ", 101, -5, 5, 101, -5, 5);
 	
 	
 if (debug) std::cout << "all histograms declared " << std::endl;
@@ -235,10 +241,15 @@ for (size_t i = 0 ; i != indexedJetCSV.size() && i != indexedJetPt.size() && (i 
 			hCSV1.Fill(sample.bDisc_CSV[indexedJetCSV[0].first]);
 			hCSV2.Fill(sample.bDisc_CSV[indexedJetCSV[1].first]);
 			hdetaJJ.Fill(sample.jetEta[indexedJetCSV[0].first]-sample.jetEta[indexedJetCSV[1].first]);
+			hdphiJJ.Fill(sample.jetPhi[indexedJetCSV[0].first]-sample.jetPhi[indexedJetCSV[1].first]);
+			hDphiDetajj.Fill((sample.jetEta[indexedJetCSV[0].first]-sample.jetEta[indexedJetCSV[1].first]),(sample.jetPhi[indexedJetCSV[0].first]-sample.jetPhi[indexedJetCSV[1].first]));
 		}
 			hMjj.Fill(Mass_jj);
 		    hPtjj.Fill(Pt_jj);
-			if (sample.nMuons > 1) hdphiVH.Fill(dPhiVH);			
+			if (sample.nMuons > 1) {
+			hdphiVH.Fill(dPhiVH);	
+			hPtbalZH.Fill(Pt_jj-Pt_mumu);
+			}
 		}
 	if (debug) cout << "halfway through filling histos" << endl;
 		if (sample.nJets > -1) { hnJets.Fill(sample.nJets); }
@@ -247,8 +258,10 @@ for (size_t i = 0 ; i != indexedJetCSV.size() && i != indexedJetPt.size() && (i 
 		if (sample.nMuons > 1) {
 		hMmumu.Fill(Mass_mumu);
 		hPtmumu.Fill(Pt_mumu);
-		hPtmu1.Fill(sample.muonPt[0]);
-		hPtmu2.Fill(sample.muonPt[1]);		
+			hPtmu1.Fill(sample.muonPt[0]);
+			hPtmu2.Fill(sample.muonPt[1]);		
+			hEtamu1.Fill(sample.muonEta[0]);
+			hEtamu2.Fill(sample.muonEta[1]);		
 		}
 
 if (debug) cout << "done filling histograms for event: " << event << endl;
@@ -258,20 +271,23 @@ if (debug) cout << "done filling histograms for event: " << event << endl;
 			if ( (sample.HLT_IsoMu17_v5_trig) ){
 	N_HLT++;
 	if ((sample.nJets > 1) && (sample.nMuons > 1)){
-	if (sample.jetPt[indexedJetCSV[0].first] >=20 && sample.jetPt[indexedJetCSV[1].first] >= 20 && sample.muonPt[1] >= 20) {
+	if (sample.jetPt[indexedJetCSV[0].first] >=20 && sample.jetPt[indexedJetCSV[1].first] >=20 && sample.muonPt[1] > 20) {
+		if (sample.bDisc_CSV[indexedJetCSV[0].first] > -1 && sample.bDisc_CSV[indexedJetCSV[1].first] > -1 ){
+			if (Mass_mumu >75 && Mass_mumu<105){
 	Npreselect++;
-		if(Pt_jj >= 100) {
+		if(Pt_jj > 100) {
 		NpT_jj++;
-			if(Pt_mumu >= 100) {
+			if(Pt_mumu > 100) {
 			NpT_Z++;
-			   if(sample.bDisc_CSV[indexedJetCSV[0].first] >= 0.898){
+			   if(sample.bDisc_CSV[indexedJetCSV[0].first] > 0.898){
 			   NCSV1++;
-			   if(sample.bDisc_CSV[indexedJetCSV[1].first]>=0.5){
+			   if(sample.bDisc_CSV[indexedJetCSV[1].first]>0.5){
 			   NCSV2++;
-			   if((dPhiVH>=2.95)||(dPhiVH<=-2.95)){
+			   if((dPhiVH>=2.90)||(dPhiVH<-2.90)){
 			   NdPhi++;
-			   if(sample.nJets < 5){
+			   if(sample.nJets < 4){
 			   N_Naj++;
+			   hMjj_aftercuts.Fill(Mass_jj);
 			   if((Mass_jj>=95)&&(Mass_jj<=125)){N_Mjj++; }//higgs mass window
 			   }//number of additional Jets cut
 			   }//Delta Phi Cut
@@ -279,7 +295,9 @@ if (debug) cout << "done filling histograms for event: " << event << endl;
 			   }//CVS1 cut
 			   }// Z pt cut
 		}// dijet pt cut
-	}// preselection Pt requirement
+	}// preselection z mass requirement
+	}//preselection CSV not -1
+	}// preselection pt requirement
 }// preselection number of muons/jets requirement
 	}//trigger requirement
 
@@ -355,6 +373,14 @@ std::cout << "Number of Events Passing the Selection: " << N_Mjj << endl;
     c1.Print((directory+"/Ptmu2"+suffixps).c_str());
 
 	c1.Clear(); // don't create a new canvas
+    hEtamu1.Draw();
+    c1.Print((directory+"/Etamu1"+suffixps).c_str());
+	
+	c1.Clear(); // don't create a new canvas
+    hEtamu2.Draw();
+    c1.Print((directory+"/Etamu2"+suffixps).c_str());
+	
+	c1.Clear(); // don't create a new canvas
     hCSV1.Draw();
     c1.Print((directory+"/CSV1"+suffixps).c_str());
 	
@@ -381,6 +407,23 @@ std::cout << "Number of Events Passing the Selection: " << N_Mjj << endl;
 	c1.Clear(); // don't create a new canvas
 	hdphiVH.Draw();
 	c1.Print((directory+"/dphiVH"+suffixps).c_str());	
+	
+	c1.Clear(); // don't create a new canvas
+	hPtbalZH.Draw();
+	c1.Print((directory+"/PtbalZH"+suffixps).c_str());	
+	
+	c1.Clear(); // don't create a new canvas
+	hdphiJJ.Draw();
+	c1.Print((directory+"/dphiJJ"+suffixps).c_str());	
+
+	c1.Clear(); // don't create a new canvas
+	hDphiDetajj.Draw();
+	c1.Print((directory+"/DphivsDeta_JJ"+suffixps).c_str());	
+
+	c1.Clear(); // don't create a new canvas
+	hMjj_aftercuts.Draw();
+	c1.Print((directory+"/Mjj_aftercuts"+suffixps).c_str());	
+	
 
 	c1.Clear(); // don't create a new canvas
 /*	hCutFlow.GetXaxis().SetBinLabel(1,"HLT");

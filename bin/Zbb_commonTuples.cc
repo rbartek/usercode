@@ -152,6 +152,22 @@ bool debug = false;
 	TH1F hMmumu		("hMmumu",  "Invariant Mass of two muons",	75, 0, 200);
 	TH1F hCutFlow	("hCutFlow",  "Selection",					9, 0, 9);
 	TH2F hDphiDetajj("hDphiDetajj", "#Delta#phi vs #Delta#eta JJ", 101, -5, 5, 101, -5, 5);
+	TH1F hJECunc_hjet1_aftercuts	("hJECunc_hjet1_aftercuts","Uncertainty on JEC Higgs Jet 1 ", 101, -75.0, 75);
+	TH1F hJECunc_hjet2_aftercuts	("hJECunc_hjet2_aftercuts","Uncertainty on JEC Higgs Jet 2 ", 101, -75.0, 75);
+	TH1F hJECunc_ajet1_aftercuts	("hJECunc_hjet1_aftercuts","Uncertainty on JEC Additional Jet 1 ", 101, -75.0, 75);
+	TH1F hJECunc_ajet2_aftercuts	("hJECunc_hjet2_aftercuts","Uncertainty on JEC Additional Jet 2 ", 101, -75.0, 75);
+	TH1F hJECunc_ajet3_aftercuts	("hJECunc_hjet3_aftercuts","Uncertainty on JEC Additional Jet 3 ", 101, -75.0, 75);
+	TH1F hJECunc_ajet4_aftercuts	("hJECunc_hjet4_aftercuts","Uncertainty on JEC Additional Jet 4 ", 101, -75.0, 75);
+	TH1F hJECunc_ajet5_aftercuts	("hJECunc_hjet5_aftercuts","Uncertainty on JEC Additional Jet 5 ", 101, -75.0, 75);
+	TH1F hJECunc_ajet6_aftercuts	("hJECunc_hjet6_aftercuts","Uncertainty on JEC Additional Jet 6 ", 101, -75.0, 75);
+	TH1F hJECunc_hjet1	("hJECunc_hjet1","Uncertainty on JEC Higgs Jet 1 ", 101, -75.0, 75);
+	TH1F hJECunc_hjet2	("hJECunc_hjet2","Uncertainty on JEC Higgs Jet 2 ", 101, -75.0, 75);
+	TH1F hJECunc_ajet1	("hJECunc_hjet1","Uncertainty on JEC Additional Jet 1 ", 101, -75.0, 75);
+	TH1F hJECunc_ajet2	("hJECunc_hjet2","Uncertainty on JEC Additional Jet 2 ", 101, -75.0, 75);
+	TH1F hJECunc_ajet3	("hJECunc_hjet3","Uncertainty on JEC Additional Jet 3 ", 101, -75.0, 75);
+	TH1F hJECunc_ajet4	("hJECunc_hjet4","Uncertainty on JEC Additional Jet 4 ", 101, -75.0, 75);
+	TH1F hJECunc_ajet5	("hJECunc_hjet5","Uncertainty on JEC Additional Jet 5 ", 101, -75.0, 75);
+	TH1F hJECunc_ajet6	("hJECunc_hjet6","Uncertainty on JEC Additional Jet 6 ", 101, -75.0, 75);
 	
 	
 if (debug) std::cout << "all histograms declared " << std::endl;
@@ -191,6 +207,17 @@ for (int k=0;k<sample.nhJets;k++){
 			hallhJet_pt.Fill(sample.aJet_pt[a]);
 			njets++; 
 		}
+		
+		if (sample.nhJets > 0) { 
+		hJECunc_hjet1.Fill(sample.hJet_JECUnc[0]);
+		}
+		if (sample.nhJets > 1) { hJECunc_hjet2.Fill(sample.hJet_JECUnc[1]);}
+		if (sample.naJets > 0) { hJECunc_ajet1.Fill(sample.aJet_JECUnc[0]);}
+		if (sample.naJets > 1) { hJECunc_ajet2.Fill(sample.aJet_JECUnc[1]);}
+		if (sample.naJets > 2) { hJECunc_ajet3.Fill(sample.aJet_JECUnc[2]);}
+		if (sample.naJets > 3) { hJECunc_ajet4.Fill(sample.aJet_JECUnc[3]);}
+		if (sample.naJets > 4) { hJECunc_ajet5.Fill(sample.aJet_JECUnc[4]);}
+		if (sample.naJets > 5) { hJECunc_ajet6.Fill(sample.aJet_JECUnc[5]);}
 
 		
 if (event == 11) for (size_t i = 0 ; (i != indexedJetCSV.size()) ; ++i) {cout << "Unsorted jet CSV: " << indexedJetCSV[i].second << endl; }
@@ -248,7 +275,9 @@ if (debug) cout << "done filling histograms for event: " << event << endl;
 
 //Calculate cut efficiencies
 //		if ( (sample.HLT_IsoMu17_v5_trig) || (sample.HLT_IsoMu13_v4_trig) || (sample.HLT_IsoMu15_v4_trig) || (sample.HLT_IsoMu17_v4_trig) || (sample.HLT_IsoMu17_v6_trig) || (sample.HLT_CentralJet80_MET80_trig) || (sample.HLT_pfMHT150_trig) || (sample.HLT_L1_ETM30_trig) || (sample.HLT_MET100_trig) || (sample.HLT_IsoMu17_v8_trig) || (sample.HLT_IsoMu17_v7_trig)  ){
-			if ( (sample.vLepton_pt[0]>20) ){
+			//if ( (sample.vLepton_pt[0]>20) ){
+			// "HLT_IsoMu17_v.*" , #0
+		if (sample.triggerFlags[0]) {
 	N_HLT++;
 	if ((sample.nhJets > 1) && (sample.nvlep > 1)){
 	if (sample.hJet_pt[indexedJetCSV[0].first] >=20 && sample.hJet_pt[indexedJetCSV[1].first] >=20 && sample.vLepton_pt[1] > 20) {
@@ -268,6 +297,14 @@ if (debug) cout << "done filling histograms for event: " << event << endl;
 			   if(sample.nhJets < 4){
 			   N_Naj++;
 			   hMjj_aftercuts.Fill(sample.H_mass);
+				   if (sample.nhJets > 0) { hJECunc_hjet1_aftercuts.Fill(sample.hJet_JECUnc[0]);}
+				   if (sample.nhJets > 1) { hJECunc_hjet2_aftercuts.Fill(sample.hJet_JECUnc[1]);}
+				   if (sample.naJets > 0) { hJECunc_ajet1_aftercuts.Fill(sample.aJet_JECUnc[0]);}
+				   if (sample.naJets > 1) { hJECunc_ajet2_aftercuts.Fill(sample.aJet_JECUnc[1]);}
+				   if (sample.naJets > 2) { hJECunc_ajet3_aftercuts.Fill(sample.aJet_JECUnc[2]);}
+				   if (sample.naJets > 3) { hJECunc_ajet4_aftercuts.Fill(sample.aJet_JECUnc[3]);}
+				   if (sample.naJets > 4) { hJECunc_ajet5_aftercuts.Fill(sample.aJet_JECUnc[4]);}
+				   if (sample.naJets > 5) { hJECunc_ajet6_aftercuts.Fill(sample.aJet_JECUnc[5]);}
 			   if((sample.H_mass>=95)&&(sample.H_mass<=125)){N_Mjj++; }//higgs mass window
 			   }//number of additional Jets cut
 			   }//Delta Phi Cut
@@ -404,7 +441,58 @@ std::cout << "Number of Events Passing the Selection: " << N_Mjj << endl;
 	hMjj_aftercuts.Draw();
 	c1.Print((directory+"/Mjj_aftercuts"+suffixps).c_str());	
 	
-
+	c1.Clear(); // don't create a new canvas
+	hJECunc_hjet1_aftercuts.Draw();
+	c1.Print((directory+"/JECunc_hjet1_aftercuts"+suffixps).c_str());	
+	c1.Clear(); // don't create a new canvas
+	hJECunc_hjet2_aftercuts.Draw();
+	c1.Print((directory+"/JECunc_hjet2_aftercuts"+suffixps).c_str());	
+	c1.Clear(); // don't create a new canvas
+	hJECunc_ajet1_aftercuts.Draw();
+	c1.Print((directory+"/JECunc_ajet1_aftercuts"+suffixps).c_str());	
+	c1.Clear(); // don't create a new canvas
+	hJECunc_ajet2_aftercuts.Draw();
+	c1.Print((directory+"/JECunc_ajet2_aftercuts"+suffixps).c_str());	
+	c1.Clear(); // don't create a new canvas
+	hJECunc_ajet6_aftercuts.Draw();
+	c1.Print((directory+"/JECunc_ajet6_aftercuts"+suffixps).c_str());	
+	c1.Clear(); // don't create a new canvas
+	hJECunc_ajet3_aftercuts.Draw();
+	c1.Print((directory+"/JECunc_ajet3_aftercuts"+suffixps).c_str());	
+	c1.Clear(); // don't create a new canvas
+	hJECunc_ajet4_aftercuts.Draw();
+	c1.Print((directory+"/JECunc_ajet4_aftercuts"+suffixps).c_str());	
+	c1.Clear(); // don't create a new canvas
+	hJECunc_ajet5_aftercuts.Draw();
+	c1.Print((directory+"/JECunc_ajet5_aftercuts"+suffixps).c_str());	
+	
+	c1.Clear(); // don't create a new canvas
+	hJECunc_hjet1.Draw();
+	c1.Print((directory+"/JECunc_hjet1"+suffixps).c_str());	
+	c1.Clear(); // don't create a new canvas
+	hJECunc_hjet2.Draw();
+	c1.Print((directory+"/JECunc_hjet2"+suffixps).c_str());	
+	c1.Clear(); // don't create a new canvas
+	hJECunc_ajet1.Draw();
+	c1.Print((directory+"/JECunc_ajet1"+suffixps).c_str());	
+	c1.Clear(); // don't create a new canvas
+	hJECunc_ajet2.Draw();
+	c1.Print((directory+"/JECunc_ajet2"+suffixps).c_str());	
+	c1.Clear(); // don't create a new canvas
+	hJECunc_ajet3.Draw();
+	c1.Print((directory+"/JECunc_ajet3"+suffixps).c_str());	
+	c1.Clear(); // don't create a new canvas
+	hJECunc_ajet4.Draw();
+	c1.Print((directory+"/JECunc_ajet4"+suffixps).c_str());	
+	c1.Clear(); // don't create a new canvas
+	hJECunc_ajet5.Draw();
+	c1.Print((directory+"/JECunc_ajet5"+suffixps).c_str());	
+	c1.Clear(); // don't create a new canvas
+	hJECunc_ajet6.Draw();
+	c1.Print((directory+"/JECunc_ajet6"+suffixps).c_str());	
+	
+	
+	
 	c1.Clear(); // don't create a new canvas
 /*	hCutFlow.GetXaxis().SetBinLabel(1,"HLT");
 	hCutFlow.GetXaxis().SetBinLabel(2,"PreSelection");

@@ -1,5 +1,5 @@
 #
-# $Id: BuildFile,v 1.2 2011/10/20 19:32:10 wilken Exp $
+# $Id: BuildFile,v 1.3 2011/10/20 21:24:26 wilken Exp $
 #
 # Package  : UserCode/wilken
 # Filename : bin/BuildFile
@@ -18,6 +18,11 @@
     <use name=UserCode/wilken>
 </bin>
 <bin name=Zbb_minituples file=Zbb_minituples.cc>
+    <use name=root>
+    <use name=rootgraphics>
+    <use name=UserCode/wilken>
+</bin>
+<bin name=Zbb_commonTuples file=Zbb_commonTuples.cc>
     <use name=root>
     <use name=rootgraphics>
     <use name=UserCode/wilken>

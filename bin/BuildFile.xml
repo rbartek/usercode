@@ -13,6 +13,11 @@
   <use   name="rootgraphics"/>
   <use   name="UserCode/wilken"/>
 </bin>
+<bin   name="Zbb_commonTuples" file="Zbb_commonTuples.cc">
+  <use   name="root"/>
+  <use   name="rootgraphics"/>
+  <use   name="UserCode/wilken"/>
+</bin>
 <bin   name="exampleSort" file="exampleSort.cc">
   <use   name="root"/>
   <use   name="rootgraphics"/>

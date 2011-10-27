@@ -20,7 +20,7 @@
 
     @date Thu Oct 20 2011
 
-    @version $Id: exampleSort.cc,v 1.1 2011/10/20 19:32:10 wilken Exp $
+    @version $Id: exampleSort.cc,v 1.2 2011/10/20 19:33:58 wilken Exp $
  */
 
 
@@ -132,7 +132,7 @@ if (debug) std::cout << "all histograms declared " << std::endl;
     // For other methods to access event/navigate through the sample,
     // see the documentation of RootTreeReader class.
 	int event =0;
-	double Zmass = 91.1976;
+//	double Zmass = 91.1976;
 
 
     do {

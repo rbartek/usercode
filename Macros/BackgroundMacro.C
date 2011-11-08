@@ -70,8 +70,8 @@ TString plot = directory+"somereallylongnameherehopethisarrayisbiggenough"+suffi
     TH1F* hCSV1_ZZ_Zbb			= (TH1F*) ZZ_Zbb->Get("hCSV1");
     TH1F* hCSV2_ZZ_Zbb			= (TH1F*) ZZ_Zbb->Get("hCSV2");
     TH1F* hdphiVH_ZZ_Zbb		= (TH1F*) ZZ_Zbb->Get("hdphiVH");
-    TH1F* hdetaJJ_ZZ_Zbb		= (TH1F*) DY_Zbb->Get("hdetaJJ");
-    TH1F* hdphiJJ_ZZ_Zbb		= (TH1F*) DY_Zbb->Get("hdphiJJ");
+    TH1F* hdetaJJ_ZZ_Zbb		= (TH1F*) ZZ_Zbb->Get("hdetaJJ");
+    TH1F* hdphiJJ_ZZ_Zbb		= (TH1F*) ZZ_Zbb->Get("hdphiJJ");
     TH1F* hNaj_ZZ_Zbb			= (TH1F*) ZZ_Zbb->Get("hNaj");
     TH1F* hMmumu_ZZ_Zbb			= (TH1F*) ZZ_Zbb->Get("hMmumu");
     TH1F* hMjj_ZZ_Zbb			= (TH1F*) ZZ_Zbb->Get("hMjj");
@@ -138,7 +138,7 @@ TString plot = directory+"somereallylongnameherehopethisarrayisbiggenough"+suffi
      hMmumu_ZZ_Zbb		->Scale(ZZ_weight);
      hMjj_ZZ_Zbb			->Scale(ZZ_weight);
      hCutFlow_ZZ_Zbb		->Scale(ZZ_weight);
-	 hDphiDetajj_ZZ_Zbb->Scale(DY_weight);
+	 hDphiDetajj_ZZ_Zbb->Scale(ZZ_weight);
 	
      hjetCSV3_DY_Zbb	->Scale(DY_weight);
      hjetPt3_DY_Zbb		->Scale(DY_weight);

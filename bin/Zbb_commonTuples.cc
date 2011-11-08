@@ -109,29 +109,13 @@ bool debug = false;
     // use the non-pointer type (TH1F) of ROOT object.
 
 	//Declare Histograms
-	TH1F *hhJet_pt[9];
-	TH1F *hjetCSV[9];
-
-	string Num[10];
-	Num[0] = "0";
-	Num[1] = "1";
-	Num[2] = "2";
-	Num[3] = "3";
-	Num[4] = "4";
-	Num[5] = "5";
-	Num[6] = "6";
-	Num[7] = "7";
-	Num[8] = "8"; 
-	Num[9] = "9";
-
-	for (int i=0; i<9; i++){
-		hhJet_pt[i] = new TH1F(("hJet_pt"+Num[i]).c_str(), ("p_{T} of Jet " +Num[i]+"(ordered in p_{T})").c_str(), 100, 0., 200.);
-		hjetCSV[i] = new TH1F(("jetCSV"+Num[i]).c_str(), ("CSV of Jet " +Num[i]+"(ordered in CSV)").c_str(), 50, -0.5, 1.3);
-	}// end i loop
 
     TH1F hnJets ("hnJets",  "Number of Good Jets", 11, -0.5, 10.5);
     TH1F hnMuons  ("hnMuons","Number of Good Muons", 6, -0.5, 5.5);
+    TH1F hnSV  ("hnSV","Number of Secondary Verticies", 6, -0.5, 5.5);
+    TH1F hnPV  ("hnPV","Number of Primary Verticies", 6, -0.5, 5.5);
     TH1F hallhJet_pt  ("hallhJet_pt","Pt of all jets in event",		150, 0.0, 150);
+    TH1F hMET		("hMET","Missing Et",		150, 0.0, 150);
     TH1F hPtb1		("hPtb1","Pt b jet with highest CSV",		150, 0.0, 150);
     TH1F hPtb2		("hPtb2","Pt b jet with second highest CSV", 150, 0.0, 150);
 	TH1F hPtjj		("hPtjj","Pt of two b jets with highest CSV", 300, 0.0, 300);
@@ -141,6 +125,8 @@ bool debug = false;
 	TH1F hPtmu2		("hPtmu2","Pt of muon with second highest pt", 75, 0.0, 150);
 	TH1F hEtamu1		("hEtamu1","Eta of muon with highest pt", 75, -3, 3);
 	TH1F hEtamu2		("hEtamu2","Eta of muon with second highest pt", 75, -3, 3);
+	TH1F hPFRelIsomu1		("hPFRelIsomu1","PF Rel Iso of muon with highest pt", 101, 0.0001, 0.2);
+	TH1F hPFRelIsomu2		("hPFRelIsomu2","Pf Rel Iso of muon with second highest pt", 101, 0.0001, 0.2);	
 	TH1F hCSV1		("hCSV1","Jet with highest CSV",			50, -0.1, 1.2);
 	TH1F hCSV2		("hCSV2","Jet with second highest CSV",		50, -0.1, 1.2);
 	TH1F hdphiVH	("hdphiVH","Delta phi between Z and Higgs", 50, -3.5, 3.5);
@@ -150,25 +136,8 @@ bool debug = false;
 	TH1F hMjj		("hMjj",  "Invariant Mass of two Jets",		75, 0, 200);
 	TH1F hMjj_aftercuts		("hMjj_aftercuts",  "Invariant Mass of two Jets After Cuts",		75, 0, 200);
 	TH1F hMmumu		("hMmumu",  "Invariant Mass of two muons",	75, 0, 200);
-	TH1F hCutFlow	("hCutFlow",  "Selection",					9, 0, 9);
+	TH1F hCutFlow	("hCutFlow",  "Selection",					8, 0, 8);
 	TH2F hDphiDetajj("hDphiDetajj", "#Delta#phi vs #Delta#eta JJ", 101, -5, 5, 101, -5, 5);
-	TH1F hJECunc_hjet1_aftercuts	("hJECunc_hjet1_aftercuts","Uncertainty on JEC Higgs Jet 1 ", 101, -75.0, 75);
-	TH1F hJECunc_hjet2_aftercuts	("hJECunc_hjet2_aftercuts","Uncertainty on JEC Higgs Jet 2 ", 101, -75.0, 75);
-	TH1F hJECunc_ajet1_aftercuts	("hJECunc_hjet1_aftercuts","Uncertainty on JEC Additional Jet 1 ", 101, -75.0, 75);
-	TH1F hJECunc_ajet2_aftercuts	("hJECunc_hjet2_aftercuts","Uncertainty on JEC Additional Jet 2 ", 101, -75.0, 75);
-	TH1F hJECunc_ajet3_aftercuts	("hJECunc_hjet3_aftercuts","Uncertainty on JEC Additional Jet 3 ", 101, -75.0, 75);
-	TH1F hJECunc_ajet4_aftercuts	("hJECunc_hjet4_aftercuts","Uncertainty on JEC Additional Jet 4 ", 101, -75.0, 75);
-	TH1F hJECunc_ajet5_aftercuts	("hJECunc_hjet5_aftercuts","Uncertainty on JEC Additional Jet 5 ", 101, -75.0, 75);
-	TH1F hJECunc_ajet6_aftercuts	("hJECunc_hjet6_aftercuts","Uncertainty on JEC Additional Jet 6 ", 101, -75.0, 75);
-	TH1F hJECunc_hjet1	("hJECunc_hjet1","Uncertainty on JEC Higgs Jet 1 ", 101, -75.0, 75);
-	TH1F hJECunc_hjet2	("hJECunc_hjet2","Uncertainty on JEC Higgs Jet 2 ", 101, -75.0, 75);
-	TH1F hJECunc_ajet1	("hJECunc_hjet1","Uncertainty on JEC Additional Jet 1 ", 101, -75.0, 75);
-	TH1F hJECunc_ajet2	("hJECunc_hjet2","Uncertainty on JEC Additional Jet 2 ", 101, -75.0, 75);
-	TH1F hJECunc_ajet3	("hJECunc_hjet3","Uncertainty on JEC Additional Jet 3 ", 101, -75.0, 75);
-	TH1F hJECunc_ajet4	("hJECunc_hjet4","Uncertainty on JEC Additional Jet 4 ", 101, -75.0, 75);
-	TH1F hJECunc_ajet5	("hJECunc_hjet5","Uncertainty on JEC Additional Jet 5 ", 101, -75.0, 75);
-	TH1F hJECunc_ajet6	("hJECunc_hjet6","Uncertainty on JEC Additional Jet 6 ", 101, -75.0, 75);
-	
 	
 if (debug) std::cout << "all histograms declared " << std::endl;
 
@@ -177,7 +146,7 @@ if (debug) std::cout << "all histograms declared " << std::endl;
     // For other methods to access event/navigate through the sample,
     // see the documentation of RootTreeReader class.
 	int event =0, Npreselect =0, NpT_jj =0, NpT_Z =0, NCSV1 =0, NCSV2 =0;
-	int NdPhi =0, N_Naj =0, N_Mjj =0, N_HLT =0;
+	int NdPhi =0, N_Naj =0, N_Mjj =0;
 //	double Zmass = 91.1976;
 
 
@@ -207,17 +176,6 @@ for (int k=0;k<sample.nhJets;k++){
 			hallhJet_pt.Fill(sample.aJet_pt[a]);
 			njets++; 
 		}
-		
-		if (sample.nhJets > 0) { 
-		hJECunc_hjet1.Fill(sample.hJet_JECUnc[0]);
-		}
-		if (sample.nhJets > 1) { hJECunc_hjet2.Fill(sample.hJet_JECUnc[1]);}
-		if (sample.naJets > 0) { hJECunc_ajet1.Fill(sample.aJet_JECUnc[0]);}
-		if (sample.naJets > 1) { hJECunc_ajet2.Fill(sample.aJet_JECUnc[1]);}
-		if (sample.naJets > 2) { hJECunc_ajet3.Fill(sample.aJet_JECUnc[2]);}
-		if (sample.naJets > 3) { hJECunc_ajet4.Fill(sample.aJet_JECUnc[3]);}
-		if (sample.naJets > 4) { hJECunc_ajet5.Fill(sample.aJet_JECUnc[4]);}
-		if (sample.naJets > 5) { hJECunc_ajet6.Fill(sample.aJet_JECUnc[5]);}
 
 		
 if (event == 11) for (size_t i = 0 ; (i != indexedJetCSV.size()) ; ++i) {cout << "Unsorted jet CSV: " << indexedJetCSV[i].second << endl; }
@@ -231,17 +189,10 @@ for (size_t i = 0 ; (i != indexedJetCSV.size()) ; ++i) {   CSVSortedJetIndex.pus
 if (event == 11) for (size_t i = 0 ; (i != indexedJetCSV.size()) ; ++i) {cout << "Sorted jet CSV: " << indexedJetCSV[i].second << endl; }
 		
 //double dPhiVH = deltaphi(sample.H_phi, sample.V_phi);
-		
-for (size_t i = 0 ; i != indexedJetCSV.size() && i != indexedJetPt.size() && (i < 8); ++i) {
-				hhJet_pt[i+1]->Fill(sample.hJet_pt[indexedJetPt[i].first]);
-				hjetCSV[i+1]->Fill(sample.hJet_csv[indexedJetCSV[i].first]);
-			}
-	if (debug) cout << "Array of Histograms Filled " << endl;
-		
+				
 double dummy = -99.99;		
 		if (sample.nhJets > 1) { 
 		if (sample.hJet_csv[1] > -1) { 	
-//		dummy = sample.hJet_pt[indexedJetCSV[0].first];
 		hPtb1.Fill(dummy);
 			hPtb1.Fill(sample.hJet_pt[indexedJetCSV[0].first]);
 			hPtb2.Fill(sample.hJet_pt[indexedJetCSV[1].first]);
@@ -253,6 +204,8 @@ double dummy = -99.99;
 		}
 			hMjj.Fill(sample.H_mass);
 		    hPtjj.Fill(sample.H_pt);
+			
+			if ((sample.vLepton_type[0] == 13) && (sample.vLepton_type[1] == 13)){
 			if (sample.nvlep > 1) {
 			hdphiVH.Fill(sample.HVdPhi);	
 			hPtbalZH.Fill(sample.H_pt-sample.V_pt);
@@ -261,24 +214,24 @@ double dummy = -99.99;
 	if (debug) cout << "halfway through filling histos" << endl;
 		if (sample.nhJets > -1) { hnJets.Fill(njets); }
 		if (sample.nvlep > -1) { hnMuons.Fill(sample.nvlep); }
+		hnSV.Fill(sample.nSvs);
+		hnPV.Fill(sample.nPVs);
 		hNaj.Fill(sample.naJets);
+		hMET.Fill(sample.MET_sumet);
 		if (sample.nvlep > 1) {
 		hMmumu.Fill(sample.V_mass);
 		hPtmumu.Fill(sample.V_pt);
 			hPtmu1.Fill(sample.vLepton_pt[0]);
 			hPtmu2.Fill(sample.vLepton_pt[1]);		
 			hEtamu1.Fill(sample.vLepton_eta[0]);
-			hEtamu2.Fill(sample.vLepton_eta[1]);		
+			hEtamu2.Fill(sample.vLepton_eta[1]);
+			hPFRelIsomu1.Fill(sample.vLepton_pfCombRelIso[0]);
+			hPFRelIsomu2.Fill(sample.vLepton_pfCombRelIso[1]);
 		}
 
 if (debug) cout << "done filling histograms for event: " << event << endl;
 
 //Calculate cut efficiencies
-//		if ( (sample.HLT_IsoMu17_v5_trig) || (sample.HLT_IsoMu13_v4_trig) || (sample.HLT_IsoMu15_v4_trig) || (sample.HLT_IsoMu17_v4_trig) || (sample.HLT_IsoMu17_v6_trig) || (sample.HLT_CentralJet80_MET80_trig) || (sample.HLT_pfMHT150_trig) || (sample.HLT_L1_ETM30_trig) || (sample.HLT_MET100_trig) || (sample.HLT_IsoMu17_v8_trig) || (sample.HLT_IsoMu17_v7_trig)  ){
-			//if ( (sample.vLepton_pt[0]>20) ){
-			// "HLT_IsoMu17_v.*" , #0
-		if (sample.triggerFlags[0]) {
-	N_HLT++;
 	if ((sample.nhJets > 1) && (sample.nvlep > 1)){
 	if (sample.hJet_pt[indexedJetCSV[0].first] >=20 && sample.hJet_pt[indexedJetCSV[1].first] >=20 && sample.vLepton_pt[1] > 20) {
 		if (sample.hJet_csv[indexedJetCSV[0].first] > -1 && sample.hJet_csv[indexedJetCSV[1].first] > -1 ){
@@ -297,14 +250,6 @@ if (debug) cout << "done filling histograms for event: " << event << endl;
 			   if(sample.nhJets < 4){
 			   N_Naj++;
 			   hMjj_aftercuts.Fill(sample.H_mass);
-				   if (sample.nhJets > 0) { hJECunc_hjet1_aftercuts.Fill(sample.hJet_JECUnc[0]);}
-				   if (sample.nhJets > 1) { hJECunc_hjet2_aftercuts.Fill(sample.hJet_JECUnc[1]);}
-				   if (sample.naJets > 0) { hJECunc_ajet1_aftercuts.Fill(sample.aJet_JECUnc[0]);}
-				   if (sample.naJets > 1) { hJECunc_ajet2_aftercuts.Fill(sample.aJet_JECUnc[1]);}
-				   if (sample.naJets > 2) { hJECunc_ajet3_aftercuts.Fill(sample.aJet_JECUnc[2]);}
-				   if (sample.naJets > 3) { hJECunc_ajet4_aftercuts.Fill(sample.aJet_JECUnc[3]);}
-				   if (sample.naJets > 4) { hJECunc_ajet5_aftercuts.Fill(sample.aJet_JECUnc[4]);}
-				   if (sample.naJets > 5) { hJECunc_ajet6_aftercuts.Fill(sample.aJet_JECUnc[5]);}
 			   if((sample.H_mass>=95)&&(sample.H_mass<=125)){N_Mjj++; }//higgs mass window
 			   }//number of additional Jets cut
 			   }//Delta Phi Cut
@@ -316,12 +261,10 @@ if (debug) cout << "done filling histograms for event: " << event << endl;
 	}//preselection CSV not -1
 	}// preselection pt requirement
 }// preselection number of muons/jets requirement
-	}//trigger requirement
 
-
+		}//end requirement muon not electron
     } while (sample.nextEvent());
 if (debug){	std::cout << "Number of events " << event << endl;}
-std::cout << "HLT: " << N_HLT << endl;
 std::cout << "PreSelection: " << Npreselect << endl;
 std::cout << "pT_jj: " << NpT_jj << endl;
 std::cout << "pT_Z: " << NpT_Z << endl;
@@ -346,24 +289,21 @@ std::cout << "Number of Events Passing the Selection: " << N_Mjj << endl;
     hnMuons.Draw();
     c1.Print((directory+"/nMuons"+suffixps).c_str());
 	
-    
-	for (int a=1; a<9; a++){
-		hhJet_pt[a]->Draw();
-		hhJet_pt[a]->Write();
-		c1.Print((directory+"/JetPt"+Num[a]+suffixps).c_str());
-		c1.Clear();
-
-		hjetCSV[a]->Draw();
-		hjetCSV[a]->Write();
-		c1.Print((directory+"/JetCSV"+Num[a]+suffixps).c_str());
-		c1.Clear();
-
-	}//end loop a
-
-
+	c1.Clear(); // don't create a new canvas
+    hnSV.Draw();
+    c1.Print((directory+"/nSV"+suffixps).c_str());
+	
+	c1.Clear(); // don't create a new canvas
+    hnPV.Draw();
+    c1.Print((directory+"/nPV"+suffixps).c_str());
+	
     c1.Clear(); // don't create a new canvas
     hallhJet_pt.Draw();
     c1.Print((directory+"/PtAllJets"+suffixps).c_str());
+	
+	c1.Clear(); // don't create a new canvas
+    hMET.Draw();
+    c1.Print((directory+"/MET"+suffixps).c_str());	
 
     c1.Clear(); // don't create a new canvas
     hPtb1.Draw();
@@ -396,6 +336,14 @@ std::cout << "Number of Events Passing the Selection: " << N_Mjj << endl;
 	c1.Clear(); // don't create a new canvas
     hEtamu2.Draw();
     c1.Print((directory+"/Etamu2"+suffixps).c_str());
+	
+	c1.Clear(); // don't create a new canvas
+    hPFRelIsomu1.Draw();
+    c1.Print((directory+"/PFRelIsomu1"+suffixps).c_str());
+
+	c1.Clear(); // don't create a new canvas
+    hPFRelIsomu2.Draw();
+    c1.Print((directory+"/PFRelIsomu2"+suffixps).c_str());
 	
 	c1.Clear(); // don't create a new canvas
     hCSV1.Draw();
@@ -439,79 +387,25 @@ std::cout << "Number of Events Passing the Selection: " << N_Mjj << endl;
 
 	c1.Clear(); // don't create a new canvas
 	hMjj_aftercuts.Draw();
-	c1.Print((directory+"/Mjj_aftercuts"+suffixps).c_str());	
+	c1.Print((directory+"/Mjj_aftercuts"+suffixps).c_str());
 	
 	c1.Clear(); // don't create a new canvas
-	hJECunc_hjet1_aftercuts.Draw();
-	c1.Print((directory+"/JECunc_hjet1_aftercuts"+suffixps).c_str());	
-	c1.Clear(); // don't create a new canvas
-	hJECunc_hjet2_aftercuts.Draw();
-	c1.Print((directory+"/JECunc_hjet2_aftercuts"+suffixps).c_str());	
-	c1.Clear(); // don't create a new canvas
-	hJECunc_ajet1_aftercuts.Draw();
-	c1.Print((directory+"/JECunc_ajet1_aftercuts"+suffixps).c_str());	
-	c1.Clear(); // don't create a new canvas
-	hJECunc_ajet2_aftercuts.Draw();
-	c1.Print((directory+"/JECunc_ajet2_aftercuts"+suffixps).c_str());	
-	c1.Clear(); // don't create a new canvas
-	hJECunc_ajet6_aftercuts.Draw();
-	c1.Print((directory+"/JECunc_ajet6_aftercuts"+suffixps).c_str());	
-	c1.Clear(); // don't create a new canvas
-	hJECunc_ajet3_aftercuts.Draw();
-	c1.Print((directory+"/JECunc_ajet3_aftercuts"+suffixps).c_str());	
-	c1.Clear(); // don't create a new canvas
-	hJECunc_ajet4_aftercuts.Draw();
-	c1.Print((directory+"/JECunc_ajet4_aftercuts"+suffixps).c_str());	
-	c1.Clear(); // don't create a new canvas
-	hJECunc_ajet5_aftercuts.Draw();
-	c1.Print((directory+"/JECunc_ajet5_aftercuts"+suffixps).c_str());	
-	
-	c1.Clear(); // don't create a new canvas
-	hJECunc_hjet1.Draw();
-	c1.Print((directory+"/JECunc_hjet1"+suffixps).c_str());	
-	c1.Clear(); // don't create a new canvas
-	hJECunc_hjet2.Draw();
-	c1.Print((directory+"/JECunc_hjet2"+suffixps).c_str());	
-	c1.Clear(); // don't create a new canvas
-	hJECunc_ajet1.Draw();
-	c1.Print((directory+"/JECunc_ajet1"+suffixps).c_str());	
-	c1.Clear(); // don't create a new canvas
-	hJECunc_ajet2.Draw();
-	c1.Print((directory+"/JECunc_ajet2"+suffixps).c_str());	
-	c1.Clear(); // don't create a new canvas
-	hJECunc_ajet3.Draw();
-	c1.Print((directory+"/JECunc_ajet3"+suffixps).c_str());	
-	c1.Clear(); // don't create a new canvas
-	hJECunc_ajet4.Draw();
-	c1.Print((directory+"/JECunc_ajet4"+suffixps).c_str());	
-	c1.Clear(); // don't create a new canvas
-	hJECunc_ajet5.Draw();
-	c1.Print((directory+"/JECunc_ajet5"+suffixps).c_str());	
-	c1.Clear(); // don't create a new canvas
-	hJECunc_ajet6.Draw();
-	c1.Print((directory+"/JECunc_ajet6"+suffixps).c_str());	
-	
-	
-	
-	c1.Clear(); // don't create a new canvas
-/*	hCutFlow.GetXaxis().SetBinLabel(1,"HLT");
-	hCutFlow.GetXaxis().SetBinLabel(2,"PreSelection");
-	hCutFlow.GetXaxis().SetBinLabel(3,"p_{T}(jj)");
-	hCutFlow.GetXaxis().SetBinLabel(4,"p_{T}(Z)");
-	hCutFlow.GetXaxis().SetBinLabel(5,"CSV1");
-	hCutFlow.GetXaxis().SetBinLabel(6,"CSV2");
-	hCutFlow.GetXaxis().SetBinLabel(7,"#Delta#phi");
-	hCutFlow.GetXaxis().SetBinLabel(8,"N_{aj}");
-	hCutFlow.GetXaxis().SetBinLabel(9,"M_{jj}");*/
-	hCutFlow.SetBinContent(1,N_HLT );
-	hCutFlow.SetBinContent(2,Npreselect );
-	hCutFlow.SetBinContent(3,NpT_jj );
-	hCutFlow.SetBinContent(4,NpT_Z );
-	hCutFlow.SetBinContent(5,NCSV1 );
-	hCutFlow.SetBinContent(6,NCSV2 );
-	hCutFlow.SetBinContent(7,NdPhi );
-	hCutFlow.SetBinContent(8,N_Naj );
-	hCutFlow.SetBinContent(9,N_Mjj );
+/*	hCutFlow.GetXaxis().SetBinLabel(1,"PreSelection");
+	hCutFlow.GetXaxis().SetBinLabel(2,"p_{T}(jj)");
+	hCutFlow.GetXaxis().SetBinLabel(3,"p_{T}(Z)");
+	hCutFlow.GetXaxis().SetBinLabel(4,"CSV1");
+	hCutFlow.GetXaxis().SetBinLabel(5,"CSV2");
+	hCutFlow.GetXaxis().SetBinLabel(6,"#Delta#phi");
+	hCutFlow.GetXaxis().SetBinLabel(7,"N_{aj}");
+	hCutFlow.GetXaxis().SetBinLabel(8,"M_{jj}");*/
+	hCutFlow.SetBinContent(1,Npreselect );
+	hCutFlow.SetBinContent(2,NpT_jj );
+	hCutFlow.SetBinContent(3,NpT_Z );
+	hCutFlow.SetBinContent(4,NCSV1 );
+	hCutFlow.SetBinContent(5,NCSV2 );
+	hCutFlow.SetBinContent(6,NdPhi );
+	hCutFlow.SetBinContent(7,N_Naj );
+	hCutFlow.SetBinContent(8,N_Mjj );
 	hCutFlow.Draw();
 	c1.Print((directory+"/CutFlow"+suffixps).c_str());
 	

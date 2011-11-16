@@ -1,0 +1,17 @@
+#
+# $Id: BuildFile,v 1.1 2011/10/19 wilken $
+#
+# Package  : UserCode/wilken
+# Filename : BuildFile
+# Author   : Rachel Wilken <rachel.wilken@cern.ch>
+# Purpose  : CMSSW BuildFile for my personal "wiken" package.
+#
+
+<use name=root>
+<use name=CommonTools/Utils>
+<use name=PhysicsTools/CandUtils>
+<use name=haryo/RootTreeReader>
+<export>
+   <lib name=UserCodewilken>
+</export>
+

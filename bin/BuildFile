@@ -1,11 +1,12 @@
 #
-# $Id: BuildFile,v 1.3 2011/10/20 21:24:26 wilken Exp $
+# $Id: BuildFile,v 1.4 2011/10/27 15:20:16 wilken Exp $
 #
 # Package  : UserCode/wilken
 # Filename : bin/BuildFile
 # Author   : Rachel Wilken <rachel.wilken@cern.ch>
 # Purpose  : CMSSW BuildFile for executable in the wilken package
 #
+<use name=PhysicsTools/CandUtils>
 
 <bin name=templateAnalysis file=templateAnalysis.cc>
     <use name=root>

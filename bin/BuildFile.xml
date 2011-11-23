@@ -24,3 +24,8 @@
   <use   name="rootgraphics"/>
   <use   name="UserCode/wilken"/>
 </bin>
+<bin   name="Zbb_tree" file="Zbb_tree.cc">
+  <use   name="root"/>
+  <use   name="rootgraphics"/>
+  <use   name="UserCode/wilken"/>
+</bin>

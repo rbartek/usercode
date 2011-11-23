@@ -5,7 +5,7 @@
 
     \verbatim
     mkdir [directoryName]
-    exampleAnalysis <inputfile> [outputfilename] [directoryName]
+    Zbb_tree <inputfile> [outputfilename] [directoryName]
     \endverbatim
 
     @param inputfile Either a ROOT file or an ASCII file containing list of
@@ -16,13 +16,43 @@
 
     @author Rachel Wilken <rachel.wilken@cern.ch>
 
-    @date Thu Oct 20 2011
+    @date Thu Nov 17 2011
 
  */
 
-#include "Zbb_commonTuples.h"
+
+#include <UserCode/wilken/interface/treeReader.h>
+#include <UserCode/wilken/interface/GenericTool.h>
+#include "PhysicsTools/CandUtils/interface/EventShapeVariables.h"
+
+#include <string>
+#include <iostream>
+#include <vector>
+#include <algorithm>
+#include <map>
+
+#include "TLorentzVector.h"
+#include "TVector3.h"
+#include "TMath.h"
+
+#include <TFile.h>
+#include <TH1.h>
+#include <TH2.h>
+#include <TTree.h>
+#include <TCanvas.h>
+#include "TString.h"
+#include <TStyle.h>
 
 using namespace std;
+
+double deltaphi(double phi1, double phi2) {
+	double result = phi1 - phi2;
+	const double mypi  = 3.141592653589;
+    while (result > mypi) result -= 2*mypi;
+    while (result <= -mypi) result += 2*mypi;
+    return result;	
+}// end deltaphi function
+
 
 int main(int argc, char** argv) {
 
@@ -52,7 +82,7 @@ int main(int argc, char** argv) {
     // Create the treeReader object.
     treeReader sample(ifilename,
                                      std::string("tree"));
-    double weight = SetWeight(ifilename);
+
     // If the input file(s) doesn't contain any event, exit.
     if (!(sample.readEvent(0))) {
         return 0;
@@ -75,6 +105,31 @@ int main(int argc, char** argv) {
               << std::endl ;
     std::cout << "The tree name  is: " << sample.treeName()  << std::endl;
     std::cout << "The tree title is: " << sample.treeTitle() << std::endl;
+	
+TTree *TMVA_tree = new TTree("TMVA_tree","Tree for TMVA input");
+	int njets;
+	float CSV1, CSV2, Zmass, Hmass, DeltaPhiHV, Hpt, Zpt; 
+	float mu1pt, Ht, EtaStandDev, UnweightedEta, EvntShpCircularity;
+	float alpha_j, qtb1,DphiJJ, nSV, Trigweight; 
+	TMVA_tree->Branch("nJets",&njets, "nJets/I");
+	TMVA_tree->Branch("CSV1",&CSV1, "CSV1/F");
+	TMVA_tree->Branch("CSV2",&CSV2, "CSV2/F");
+	TMVA_tree->Branch("Zmass",&Zmass, "Zmass/F");
+	TMVA_tree->Branch("Hmass",&Hmass, "Hmass/F");
+	TMVA_tree->Branch("DeltaPhiHV",&DeltaPhiHV, "DeltaPhiHV/F");
+	TMVA_tree->Branch("Hpt",&Hpt, "Hpt/F");
+	TMVA_tree->Branch("Zpt",&Zpt, "Zpt/F");
+	TMVA_tree->Branch("mu1pt",&mu1pt, "mu1pt/F");
+	TMVA_tree->Branch("Ht",&Ht, "Ht/F");
+	TMVA_tree->Branch("EtaStandDev",&EtaStandDev, "EtaStandDev/F");
+	TMVA_tree->Branch("UnweightedEta",&UnweightedEta, "UnweightedEta/F");
+	TMVA_tree->Branch("EvntShpCircularity",&EvntShpCircularity, "EvntShpCircularity/F");
+	TMVA_tree->Branch("alpha_j",&alpha_j, "alpha_j/F");
+	TMVA_tree->Branch("qtb1",&qtb1, "qtb1/F");
+	TMVA_tree->Branch("nSV",&nSV, "nSV/I");
+	TMVA_tree->Branch("Trigweight",&Trigweight, "Trigweight/F");
+
+						  
 
 bool debug = false;	
 
@@ -220,7 +275,7 @@ if (debug) std::cout << "all histograms declared " << std::endl;
     // For other methods to access event/navigate through the sample,
     // see the documentation of RootTreeReader class.
 	int event =0, Npreselect =0, NpT_jj =0, NpT_Z =0, NCSV1 =0, NCSV2 =0;
-	int NdPhi =0, N_Naj =0, N_Mjj =0, HLT =0;
+	int NdPhi =0, N_Naj =0, N_Mjj =0;
 //	double Zmass = 91.1976;
 
 
@@ -238,10 +293,13 @@ event++;
         // Analysis loop.
         // One can access the ntuple leaves directly from sample object
 
-int njets =0;
+njets =0, nSV =0;
+CSV1 = -1.0, CSV2 = -1.0, Zmass = -99.99, Hmass = -99.99, DeltaPhiHV = -99.99, Hpt = -99.99, Zpt = -99.99;
+mu1pt = -99.99, Ht = -99.99, EtaStandDev = -99.99, UnweightedEta = -99.99, EvntShpCircularity = -99.99;
+alpha_j = -99.99, qtb1 = 0.0, DphiJJ = -99.99, Trigweight = 1.0;
 		double RMS_eta = -99.99;
 		double StandDevEta[4];
-		double UnweightedEta = -99.99, AverageEta = -99.99;
+		double AverageEta = -99.99;
 		TLorentzVector FirstJet;
 		TLorentzVector SecondJet;
 		TLorentzVector FirstMuon;
@@ -249,11 +307,10 @@ int njets =0;
 		TLorentzVector Higgs;
 		TLorentzVector ZBoson;
 		TLorentzVector HVsystem;
-		double Ht = -99.99; 
-		double alpha_mu = -99.99, alpha_j = -99.99;
+		double alpha_mu = -99.99;
 		double plmu1 = 0.0, plmu2 = 0.0 , qtmu1 = 0.0, qtmu2 = 0.0;
-		double plb1 = 0.0, plb2 = 0.0 , qtb1 = 0.0, qtb2 = 0.0;
-		double EvntShpAplanarity = -99.99, EvntShpSphericity = -99.99, EvntShpCircularity = -99.99, EvntShpIsotropy = -99.99;
+		double plb1 = 0.0, plb2 = 0.0 , qtb2 = 0.0;
+		double EvntShpAplanarity = -99.99, EvntShpSphericity = -99.99, EvntShpIsotropy = -99.99;
 
 
 
@@ -261,14 +318,14 @@ for (int k=0;k<sample.nhJets;k++){
 	if (debug) cout << "for "<< k << "th pass" << endl;
 	indexedJetPt.push_back(std::pair<size_t,double>(k,(double) sample.hJet_pt[k]));
 	indexedPt.push_back(std::pair<size_t,double>(k,(double) sample.hJet_pt[k]));
-	hallhJet_pt.Fill(sample.hJet_pt[k], weight); 
+	hallhJet_pt.Fill(sample.hJet_pt[k]); 
 	njets++;
 	indexedJetCSV.push_back(std::pair<size_t,double>(k,(double) sample.hJet_csv[k]));
 	if (debug)	cout << "CSV discriminator: " << sample.hJet_csv[k] << endl;
 
 }// end k for loop
 		for (int a=0;a<sample.naJets;a++){
-			hallhJet_pt.Fill(sample.aJet_pt[a], weight);
+			hallhJet_pt.Fill(sample.aJet_pt[a]);
 			njets++; 
 		}
 		indexedPt.push_back(std::pair<size_t,double>(2,(double) sample.vLepton_pt[0]));
@@ -286,15 +343,16 @@ for (size_t i = 0 ; (i != indexedJetPt.size()) ; ++i) {   PtSortedJetIndex.push_
 		for (size_t i = 0 ; (i != indexedPt.size()) ; ++i) {   PtSortedIndex.push_back(indexedPt[i].first);        }
 
 if (event == 10) for (size_t i = 0 ; (i != indexedPt.size()) ; ++i) {cout << "Sorted pt of objects: " << indexedPt[i].second << endl; }
-					
+			CSV1 = sample.hJet_csv[indexedJetCSV[0].first];
+			CSV2 = sample.hJet_csv[indexedJetCSV[1].first];		
 double dummy = -99.99;		
 		if (sample.nhJets > 1) { 
-		if (sample.hJet_csv[1] > -1) { 	
+		if (CSV2 > -1) { 	
 		hPtb1.Fill(dummy);
 			hPtb1.Fill(sample.hJet_pt[indexedJetCSV[0].first]);
 			hPtb2.Fill(sample.hJet_pt[indexedJetCSV[1].first]);
-			hCSV1.Fill(sample.hJet_csv[indexedJetCSV[0].first]);
-			hCSV2.Fill(sample.hJet_csv[indexedJetCSV[1].first]);
+			hCSV1.Fill(CSV1);
+			hCSV2.Fill(CSV2);
 			hEtab1.Fill(sample.hJet_eta[indexedJetCSV[0].first]);
 			hEtab2.Fill(sample.hJet_eta[indexedJetCSV[1].first]);
 			hPhib1.Fill(sample.hJet_phi[indexedJetCSV[0].first]);
@@ -302,23 +360,29 @@ double dummy = -99.99;
 			hCHFb1.Fill(sample.hJet_chf[indexedJetCSV[0].first]);
 			hCHFb2.Fill(sample.hJet_chf[indexedJetCSV[1].first]);
 			hdetaJJ.Fill(sample.hJet_eta[indexedJetCSV[0].first]-sample.hJet_eta[indexedJetCSV[1].first]);
-			hMjj.Fill(sample.H_mass);
-		    hPtjj.Fill(sample.H_pt);
+Hmass = sample.H_mass;
+			hMjj.Fill(Hmass);
+Hpt = sample.H_pt;
+		    hPtjj.Fill(Hpt);
 		}//end csv non -1 requirement
 		}// end njet requirement			
-			
+Zmass = sample.V_mass;
+Zpt = sample.V_pt;
+mu1pt = sample.vLepton_pt[0];
+nSV = sample.nSvs;
+Trigweight = sample.weightTrig;
 	if (debug) cout << "halfway through filling histos" << endl;
 		if (sample.nhJets > -1) { hnJets.Fill(njets); }
 		if (sample.nvlep > -1) { hnMuons.Fill(sample.nvlep); }
-		hnSV.Fill(sample.nSvs);
+		hnSV.Fill(nSV);
 		hnPV.Fill(sample.nPVs);
 		hNaj.Fill(sample.naJets);
 		hMET.Fill(sample.MET_sumet);
 if ((sample.vLepton_type[0] == 13) && (sample.vLepton_type[1] == 13)){
 		if (sample.nvlep > 1) {
-		hMmumu.Fill(sample.V_mass);
-		hPtmumu.Fill(sample.V_pt);
-			hPtmu1.Fill(sample.vLepton_pt[0]);
+		hMmumu.Fill(Zmass);
+		hPtmumu.Fill(Zpt);
+			hPtmu1.Fill(mu1pt);
 			hPtmu2.Fill(sample.vLepton_pt[1]);		
 			hEtamu1.Fill(sample.vLepton_eta[0]);
 			hEtamu2.Fill(sample.vLepton_eta[1]);
@@ -335,32 +399,34 @@ if ((sample.vLepton_type[0] == 13) && (sample.vLepton_type[1] == 13)){
 			StandDevEta[1] =sample.hJet_eta[indexedJetCSV[0].first];
 			StandDevEta[2] =sample.vLepton_eta[0];
 			StandDevEta[3] =sample.hJet_eta[indexedJetCSV[1].first];
-			hStaDeveta.Fill(TMath::RMS(4,StandDevEta));
+			EtaStandDev = TMath::RMS(4,StandDevEta);
+			hStaDeveta.Fill(EtaStandDev);
 			AverageEta = sample.vLepton_eta[0]+sample.vLepton_eta[1]+sample.hJet_eta[indexedJetCSV[0].first];
 			AverageEta = (AverageEta+sample.hJet_eta[indexedJetCSV[1].first])/4;
 			UnweightedEta = (sample.vLepton_eta[0]-AverageEta)*(sample.vLepton_eta[0]-AverageEta);
 			UnweightedEta = UnweightedEta + (sample.vLepton_eta[1]-AverageEta)*(sample.vLepton_eta[1]-AverageEta);
 			UnweightedEta = UnweightedEta + (sample.hJet_eta[indexedJetCSV[0].first]-AverageEta)*(sample.hJet_eta[indexedJetCSV[0].first]-AverageEta);
 			UnweightedEta = UnweightedEta + (sample.hJet_eta[indexedJetCSV[1].first]-AverageEta)*(sample.hJet_eta[indexedJetCSV[1].first]-AverageEta);
-			hUnweightedEta.Fill(sqrt(UnweightedEta));
+			hUnweightedEta.Fill(UnweightedEta);
 			
 
-			
-				hdphiVH.Fill(sample.HVdPhi);	
-				hPtbalZH.Fill(sample.H_pt-sample.V_pt);
+DeltaPhiHV = sample.HVdPhi;			
+				hdphiVH.Fill(DeltaPhiHV);	
+				hPtbalZH.Fill(Hpt-Zpt);
 				
 FirstJet.SetPtEtaPhiM(sample.hJet_pt[indexedJetCSV[0].first],sample.hJet_eta[indexedJetCSV[0].first],sample.hJet_phi[indexedJetCSV[0].first],4.2/1000.0);
 SecondJet.SetPtEtaPhiM(sample.hJet_pt[indexedJetCSV[1].first],sample.hJet_eta[indexedJetCSV[1].first],sample.hJet_phi[indexedJetCSV[1].first],4.2/1000.0);
-FirstMuon.SetPtEtaPhiM(sample.vLepton_pt[0],sample.vLepton_eta[0],sample.vLepton_phi[0],105.65836668/1000.0);
+FirstMuon.SetPtEtaPhiM(mu1pt,sample.vLepton_eta[0],sample.vLepton_phi[0],105.65836668/1000.0);
 SecondMuon.SetPtEtaPhiM(sample.vLepton_pt[1],sample.vLepton_eta[1],sample.vLepton_phi[1],105.65836668/1000.0);
 Higgs = FirstJet+SecondJet;
 ZBoson = FirstMuon+SecondMuon;
 
 Ht = FirstJet.Pt()+SecondJet.Pt()+FirstMuon.Pt()+SecondMuon.Pt();
+DphiJJ = FirstJet.DeltaPhi(SecondJet);
 
 hdphiVH_vect.Fill(Higgs.DeltaPhi(ZBoson));
-hdphiJJ_vect.Fill(FirstJet.DeltaPhi(SecondJet));
-hDphiDetajj.Fill((sample.hJet_eta[indexedJetCSV[0].first]-sample.hJet_eta[indexedJetCSV[1].first]),(FirstJet.DeltaPhi(SecondJet)));
+hdphiJJ_vect.Fill(DphiJJ);
+hDphiDetajj.Fill((sample.hJet_eta[indexedJetCSV[0].first]-sample.hJet_eta[indexedJetCSV[1].first]),(EtaStandDev));
 hPtjj_vect.Fill(Higgs.Pt());
 hPtmumu_vect.Fill(ZBoson.Pt());
 hHt.Fill(Ht);
@@ -429,65 +495,66 @@ EvntShpIsotropy = eventshape.isotropy();
 if (debug) cout << "done filling histograms for event: " << event << endl;
 
 //Calculate cut efficiencies
-		if (sample.weightTrig > .8  ){ HLT++;
-	if ((sample.nhJets > 1) && (sample.nvlep > 1)&& sample.hJet_csv[indexedJetCSV[1].first] > -1){
+	if ((sample.nhJets > 1) && (sample.nvlep > 1)){
 //all samples are of typle Zmumu
-		if ( (sample.hJet_csv[indexedJetCSV[0].first] > 0.898) && (sample.hJet_csv[indexedJetCSV[1].first]>0.5) && (sample.naJets < 1) && ((sample.HVdPhi>=2.90)||(sample.HVdPhi<-2.90)) ){
+		if (CSV2 > -1 ){
+			if (Zmass >75 && Zmass<105) TMVA_tree->Fill();
+		if ( (CSV1 > 0.898) && (CSV2>0.5) && (sample.naJets < 1) && ((DeltaPhiHV>=2.90)||(DeltaPhiHV<-2.90)) ){
 			if (sample.hJet_pt[indexedJetCSV[0].first] >=20 && sample.hJet_pt[indexedJetCSV[1].first] >=20 ) {
-				hMmumu_NoPtCut.Fill(sample.V_mass);
-				hPtmumu_NoPtCut.Fill(sample.V_pt);
+				hMmumu_NoPtCut.Fill(Zmass);
+				hPtmumu_NoPtCut.Fill(Zpt);
 				hPtmumu_vect_NoPtCut.Fill(ZBoson.Pt());
 				hqtvsalphaZ_NoPtCut.Fill(alpha_mu,qtmu1);
-				hPtmu1_aftercuts.Fill(sample.vLepton_pt[0]);
-				if (sample.vLepton_pt[0] > 20) hPtmu2_aftercuts.Fill(sample.vLepton_pt[1]);		
+				hPtmu1_aftercuts.Fill(mu1pt);
+				if (mu1pt > 20) hPtmu2_aftercuts.Fill(sample.vLepton_pt[1]);		
 			}// end jet pt cuts
-			if (sample.vLepton_pt[1] > 20 && (sample.V_mass >75 && sample.V_mass<105) ) {
-			hMjj_NoPtCut.Fill(sample.H_mass);
-			hPtjj_NoPtCut.Fill(sample.H_pt);
+			if (sample.vLepton_pt[1] > 20 && (Zmass >75 && Zmass<105) ) {
+			hMjj_NoPtCut.Fill(Hmass);
+			hPtjj_NoPtCut.Fill(Hpt);
 			hPtjj_vect_NoPtCut.Fill(Higgs.Pt());
 			hqtvsalphaJJ_NoPtCut.Fill(alpha_j,qtb1);
 		if (sample.hJet_pt[indexedJetCSV[1].first] >=20)hPtb1_aftercuts.Fill(sample.hJet_pt[indexedJetCSV[0].first]);
 		if (sample.hJet_pt[indexedJetCSV[0].first] >=20)hPtb2_aftercuts.Fill(sample.hJet_pt[indexedJetCSV[1].first]);
 			}//end muon pt cuts
-			hPtbalZH_NoPtCut.Fill(sample.H_pt-sample.V_pt);
+			hPtbalZH_NoPtCut.Fill(Hpt-Zpt);
 			hHt_NoPtCut.Fill(Ht);
 			hCentrality_NoPtCut.Fill((indexedPt[2].second+indexedPt[3].second)/Ht);
 			hEventPt_NoPtCut.Fill(HVsystem.Pt());
 		}// end non pt cuts
 	if (sample.hJet_pt[indexedJetCSV[0].first] >=20 && sample.hJet_pt[indexedJetCSV[1].first] >=20 && sample.vLepton_pt[1] > 20) {
-			if ((sample.H_pt > 100) && (sample.V_pt) && (sample.hJet_csv[indexedJetCSV[0].first] > 0.898) && (sample.hJet_csv[indexedJetCSV[1].first]>0.5) && ((sample.HVdPhi>=2.90)||(sample.HVdPhi<-2.90)) && (sample.naJets < 1) ) hMmumu_aftercuts.Fill(sample.V_mass);
-			if (sample.V_mass >75 && sample.V_mass<105){
+			if ((Hpt > 100) && (Zpt>100) && (CSV1 > 0.898) && (CSV2>0.5) && ((DeltaPhiHV>=2.90)||(DeltaPhiHV<-2.90)) && (sample.naJets < 1) ) hMmumu_aftercuts.Fill(Zmass);
+			if (Zmass >75 && Zmass<105){
 	Npreselect++;
-				if ((sample.V_pt) && (sample.hJet_csv[indexedJetCSV[0].first] > 0.898) && (sample.hJet_csv[indexedJetCSV[1].first]>0.5) && ((sample.HVdPhi>=2.90)||(sample.HVdPhi<-2.90)) && (sample.naJets < 1) ) {
-					hPtjj_aftercuts.Fill(sample.H_pt);
+				if ((Zpt>100) && (CSV1 > 0.898) && (CSV2>0.5) && ((DeltaPhiHV>=2.90)||(DeltaPhiHV<-2.90)) && (sample.naJets < 1) ) {
+					hPtjj_aftercuts.Fill(Hpt);
 					hPtjj_vect_aftercuts.Fill(Higgs.Pt());
 					}
-		if(sample.H_pt > 100) {
+		if(Hpt > 100) {
 		NpT_jj++;
-			if ((sample.hJet_csv[indexedJetCSV[0].first] > 0.898) && (sample.hJet_csv[indexedJetCSV[1].first]>0.5) && ((sample.HVdPhi>=2.90)||(sample.HVdPhi<-2.90)) && (sample.naJets < 1) ) {
-			hPtmumu_aftercuts.Fill(sample.V_pt);				   
+			if ((CSV1 > 0.898) && (CSV2>0.5) && ((DeltaPhiHV>=2.90)||(DeltaPhiHV<-2.90)) && (sample.naJets < 1) ) {
+			hPtmumu_aftercuts.Fill(Zpt);				   
 			hPtmumu_vect_aftercuts.Fill(ZBoson.Pt());
 		}
-			if(sample.V_pt > 100) {
+			if(Zpt > 100) {
 			NpT_Z++;
-				if ((sample.hJet_csv[indexedJetCSV[1].first]>0.5) && ((sample.HVdPhi>=2.90)||(sample.HVdPhi<-2.90)) && (sample.naJets < 1) ) hCSV1_aftercuts.Fill(sample.hJet_csv[indexedJetCSV[0].first]);
-			   if(sample.hJet_csv[indexedJetCSV[0].first] > 0.898){
+				if ((CSV2>0.5) && ((DeltaPhiHV>=2.90)||(DeltaPhiHV<-2.90)) && (sample.naJets < 1) ) hCSV1_aftercuts.Fill(CSV1);
+			   if(CSV1 > 0.898){
 			   NCSV1++;
-				   if (((sample.HVdPhi>=2.90)||(sample.HVdPhi<-2.90)) && (sample.naJets < 1) ) hCSV2_aftercuts.Fill(sample.hJet_csv[indexedJetCSV[1].first]);
-			   if(sample.hJet_csv[indexedJetCSV[1].first]>0.5){
+				   if (((DeltaPhiHV>=2.90)||(DeltaPhiHV<-2.90)) && (sample.naJets < 1) ) hCSV2_aftercuts.Fill(CSV2);
+			   if(CSV2>0.5){
 			   NCSV2++;
 				   if (sample.naJets < 1) {
 		hdphiVH_vect_aftercuts.Fill(Higgs.DeltaPhi(ZBoson));
-		hdphiVH_aftercuts.Fill(sample.HVdPhi);	
+		hdphiVH_aftercuts.Fill(DeltaPhiHV);	
 		hAngle_NoDphiCut.Fill(Higgs.Angle(ZBoson.Vect()));
 		hPhimu1_NoDphiCut.Fill(sample.vLepton_phi[0]);
 		hPhimu2_NoDphiCut.Fill(sample.vLepton_phi[1]);
 		hPhib1_NoDphiCut.Fill(sample.hJet_phi[indexedJetCSV[0].first]);
 		hPhib2_NoDphiCut.Fill(sample.hJet_phi[indexedJetCSV[1].first]);	
-		hdphiJJ_vect_NoDphiCut.Fill(FirstJet.DeltaPhi(SecondJet));
-		hDphiDetajj_NoDphiCut.Fill((sample.hJet_eta[indexedJetCSV[0].first]-sample.hJet_eta[indexedJetCSV[1].first]),FirstJet.DeltaPhi(SecondJet));		
+		hdphiJJ_vect_NoDphiCut.Fill(EtaStandDev);
+		hDphiDetajj_NoDphiCut.Fill((sample.hJet_eta[indexedJetCSV[0].first]-sample.hJet_eta[indexedJetCSV[1].first]),EtaStandDev);		
 				   }
-			   if((sample.HVdPhi>=2.90)||(sample.HVdPhi<-2.90)){
+			   if((DeltaPhiHV>=2.90)||(DeltaPhiHV<-2.90)){
 			   NdPhi++;
 				   hNaj_aftercuts.Fill(sample.naJets);
 			   if(sample.naJets < 2){
@@ -497,7 +564,7 @@ if (debug) cout << "done filling histograms for event: " << event << endl;
 				   hCHFb1_aftercuts.Fill(sample.hJet_chf[indexedJetCSV[0].first]);
 				   hCHFb2_aftercuts.Fill(sample.hJet_chf[indexedJetCSV[1].first]);	
 				   hdetaJJ_aftercuts.Fill(sample.hJet_eta[indexedJetCSV[0].first]-sample.hJet_eta[indexedJetCSV[1].first]);		   
-			   hMjj_aftercuts.Fill(sample.H_mass);
+			   hMjj_aftercuts.Fill(Hmass);
 				   hEtamu1_aftercuts.Fill(sample.vLepton_eta[0]);
 				   hEtamu2_aftercuts.Fill(sample.vLepton_eta[1]);
 				   hPhimu1_aftercuts.Fill(sample.vLepton_phi[0]);
@@ -505,13 +572,13 @@ if (debug) cout << "done filling histograms for event: " << event << endl;
 				   hPFRelIsomu1_aftercuts.Fill(sample.vLepton_pfCombRelIso[0]);
 				   hPFRelIsomu2_aftercuts.Fill(sample.vLepton_pfCombRelIso[1]);	
 				   hRMSeta_aftercuts.Fill(RMS_eta);
-			   hStaDeveta_aftercuts.Fill(TMath::RMS(4,StandDevEta));
-				   hUnweightedEta_aftercuts.Fill(sqrt(UnweightedEta));
-				   hPtbalZH_aftercuts.Fill(sample.H_pt-sample.V_pt);
+			   hStaDeveta_aftercuts.Fill(EtaStandDev);
+				   hUnweightedEta_aftercuts.Fill(UnweightedEta);
+				   hPtbalZH_aftercuts.Fill(Hpt-Zpt);
 		hPhib1_aftercuts.Fill(sample.hJet_phi[indexedJetCSV[0].first]);
 		hPhib2_aftercuts.Fill(sample.hJet_phi[indexedJetCSV[1].first]);	
 		hDphiDetajj_aftercuts.Fill((sample.hJet_eta[indexedJetCSV[0].first]-sample.hJet_eta[indexedJetCSV[1].first]),(sample.hJet_phi[indexedJetCSV[0].first]-sample.hJet_phi[indexedJetCSV[1].first]));		
-				   hdphiJJ_vect_aftercuts.Fill(FirstJet.DeltaPhi(SecondJet));
+				   hdphiJJ_vect_aftercuts.Fill(EtaStandDev);
 				   hHt_aftercuts.Fill(Ht);
 				   hCentrality_aftercuts.Fill((indexedPt[2].second+indexedPt[3].second)/Ht);
 				   hAngle_aftercuts.Fill(Higgs.Angle(ZBoson.Vect()));
@@ -522,7 +589,7 @@ if (debug) cout << "done filling histograms for event: " << event << endl;
 				   hSphericity_EvtShp_aftercuts.Fill(EvntShpSphericity);
 				   hCircularity_EvtShp_aftercuts.Fill(EvntShpCircularity);
 				   hIsotropy_EvtShp_aftercuts.Fill(EvntShpIsotropy);				   
-			   if((sample.H_mass>=95)&&(sample.H_mass<=125)){N_Mjj++; }//higgs mass window
+			   if((Hmass>=95)&&(Hmass<=125)){N_Mjj++; }//higgs mass window
 			   }//number of additional Jets cut
 			   }//Delta Phi Cut
 			   }//CSV2 cut
@@ -530,15 +597,14 @@ if (debug) cout << "done filling histograms for event: " << event << endl;
 			   }// Z pt cut
 		}// dijet pt cut
 	}// preselection z mass requirement
+	}//preselection CSV not -1
 	}// preselection pt requirement
 }// preselection number of muons/jets requirement
-	}//HLT
 		}//end requirement muon not electron
 		}//end requirement Zmumu event
     } while (sample.nextEvent());
 if (debug){	std::cout << "Number of events " << event << endl;}
-	std::cout << "HLT: " << HLT << endl;
-	std::cout << "PreSelection: " << Npreselect << endl;
+std::cout << "PreSelection: " << Npreselect << endl;
 std::cout << "pT_jj: " << NpT_jj << endl;
 std::cout << "pT_Z: " << NpT_Z << endl;
 std::cout << "CSV1: " << NCSV1 << endl;
@@ -1028,60 +1094,11 @@ std::cout << "Number of Events Passing the Selection: " << N_Mjj << endl;
 	c1.Print((directory+"/qtvsalphaZ_NoPtCut"+suffixps).c_str());
 
 	
-	
+	TMVA_tree->Write();
+
     // Write and Close the output file.
     ofile.Write();
     ofile.Close();
 
     return 0;
-}
-
-double SetWeight( std::string filename){
-	double SampleWeight = 1.0;
-	if (findString(filename, "ZH_ZToLL_HToBB_M-115")){ 
-	SampleWeight = 0.4107*0.704*0.101*10000/219999.0;
-	cout << "found ZH_ZToLL_HToBB_M-115 string" << endl;}
-	if (findString(filename, "DYJetsToLL_PtZ")){ SampleWeight = 37.90933333*10000/ 11372879.0;}
-	if (findString(filename, "DYJetsToLL_TuneZ2")){ 
-	SampleWeight = 3151.864553*10000/ 36217940.0;
-	cout << " found DYJetsToLL_TuneZ2 string " << endl;}
-	if (findString(filename, "120to170")){ SampleWeight = 115613.7358*10000/ 5806928.0;}
-	if (findString(filename, "170to300")){ SampleWeight = 24297.5*10000/ 5950155.0;}
-	if (findString(filename, "20_MuEnrichedPt")){ SampleWeight = 84730.54392*10000/ 8131373.0;}
-	if (findString(filename, "300to470")){ SampleWeight = 1169.576182*10000/ 6132664.0;}
-	if (findString(filename, "470to600")){ SampleWeight = 70.21630282*10000/ 3598283.0;}
-	if (findString(filename, "80to120")){ SampleWeight = 823744.5*10000/ 6199951.0;}
-	if (findString(filename, "TTJets")){ SampleWeight = 157.5*10000/ 3611944.0;}
-	if (findString(filename, "T_TuneZ2_s")){ SampleWeight = 3.19*10000/ 229970.0;}
-	if (findString(filename, "T_TuneZ2_t-channel")){ SampleWeight = 41.92*10000/ 3900168.0;}
-	if (findString(filename, "T_TuneZ2_tW-channel-DR")){ SampleWeight = 7.87*10000/ 754389.0;}
-	if (findString(filename, "T_TuneZ2_tW-channel-DS")){ SampleWeight = 7.87*10000/ 765378.0;}
-	if (findString(filename, "Tbar_TuneZ2_s")){ SampleWeight = 1.44*10000/ 137979.0;}
-	if (findString(filename, "Tbar_TuneZ2_t-channel")){ SampleWeight = 22.65*10000/ 1944824.0;}
-	if (findString(filename, "Tbar_TuneZ2_tW-channel-DR")){ SampleWeight = 7.87*10000/ 809983.0;}
-	if (findString(filename, "Tbar_TuneZ2_tW-channel-DS")){ SampleWeight = 7.87*10000/ 787628.0;}
-	if (findString(filename, "WJetsToLNu_Pt-100")){ SampleWeight = 732.6421333*10000/ 21284060.0;}
-	if (findString(filename, "TestWJetsToLNu_TuneZ2")){ SampleWeight = 10438.0*3.0*10000/ 77883394.0;}
-	if (findString(filename, "WW")){ SampleWeight = 47*10000/ 4075913.0;}
-	if (findString(filename, "WZ")){ SampleWeight = 18.2*10000/ 18.2*10000/4145240.0;}
-	if (findString(filename, "ZJetsToLL")){ SampleWeight = 3048*10000/2659998.0;}
-	if (findString(filename, "ZJetsToNuNu")){ SampleWeight = 1.3*25.8*10000/ 5189996.0;}
-	if (findString(filename, "ZZ")){ 
-	SampleWeight = 7.41*10000/4157882.0;
-	cout << "found ZZ string" << endl;
-	}
-	
-	return SampleWeight;
-}
-
-bool findString(std::string strToSearch, std::string strPattern){
-	size_t found;
-	
-	bool foundStr = false;
-	
-	found=strToSearch.find(strPattern);
-    if (found!=string::npos)
-		foundStr = true;
-	
-	return foundStr;		
 }

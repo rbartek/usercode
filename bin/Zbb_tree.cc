@@ -107,11 +107,11 @@ int main(int argc, char** argv) {
     std::cout << "The tree title is: " << sample.treeTitle() << std::endl;
 	
 TTree *TMVA_tree = new TTree("TMVA_tree","Tree for TMVA input");
-	int njets;
+	int nJets, nSV;
 	float CSV1, CSV2, Zmass, Hmass, DeltaPhiHV, Hpt, Zpt; 
 	float mu1pt, Ht, EtaStandDev, UnweightedEta, EvntShpCircularity;
-	float alpha_j, qtb1,DphiJJ, nSV, Trigweight; 
-	TMVA_tree->Branch("nJets",&njets, "nJets/I");
+	float alpha_j, qtb1,DphiJJ, Trigweight; 
+	TMVA_tree->Branch("nJets",&nJets, "nJets/I");
 	TMVA_tree->Branch("CSV1",&CSV1, "CSV1/F");
 	TMVA_tree->Branch("CSV2",&CSV2, "CSV2/F");
 	TMVA_tree->Branch("Zmass",&Zmass, "Zmass/F");
@@ -275,7 +275,7 @@ if (debug) std::cout << "all histograms declared " << std::endl;
     // For other methods to access event/navigate through the sample,
     // see the documentation of RootTreeReader class.
 	int event =0, Npreselect =0, NpT_jj =0, NpT_Z =0, NCSV1 =0, NCSV2 =0;
-	int NdPhi =0, N_Naj =0, N_Mjj =0;
+	int NdPhi =0, N_Naj =0, N_Mjj =0, Ntree =0;
 //	double Zmass = 91.1976;
 
 
@@ -293,7 +293,7 @@ event++;
         // Analysis loop.
         // One can access the ntuple leaves directly from sample object
 
-njets =0, nSV =0;
+nJets =0, nSV =0;
 CSV1 = -1.0, CSV2 = -1.0, Zmass = -99.99, Hmass = -99.99, DeltaPhiHV = -99.99, Hpt = -99.99, Zpt = -99.99;
 mu1pt = -99.99, Ht = -99.99, EtaStandDev = -99.99, UnweightedEta = -99.99, EvntShpCircularity = -99.99;
 alpha_j = -99.99, qtb1 = 0.0, DphiJJ = -99.99, Trigweight = 1.0;
@@ -319,14 +319,14 @@ for (int k=0;k<sample.nhJets;k++){
 	indexedJetPt.push_back(std::pair<size_t,double>(k,(double) sample.hJet_pt[k]));
 	indexedPt.push_back(std::pair<size_t,double>(k,(double) sample.hJet_pt[k]));
 	hallhJet_pt.Fill(sample.hJet_pt[k]); 
-	njets++;
+	nJets++;
 	indexedJetCSV.push_back(std::pair<size_t,double>(k,(double) sample.hJet_csv[k]));
 	if (debug)	cout << "CSV discriminator: " << sample.hJet_csv[k] << endl;
 
 }// end k for loop
 		for (int a=0;a<sample.naJets;a++){
 			hallhJet_pt.Fill(sample.aJet_pt[a]);
-			njets++; 
+			nJets++; 
 		}
 		indexedPt.push_back(std::pair<size_t,double>(2,(double) sample.vLepton_pt[0]));
 		indexedPt.push_back(std::pair<size_t,double>(3,(double) sample.vLepton_pt[1]));
@@ -372,7 +372,7 @@ mu1pt = sample.vLepton_pt[0];
 nSV = sample.nSvs;
 Trigweight = sample.weightTrig;
 	if (debug) cout << "halfway through filling histos" << endl;
-		if (sample.nhJets > -1) { hnJets.Fill(njets); }
+		if (sample.nhJets > -1) { hnJets.Fill(nJets); }
 		if (sample.nvlep > -1) { hnMuons.Fill(sample.nvlep); }
 		hnSV.Fill(nSV);
 		hnPV.Fill(sample.nPVs);
@@ -498,7 +498,11 @@ if (debug) cout << "done filling histograms for event: " << event << endl;
 	if ((sample.nhJets > 1) && (sample.nvlep > 1)){
 //all samples are of typle Zmumu
 		if (CSV2 > -1 ){
-			if (Zmass >75 && Zmass<105) TMVA_tree->Fill();
+			if (Zmass >75 && Zmass<105) {
+			TMVA_tree->Fill();
+				Ntree++;
+				cout << "njets: " << nJets << endl;
+			}
 		if ( (CSV1 > 0.898) && (CSV2>0.5) && (sample.naJets < 1) && ((DeltaPhiHV>=2.90)||(DeltaPhiHV<-2.90)) ){
 			if (sample.hJet_pt[indexedJetCSV[0].first] >=20 && sample.hJet_pt[indexedJetCSV[1].first] >=20 ) {
 				hMmumu_NoPtCut.Fill(Zmass);
@@ -604,7 +608,8 @@ if (debug) cout << "done filling histograms for event: " << event << endl;
 		}//end requirement Zmumu event
     } while (sample.nextEvent());
 if (debug){	std::cout << "Number of events " << event << endl;}
-std::cout << "PreSelection: " << Npreselect << endl;
+	std::cout << "tree: " << Ntree << endl;
+	std::cout << "PreSelection: " << Npreselect << endl;
 std::cout << "pT_jj: " << NpT_jj << endl;
 std::cout << "pT_Z: " << NpT_Z << endl;
 std::cout << "CSV1: " << NCSV1 << endl;
@@ -1093,8 +1098,8 @@ std::cout << "Number of Events Passing the Selection: " << N_Mjj << endl;
 	hqtvsalphaZ_NoPtCut.Draw();
 	c1.Print((directory+"/qtvsalphaZ_NoPtCut"+suffixps).c_str());
 
-	
 	TMVA_tree->Write();
+
 
     // Write and Close the output file.
     ofile.Write();

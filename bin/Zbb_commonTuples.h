@@ -32,48 +32,35 @@
 #endif
 //////////////////////////////////////////////////////
 
-//virtual void     fillhisto(std::string histname,double val, double weight, std::string title, int nbins, double min, double max);
-//virtual void     fill2Dhisto(string histname,double valx, double valy, double weight, string title, int nxbins, double xmin, double xmax, int nybins, double ymin, double ymax);
-//virtual void     MuonDistributions(string cut, double ph_weight);
-//virtual void     JetDistributions(string cut, double ph_weight);
-//virtual void     EventDistributions(string cut, double ph_weight);
+void     fillhisto(std::string histname, double val, double weight, std::string title, int nbins, double min, double max);
+void     fill2Dhisto(std::string histname, double valx, double valy, double weight, std::string title, int nxbins, double xmin, double xmax, int nybins, double ymin, double ymax);
+void     MuonDistributions(std::string cut, double ph_weight);
+void     JetDistributions(std::string cut, double ph_weight);
+void     TH2FDistributions(std::string cut, double ph_weight);
+void     EventShapeDistributions(std::string cut, double ph_weight);
+void     EventDistributions(std::string cut, double ph_weight);
 double   SetWeight( std::string filename);
 bool     findString(std::string strToSearch, std::string strPattern);
 
+double weight;
+int nJets, nSV, nMuons, Na_mu, nPV, Naj;
+float jetPt[10], jetEta[10], jetPhi[10], jetCSV[10], jetCHF[10];
+float muonPt[10], muonEta[10], muonPhi[10], muonPFiso[10];
+float DetaJJ;
+float CSV1, CSV2, Zmass, Hmass, DeltaPhiHV, Hpt, Zpt; 
+float mu1pt, Ht, EtaStandDev, UnweightedEta, EvntShpCircularity;
+float alpha_j, qtb1, DphiJJ, Trigweight; 
+double RMS_eta, PtbalZH, EventPt, Angle, Centrality, MET;
+double alpha_mu, qtmu1;
+double EvntShpAplanarity, EvntShpSphericity, EvntShpIsotropy;
+
+
 // maps for histo function
-//std::map<std::string,TH1*> histmap;
-//std::map<std::string,TH2*> bidimhistmap;
-
-
-
-/*void fillhisto(string histname,double val, double weight, string title, int nbins, double min, double max) {
-	if (!histmap[histname]) {
-		if (nbins==0) {
-			cout << " ERROR: must define histogram " << histname << " properties on first call of fillhisto(...)" << endl;
-			exit(1);
-		}
-		
-		histmap[histname]=new TH1F(histname.c_str(),title.c_str(),nbins,min,max);
-		
-	}
-	histmap[histname]->Fill(val, weight);
-	
-} // finish fillhisto
-void fill2Dhisto(string histname,double valx, double valy, double weight, string title, int nxbins, double xmin, double xmax, int nybins, double ymin, double ymax) {
-	if (!bidimhistmap[histname]) {
-		if (nxbins==0 || nybins==0) {
-			//cout << " ERROR: must define bi dim histogram " << histname << " properties on first call of fillbidimhisto(...)" << endl;
-			exit(1);
-		}
-		fill2Dhisto[histname]=new TH2F(histname.c_str(),title.c_str(),nxbins,xmin,xmax,nybins,ymin,ymax);
-		
-	}
-	fill2Dhisto[histname]->Fill(valx,valy,weight);
-}// fill2Dhisto
-*/
-
-
+std::map<std::string,TH1*> histmap;
+std::map<std::string,TH2*> bidimhistmap;
 
 
 #endif // #ifdef Zbb_commonTuple_cc
+
+
 

@@ -1,0 +1,13 @@
+root -l ZH_M115_App.C
+root -l DYJetsToLL_M50_App.C
+root -l DYJetsToLL_PtZ_App.C
+root -l TTJets_App.C
+root -l T_tWchannel_DR_App.C
+root -l Tbar_tWchannel_DR_App.C
+root -l WZ_App.C
+root -l ZJetsToLL_App.C
+root -l ZZ_App.C
+root -l TTJets60M_App.C
+root -l DYJetsToLL_M50_App_bflavor.C
+root -l DYJetsToLL_PtZ_App_bflavor.C
+root -l ZJetsToLL_App_bflavor.C

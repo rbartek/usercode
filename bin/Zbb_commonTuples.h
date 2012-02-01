@@ -4,6 +4,8 @@
 
 #include <UserCode/wilken/interface/treeReader.h>
 #include <UserCode/wilken/interface/GenericTool.h>
+#include "UserCode/wilken/interface/btagshapeNew.h"
+#include "UserCode/wilken/interface/xsecnov10f.h"
 #include "PhysicsTools/CandUtils/interface/EventShapeVariables.h"
 
 #include <string>
@@ -43,16 +45,17 @@ double   SetWeight( std::string filename);
 bool     findString(std::string strToSearch, std::string strPattern);
 
 double weight;
-int nJets, nSV, nMuons, Na_mu, nPV, Naj;
-float jetPt[10], jetEta[10], jetPhi[10], jetCSV[10], jetCHF[10];
+int nJets, nSV, nMuons, Na_mu, nPV, Naj, eventFlavor;
+float Zphi, Hphi;
+float jetPt[10], jetEta[10], jetPhi[10], jetCSV[10], jetCHF[10], CSVNewShape[10];
 float muonPt[10], muonEta[10], muonPhi[10], muonPFiso[10];
-float DetaJJ;
+float DetaJJ, btag2CSF;
 float CSV0, CSV1, Zmass, Hmass, DeltaPhiHV, Hpt, Zpt; 
 float mu0pt, Ht, EtaStandDev, UnweightedEta, EvntShpCircularity;
-float alpha_j, qtb1, DphiJJ, Trigweight; 
-double RMS_eta, PtbalZH, EventPt, Angle, Centrality, MET;
-double alpha_mu, qtmu1;
-double EvntShpAplanarity, EvntShpSphericity, EvntShpIsotropy;
+float alpha_j, qtb1, DphiJJ, Trigweight, weight_PU; 
+float RMS_eta, PtbalZH, EventPt, Angle, Centrality, MET;
+float alpha_mu, qtmu1;
+float EvntShpAplanarity, EvntShpSphericity, EvntShpIsotropy;
 
 
 // maps for histo function

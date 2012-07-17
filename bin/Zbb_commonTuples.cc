@@ -26,6 +26,8 @@ using namespace std;
 
 int main(int argc, char** argv) {
 	
+		bool debug = false;
+	
     // There must be at least one argument, the input file.
     if (argc < 2) {
         std::cout << "Input filename is not specified! Exiting!" << std::endl;
@@ -62,11 +64,12 @@ int main(int argc, char** argv) {
 	BTagShapeNew* btagNew;
 	btagNew = new BTagShapeNew("csvdiscrNew.root");
 	btagNew->computeFunctions();
+	if (debug){
 	cout << "Done computing btagSF " << endl;
 	cout << "b quark SF for CVSL: " << btagNew->ib->Eval(0.244) << "   CVSM: " << btagNew->ib->Eval(0.5) << "  CSVT: " << btagNew->ib->Eval(0.898) << endl;
 	cout << "c quark SF for CVSL: " << btagNew->ic->Eval(0.244) << "   CVSM: " << btagNew->ic->Eval(0.5) << "  CSVT: " << btagNew->ic->Eval(0.898) << endl;
 	cout << "light quark SF for CVSL: " << btagNew->il->Eval(0.244) << "   CVSM: " << btagNew->il->Eval(0.5) << "  CSVT: " << btagNew->il->Eval(0.898) << endl << endl;
-	
+	}
 	
     // Create the output ROOT file
     TFile ofile(ofilename.c_str(),"RECREATE");
@@ -230,7 +233,7 @@ int main(int argc, char** argv) {
 		BDT_btree->Branch("Hphi",&Hphi, "Hphi/F");
 	}
 
-	bool debug = false;	
+	
 	
     // Here one can declare histograms
     // In compiled C++, it possible not to use pointer type (TH1F*) and
@@ -265,7 +268,7 @@ int main(int argc, char** argv) {
     do {
 		event++;
 		if (sample.Vtype == 0){
-			if (!(event%1000))  std::cout << "entered event loop " << event << std::endl;
+			if (!(event%5000))  std::cout << "entered event loop " << event << std::endl;
 			std::vector< std::pair<size_t,double> > indexedJetPt;
 			std::vector<size_t> PtSortedJetIndex;
 			std::vector< std::pair<size_t,double> > indexedJetCSV;
@@ -296,7 +299,7 @@ int main(int argc, char** argv) {
 			qtmu1 = 0.0, alpha_mu = -99.99;
 			EvntShpAplanarity = -99.99, EvntShpSphericity = -99.99, EvntShpIsotropy = -99.99;
 			DetaJJ = -99.99;
-			Zphi = -99.99, Hphi =-99.99;
+			Zphi = -99.99, Hphi =-99.99, SV_mass = -99.99;
 
 			double StandDevEta[4];
 			double AverageEta = -99.99;
@@ -325,7 +328,7 @@ int main(int argc, char** argv) {
 				else if(fabs(sample.hJet_flavour[k])==5) CSVshapeNew=btagNew->ib->Eval(sample.hJet_csv[k]);
 				else if(fabs(sample.hJet_flavour[k])==4) CSVshapeNew=btagNew->ic->Eval(sample.hJet_csv[k]);
 				else if(fabs(sample.hJet_flavour[k])!=5 && fabs(sample.hJet_flavour[k])!=4)  CSVshapeNew=btagNew->il->Eval(sample.hJet_csv[k]);
-				if (!(event%1000)) cout << "The orignial CSV value was " << sample.hJet_csv[k] << "  the corrected value is " << CSVshapeNew << endl;
+				if (!(event%5000)) cout << "The orignial CSV value was " << sample.hJet_csv[k] << "  the corrected value is " << CSVshapeNew << endl;
 				indexedJetCSV.push_back(std::pair<size_t,double>(k,(double) CSVshapeNew));
 				CSVshapeNew = -99.99;
 			}// end k for loop
@@ -338,7 +341,7 @@ int main(int argc, char** argv) {
 				jetPhi[sample.nhJets+a] = sample.aJet_phi[a];
 				jetCSV[sample.nhJets+a] = sample.aJet_csv[a];
 				jetCHF[sample.nhJets+a] = sample.aJet_chf[a];
-				if ((sample.aJet_id[a] == 1 )&&( fabs(sample.aJet_eta[a]) < 2.4) && (sample.aJet_pt[a] > 20)) Naj++;
+				if ( fabs(sample.aJet_eta[a]) < 2.4 && (sample.aJet_pt[a] > 20)) Naj++;
 				indexedJetPt.push_back(std::pair<size_t,double>(sample.nhJets+a,(double) sample.aJet_pt[a]));	
 				if(sample.aJet_csv[a]<=0 || sample.aJet_csv[a]>=1) CSVshapeNew=sample.aJet_csv[a];
 				else if(sample.aJet_flavour[a]==0) CSVshapeNew=sample.aJet_csv[a];
@@ -394,6 +397,7 @@ int main(int argc, char** argv) {
 			nPV = sample.nPVs;
 			MET = sample.MET_et;
 			eventFlavor = sample.eventFlav;
+			SV_mass = sample.Sv_massSv[0];
 
 			Trigweight = sample.weightTrig;
 			weight_PU = sample.PUweight;
@@ -401,7 +405,6 @@ int main(int argc, char** argv) {
 			btag2CSF = sample.btag2CSF;
 			if (debug) cout << "halfway through filling histos" << endl;
 			
-			if ((sample.vLepton_type[0] == 13) && (sample.vLepton_type[1] == 13)){
 				for (int z = 0; z< sample.nvlep;z++){
 				muonPt[z] = sample.vLepton_pt[z];
 				muonEta[z] = sample.vLepton_eta[z];
@@ -423,7 +426,7 @@ int main(int argc, char** argv) {
 					Zpt = sample.V_pt;
 				}
 				MuonDistributions("allEvts", weight);
-				if( (sample.nvlep > 1) && (sample.nhJets > 1)) {
+
 					RMS_eta = sample.vLepton_eta[1]*sample.vLepton_eta[1]+sample.vLepton_eta[0]*sample.vLepton_eta[0]+sample.hJet_eta[indexedJetCSV[0].first]*sample.hJet_eta[indexedJetCSV[0].first]+sample.hJet_eta[indexedJetCSV[1].first]*sample.hJet_eta[indexedJetCSV[1].first];
 					RMS_eta = sqrt(RMS_eta/4);
 					StandDevEta[0] =sample.vLepton_eta[1];
@@ -507,13 +510,11 @@ int main(int argc, char** argv) {
 					EvntShpIsotropy = eventshape.isotropy();
 					
 					EventShapeDistributions("allEvts", weight);
-				}// two muons and two jets requirement
 				
 				
 				if (debug) cout << "done filling histograms for event: " << event << endl;
 				
 				//Calculate cut efficiencies
-				if ((sample.nhJets > 1) && (sample.nvlep > 1) && sample.Vtype == 0){
 					//all samples are of typle Zmumu
 						if (sample.triggerFlags[0]||sample.triggerFlags[13]||sample.triggerFlags[14]||sample.triggerFlags[15]||sample.triggerFlags[20]||sample.triggerFlags[21]||sample.triggerFlags[23]){
 							N_HLT++;
@@ -629,8 +630,6 @@ int main(int argc, char** argv) {
 						}else {
 							FailedTrigger++;
 						}// trigger requirement					
-				}// preselection number of muons/jets requirement
-			}//end requirement muon not electron
 			EventDistributions("allEvts", weight);
 		}//end requirement Zmumu event
     } while (sample.nextEvent());
@@ -844,7 +843,7 @@ void JetDistributions(string cut, double ph_weight){
 			fillhisto(jeteta, jetEta[i], ph_weight, "jet #eta", 75, -3, 3.5);
 			fillhisto(jetphi, jetPhi[i], ph_weight, "jet #phi", 75, -3.25, 4.5);
 			fillhisto(jetcsv, jetCSV[i], ph_weight, "jet CSV", 50, -0.1, 1.5);
-			fillhisto(jetchf, jetCHF[i], ph_weight, "charged Hadron Energy Fraction b1", 101, 0.0, 1.2);
+			fillhisto(jetchf, jetCHF[i], ph_weight, "charged Hadron Energy Fraction", 101, 0.0, 1.2);
 		}
 		
 		string mjj = "hMjj_" + cut;
@@ -866,12 +865,12 @@ void MuonDistributions(string cut, double ph_weight){
 		string muonpT = Form("hPtmu%i_", i) + cut;
 		string muoneta = Form("hEtamu%i_", i) + cut;
 		string muonphi = Form("hPhimu%i_", i) + cut;
-		string muonPFiso = Form("hPFRelIsomu%i_", i) + cut;
+		string muon_PFiso = Form("hPFRelIsomu%i_", i) + cut;
 		
 		fillhisto(muonpT, muonPt[i], ph_weight, "muon pT", 200, 0.0, 200);
 		fillhisto(muoneta, muonEta[i], ph_weight, "muon #eta", 75, -3, 3.5);
 		fillhisto(muonphi, muonPhi[i], ph_weight, "muon #phi", 75, -3.25, 4.5);
-		fillhisto(muonPFiso, muonPFiso[i], ph_weight, "PF Rel Iso of muon", 101, 0.0001, 0.2);
+		if (muonPFiso[i]>0) fillhisto(muon_PFiso, muonPFiso[i], ph_weight, "PF Rel Iso of muon", 101, 0.0, 0.2);
 	}
 	
 	string mmumu = "hMmumu_" + cut;
@@ -936,6 +935,7 @@ void EventDistributions(string cut, double ph_weight){
 	string hMET = "hMET_" +cut;
 	string hNaj = "hNaj_" +cut;
 	string Namu_ = "hNamu_" +cut;
+	string hSVmass = "hSVmass_" +cut;
 	
 	fillhisto(hnJets, nJets, ph_weight, "Number of Good Jets", 11, -0.5, 10.5);
 	fillhisto(hnMuons, nMuons, ph_weight, "Number of Good Muons", 6, -0.5, 5.5);
@@ -944,5 +944,6 @@ void EventDistributions(string cut, double ph_weight){
 	fillhisto(hMET, MET, ph_weight, "Missing Et",		50, 0.0, 200);
 	fillhisto(hNaj, Naj, ph_weight, "Number of Additional Jets",		13, -2.5, 10.5);
 	fillhisto(Namu_, Na_mu, ph_weight, "Number of Additional Muons",		13, -2.5, 10.5);
+	fillhisto(hSVmass, SV_mass, ph_weight, "mass of Secondary Vertex",		30, 0.0, 15);
 	
 }// EventDistributions	

@@ -1,0 +1,21 @@
+Zbb_TauemuTuples /home/hep/wilken/taus/testedm21/src/VHbbAnalysis/VHbbDataFormats/bin/AddedV21_crossTrig_June5/Filteredemu_V21.root V12_HLT/Filteredemu.root V12_HLT/Filteredemu > V12_HLT/Filteredemu.out 
+Zbb_TauemuTuples /home/hep/wilken/taus/testedm21/src/VHbbAnalysis/VHbbDataFormats/bin/AddedV21_crossTrig_June5/DY_M50_V21.root V12_HLT/DY_M50.root  V12_HLT/DY_M50 > V12_HLT/DY_M50.out
+Zbb_TauemuTuples /home/hep/wilken/taus/testedm21/src/VHbbAnalysis/VHbbDataFormats/bin/AddedV21_crossTrig_June5/DY_M50_V21.root V12_HLT/DY_HF_M50.root  V12_HLT/DY_HF_M50 > V12_HLT/DY_HF_M50.out
+Zbb_TauemuTuples /home/hep/wilken/taus/testedm21/src/VHbbAnalysis/VHbbDataFormats/bin/AddedV21_crossTrig_June5/DY_M50_V21.root V12_HLT/DY_LF_M50.root  V12_HLT/DY_LF_M50 > V12_HLT/DY_LF_M50.out
+Zbb_TauemuTuples /home/hep/wilken/taus/testedm21/src/VHbbAnalysis/VHbbDataFormats/bin/AddedV21_crossTrig_June5/DY_PtZV21emu.root  V12_HLT/DY_PtZ.root V12_HLT/DY_PtZ > V12_HLT/DY_PtZ.out
+Zbb_TauemuTuples /home/hep/wilken/taus/testedm21/src/VHbbAnalysis/VHbbDataFormats/bin/AddedV21_crossTrig_June5/DY_PtZV21emu.root  V12_HLT/DY_HF_PtZ.root V12_HLT/DY_HF_PtZ > V12_HLT/DY_HF_PtZ.out
+Zbb_TauemuTuples /home/hep/wilken/taus/testedm21/src/VHbbAnalysis/VHbbDataFormats/bin/AddedV21_crossTrig_June5/DY_PtZV21emu.root  V12_HLT/DY_LF_PtZ.root V12_HLT/DY_LF_PtZ > V12_HLT/DY_LF_PtZ.out
+Zbb_TauemuTuples /home/hep/wilken/taus/testedm21/src/VHbbAnalysis/VHbbDataFormats/bin/AddedV21_crossTrig_June5/TTJets_V21.root V12_HLT/TTJets.root V12_HLT/TTJets > V12_HLT/TTJets.out
+Zbb_TauemuTuples /home/hep/wilken/taus/testedm21/src/VHbbAnalysis/VHbbDataFormats/bin/AddedV21_crossTrig_June5/WJetsToLNu_TuneZ2_V21.root V12_HLT/WJets.root V12_HLT/WJets > V12_HLT/WJets.out
+Zbb_TauemuTuples /home/hep/wilken/taus/testedm21/src/VHbbAnalysis/VHbbDataFormats/bin/AddedV21_crossTrig_June5/ZH115_Fall11_V21.root V12_HLT/ZH115_Fall.root V12_HLT/ZH115_Fall > V12_HLT/ZH115_Fall.out 
+Zbb_TauemuTuples /home/hep/wilken/taus/testedm21/src/VHbbAnalysis/VHbbDataFormats/bin/AddedV21_crossTrig_June5/WW_V21.root V12_HLT/WW.root V12_HLT/WW > V12_HLT/WW.out 
+Zbb_TauemuTuples /home/hep/wilken/taus/testedm21/src/VHbbAnalysis/VHbbDataFormats/bin/AddedV21_crossTrig_June5/WZ_V21.root V12_HLT/WZ.root V12_HLT/WZ > V12_HLT/WZ.out 
+Zbb_TauemuTuples /home/hep/wilken/taus/testedm21/src/VHbbAnalysis/VHbbDataFormats/bin/AddedV21_crossTrig_June5/ZZ_V21.root V12_HLT/ZZ.root V12_HLT/ZZ > V12_HLT/ZZ.out 
+Zbb_TauemuTuples /home/hep/wilken/taus/testedm21/src/VHbbAnalysis/VHbbDataFormats/bin/AddedV21_crossTrig_June5/Data2011_V21_data_crabjson.root V12_HLT/Data2011.root V12_HLT/Data2011 > V12_HLT/Data2011.out 
+#Zbb_TauemuTuples /home/hep/wilken/taus/testedm21/src/VHbbAnalysis/VHbbDataFormats/bin/AddedV21_crossTrig_June5/ V12_HLT/ V12_HLT/ > V12_HLT/ 
+#Zbb_TauemuTuples /home/hep/wilken/taus/testedm21/src/VHbbAnalysis/VHbbDataFormats/bin/AddedV21RootFiles_May16/ZH115_1M_Summer11_V21.root V12_HLT/ZH115_1M.root V12_HLT/ZH115_1M > V12_HLT/ZH115_1M.out
+#Zbb_TauemuTuples /home/hep/wilken/taus/testedm21/src/VHbbAnalysis/VHbbDataFormats/bin/AddedV21RootFiles_May16/Run2011A_data_V21.root V12_HLT/Run2011A.root  V12_HLT/Run2011A > V12_HLT/Run2011A.out
+#Zbb_TauemuTuples /home/hep/wilken/taus/testedm21/src/VHbbAnalysis/VHbbDataFormats/bin/AddedV21RootFiles_May16/QCD80_V21.root V12_HLT/QCD80.root V12_HLT/QCD80 > V12_HLT/QCD80.out
+Zbb_TauemuTuples /home/hep/wilken/taus/testedm21/src/VHbbAnalysis/VHbbDataFormats/bin/AddedV21_crossTrig_June5/T_TuneZ2_tW-channel-DR_V21.root V12_HLT/T_tW.root V12_HLT/T_tW > V12_HLT/T_tW.out
+Zbb_TauemuTuples /home/hep/wilken/taus/testedm21/src/VHbbAnalysis/VHbbDataFormats/bin/AddedV21_crossTrig_June5/Tbar_TuneZ2_tW-channel-DR_V21.root V12_HLT/Tbar_tW.root V12_HLT/Tbar_tW > V12_HLT/Tbar_tW.out
+

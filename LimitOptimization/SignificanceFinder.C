@@ -59,7 +59,6 @@ void SignificanceFinder(){
 	//	TFile *inputwj   =   TFile::Open("/home/hep/wilken/taus/CMSSW_4_4_2_patch8/src/UserCode/wilken/V21_noWeights_92TTJets/WJets.root"        );
 	TFile *inputBzj   =  TFile::Open("/home/hep/wilken/taus/CMSSW_4_4_2_patch8/src/UserCode/wilken/V21_noWeights_92TTJets/DY_M50.root"   );
 	//TFile *inputBzj2   = TFile::Open("/home/hep/wilken/taus/CMSSW_4_4_2_patch8/src/UserCode/wilken/V21_noWeights_92TTJets/DY_PtZ.root");
-	
 	//	TFile *inputS = TFile::Open("/home/hep/wilken/taus/CMSSW_4_4_2_patch8/src/UserCode/wilken/V21_noWeights_92TTJets/ZH115_1M.root");
 	TFile *inputS = TFile::Open("/home/hep/wilken/taus/CMSSW_4_4_2_patch8/src/UserCode/wilken/V21_noWeights_92TTJets/Filteredemu.root");
 	
@@ -71,13 +70,9 @@ void SignificanceFinder(){
 	//	TTree *backgroundTt = (TTree*) inputTt->Get("FOM_tree");
 	//	TTree *backgroundtw  = (TTree*) inputtw ->Get("FOM_tree");
 	//	TTree *backgroundtbw  = (TTree*) inputtbw ->Get("FOM_tree");
-	
 	//TTree *backgroundww  = (TTree*) inputww ->Get("FOM_tree");
 	//	TTree *backgroundwz  = (TTree*) inputwz ->Get("FOM_tree");
 	//	TTree *backgroundwj  = (TTree*) inputwj ->Get("FOM_tree");
-	
-	
-	
 	
 	float Hmass, Emumass;
 	float Hpt, Zpt;
@@ -277,7 +272,7 @@ void SignificanceFinder(){
 	float stepsize = range/float(steps);
 	cout << "range " <<range<< endl;
 	float cut = -99.99;
-	std::vector<double> BDTvariables;
+	//std::vector<double> BDTvariables;
 	double BDTvalue = -99.99;
 
 	TCanvas *c1 = new TCanvas("c1","");
@@ -287,15 +282,11 @@ void SignificanceFinder(){
 	TFile *theHistogramFile;
     theHistogramFile = new TFile("BDTHistos.root", "RECREATE");
     theHistogramFile->cd();
-	TH1F* hSig= new TH1F	("hSig", "BDT Signal", 20, -1.0, 0.5);
-    TH1F* hTTJets= new TH1F	("hTTJets", "BDT TTJets", 20, -1.0, 0.5);
-    TH1F* hDYM50= new TH1F	("hDYM50", "BDT DYM50", 20, -1.0, 0.5);
-
+	TH1F* hSig= new TH1F	("hSig", "BDT Signal", 20, -1.0, 0);
+    TH1F* hTTJets= new TH1F	("hTTJets", "BDT TTJets", 20, -1.0, 0);
+    TH1F* hDYM50= new TH1F	("hDYM50", "BDT DYM50", 20, -1.0, 0);
 	
 	for (float icut = 0; icut<steps; icut++){
-	hSig->Clear();
-	hTTJets->Clear();
-	hDYM50->Clear();
 		cut = icut*stepsize+cutmin;
 		//clear root file
 		
@@ -310,7 +301,7 @@ void SignificanceFinder(){
 				if (Hmass > 45 && Hmass < 150 && CSV0 > 0.244 && Emumass > 10 && Emumass < 70 
 					&& delRemu > 0.4 && jetCHF0 > 0.2 && AngleEMU > 0.25 && DeltaPhiHV>2 && (ProjVisT-(0.25*ProjVisT)) > 10){
 					if(fabs(DphiZMET) <cut) {
-						BDTvariables.push_back(Hmass);
+						std::vector<double> BDTvariables;
 						BDTvariables.push_back(Hmass);
 						BDTvariables.push_back(CSV0);
 						BDTvariables.push_back(Emumass);
@@ -341,7 +332,7 @@ void SignificanceFinder(){
 				if (Hmass > 45 && Hmass < 150 && CSV0 > 0.244 && Emumass > 10 && Emumass < 70 
 					&& delRemu > 0.4 && jetCHF0 > 0.2 && AngleEMU > 0.25 && DeltaPhiHV>2 && (ProjVisT-(0.25*ProjVisT)) > 10){
 					if(fabs(DphiZMET) <cut){
-						BDTvariables.push_back(Hmass);
+						std::vector<double> BDTvariables;
 						BDTvariables.push_back(Hmass);
 						BDTvariables.push_back(CSV0);
 						BDTvariables.push_back(Emumass);
@@ -372,7 +363,7 @@ void SignificanceFinder(){
 				if (Hmass > 45 && Hmass < 150 && CSV0 > 0.244 && Emumass > 10 && Emumass < 70 
 					&& delRemu > 0.4 && jetCHF0 > 0.2 && AngleEMU > 0.25 && DeltaPhiHV>2 && (ProjVisT-(0.25*ProjVisT)) > 10){
 					if(fabs(DphiZMET) <cut){
-						BDTvariables.push_back(Hmass);
+						std::vector<double> BDTvariables;
 						BDTvariables.push_back(Hmass);
 						BDTvariables.push_back(CSV0);
 						BDTvariables.push_back(Emumass);
@@ -386,7 +377,10 @@ void SignificanceFinder(){
 						BDTvariables.push_back(jetCHF0);
 						BDTvariables.push_back(ProjVisT);					
 						BDTvalue = CalcBDT.GetMvaValue(BDTvariables);
-						cout << "DYM50 BDT value " <<BDTvalue  << endl;
+						//cout << "input values";
+						//for (unsigned int i = 0 ; i < BDTvariables.size(); i++)  cout << " " << BDTvariables[i];
+						//cout << endl;
+						//cout << "BDTvalue " << BDTvalue << endl;
 						hDYM50->Fill(BDTvalue);
 						NZJ++;
 					}
@@ -407,12 +401,18 @@ void SignificanceFinder(){
 		hTTJets->Write();
 		hDYM50->Write();
 		
+		hSig->Scale(ZH_M115_weight*100);
+		hTTJets->Scale(TTJets_weight);
+		hDYM50->Scale(DYJetsToLL_M50_weight);
+		
+		
 		THStack *histBdt_BkgStack = new THStack("histBdt_BkgStack","Stacked Background BDT");
 		hDYM50->SetFillColor(kYellow);
 		hTTJets->SetFillColor(kBlue);
 		histBdt_BkgStack->Add(hDYM50);
 		histBdt_BkgStack->Add(hTTJets);
 		histBdt_BkgStack->Draw();
+		hSig->SetLineWidth(3);
 		hSig->Draw("same hist");
 		TLegend myLegend(0.7, 0.5, 0.89, 0.8);
 		myLegend.SetTextSize(0.03);
@@ -421,11 +421,15 @@ void SignificanceFinder(){
 		myLegend.AddEntry(hDYM50, "TTJets", "f");	
 		myLegend.Draw();		
 		//plot = directory+"DphiZMET"+cut.c_str()+suffixps;
-		plot = TString::Format(directory+"%f.gif",cut).Data();
+		plot = TString::Format(directory+"BDT%0.02f.gif",cut).Data();
 		c1->Print(plot);
 		c1->Clear();		
 		
 		cout << "significance is " <<significance << " at " << cut  << " S/B " << SoB << endl;
+		hSig->Clear();
+		hTTJets->Clear();
+		hDYM50->Clear();
+		
 	}//icut for loop
 	
 	cout << "The max significance is " <<maxSig << " at " << corrCut<< endl;

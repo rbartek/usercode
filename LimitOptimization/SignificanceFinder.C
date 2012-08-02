@@ -31,6 +31,8 @@ using namespace std;
 #include "TMVAClassification_BDT.class.C"
 //#include "IClassifierReader.class.C"
 
+void makeDataCard(float VHrate, float TTrate, float ZjLFrate, float Thiscut, string dir, string shapefile);
+
 void SignificanceFinder(){
 	std::vector<string> BDTnames;
 	BDTnames.push_back("Hmass");
@@ -45,9 +47,9 @@ void SignificanceFinder(){
 	BDTnames.push_back("EtaStandDev");
 	BDTnames.push_back("jetCHF0");
 	BDTnames.push_back("ProjVisT");
-
+	
 	ReadBDT CalcBDT(BDTnames);
-//	IClassifierReader CalcBDT;
+	//	IClassifierReader CalcBDT;
     
 	TFile *inputBtt  =   TFile::Open("/home/hep/wilken/taus/CMSSW_4_4_2_patch8/src/UserCode/wilken/V21_noWeights_92TTJets/TTJets.root");
 	//	TFile *inputBzz  =   TFile::Open("/home/hep/wilken/taus/CMSSW_4_4_2_patch8/src/UserCode/wilken/V21_noWeights_92TTJets/ZZ.root"            );
@@ -258,14 +260,14 @@ void SignificanceFinder(){
 	Double_t  DYJetsToLL_M50_weight = lumi/(lumiZJL);
 	
 	TString suffixps = "_Sig.gif";
-	TString directory = "/home/hep/wilken/taus/CMSSW_4_4_2_patch8/src/UserCode/wilken/LimitOptimization/";
+	string directory = "/home/hep/wilken/taus/CMSSW_4_4_2_patch8/src/UserCode/wilken/LimitOptimization/";
 	TString plot = directory+"somereallylongnameherehopethisarrayisbiggenough"+suffixps;	
 	
 	double Nsig = 0, NTTJ = 0, NZJ = 0;
 	float maxSig = 0.0, corrCut = 0.0, significance, SoB;
 	
-	const int steps = 10;
-	float cutmin = 0;
+	const int steps = 1;
+	float cutmin = 1.5;
 	float cutmax = 3;
 	float range = -99.99; 
 	range = cutmax-cutmin;
@@ -274,20 +276,34 @@ void SignificanceFinder(){
 	float cut = -99.99;
 	//std::vector<double> BDTvariables;
 	double BDTvalue = -99.99;
-
+	
 	TCanvas *c1 = new TCanvas("c1","");
 	gStyle->SetOptStat("kTRUE");
 	c1->SetFillColor(10);
 	c1->SetFillColor(10);
-	TFile *theHistogramFile;
-    theHistogramFile = new TFile("BDTHistos.root", "RECREATE");
-    theHistogramFile->cd();
-	TH1F* hSig= new TH1F	("hSig", "BDT Signal", 20, -1.0, 0);
-    TH1F* hTTJets= new TH1F	("hTTJets", "BDT TTJets", 20, -1.0, 0);
-    TH1F* hDYM50= new TH1F	("hDYM50", "BDT DYM50", 20, -1.0, 0);
+/*	TFile *theHistogramFile;
+	string filename = "HistoForShapeLimit.root";
+    theHistogramFile = new TFile(filename, "RECREATE");
+    theHistogramFile->cd();*/
+	int nbins = 20;
+	TH1F* VH= new TH1F	("VH", "BDT Signal", nbins, -1.0, 0);
+    TH1F* TT= new TH1F	("TT", "BDT TTJets", nbins, -1.0, 0);
+    TH1F* ZjLF= new TH1F	("ZjLF", "BDT DYM50", nbins, -1.0, 0);
+	TH1F* VH_CMSstatUp= new TH1F	("VH_CMSstatUp", "BDT Signal plus sigma", nbins, -1.0, 0);
+    TH1F* TT_CMSstatUp= new TH1F	("TT_CMSstatUp", "BDT TTJets plus sigma", nbins, -1.0, 0);
+    TH1F* ZjLF_CMSstatUp= new TH1F	("ZjLF_CMSstatUp", "BDT DYM50 plus sigma", nbins, -1.0, 0);
+	TH1F* VH_CMSstatDown= new TH1F	("VH_CMSstatDown", "BDT Signal minus sigma", nbins, -1.0, 0);
+    TH1F* TT_CMSstatDown= new TH1F	("TT_CMSstatDown", "BDT TTJets minus sigma", nbins, -1.0, 0);
+    TH1F* ZjLF_CMSstatDown= new TH1F	("ZjLF_CMSstatDown", "BDT DYM50 minus sigma", nbins, -1.0, 0);
+    TH1F* data_obs= new TH1F	("data_obs", "null histo for data", nbins, -1.0, 0);
 	
 	for (float icut = 0; icut<steps; icut++){
 		cut = icut*stepsize+cutmin;
+		string filename;
+		filename = TString::Format("HistoForShapeLimit%0.3f.root",cut).Data();
+		TFile *theHistogramFile= new TFile(TString::Format("%s/%s",directory.c_str(),filename.c_str()).Data(), "RECREATE", "histogram file",0);
+		 theHistogramFile->cd();
+		
 		//clear root file
 		
 		Nsig = 0;
@@ -315,7 +331,7 @@ void SignificanceFinder(){
 						BDTvariables.push_back(jetCHF0);
 						BDTvariables.push_back(ProjVisT);					
 						BDTvalue = CalcBDT.GetMvaValue(BDTvariables);
-						hSig->Fill(BDTvalue);
+						VH->Fill(BDTvalue);
 						Nsig++;
 					}
 				}}//signal trigger requirement
@@ -346,7 +362,7 @@ void SignificanceFinder(){
 						BDTvariables.push_back(jetCHF0);
 						BDTvariables.push_back(ProjVisT);					
 						BDTvalue = CalcBDT.GetMvaValue(BDTvariables);
-						hTTJets->Fill(BDTvalue);
+						TT->Fill(BDTvalue);
 						NTTJ++;
 					}
 				}}//TTJets trigger requirement
@@ -381,7 +397,7 @@ void SignificanceFinder(){
 						//for (unsigned int i = 0 ; i < BDTvariables.size(); i++)  cout << " " << BDTvariables[i];
 						//cout << endl;
 						//cout << "BDTvalue " << BDTvalue << endl;
-						hDYM50->Fill(BDTvalue);
+						ZjLF->Fill(BDTvalue);
 						NZJ++;
 					}
 				}}//DY_M50 trigger requirement
@@ -397,47 +413,131 @@ void SignificanceFinder(){
 			corrCut = cut;
 		}
 		//Calculate limit here using combine function
-		hSig->Write();
-		hTTJets->Write();
-		hDYM50->Write();
 		
-		hSig->Scale(ZH_M115_weight*100);
-		hTTJets->Scale(TTJets_weight);
-		hDYM50->Scale(DYJetsToLL_M50_weight);
+		VH->Scale(ZH_M115_weight);
+		TT->Scale(TTJets_weight);
+		ZjLF->Scale(DYJetsToLL_M50_weight);
+		VH->Write();
+		TT->Write();
+		ZjLF->Write();
+		data_obs->Write();
+		makeDataCard(VH->Integral(0,-1), TT->Integral(0,-1), ZjLF->Integral(0,-1), cut, directory, filename);
+
+		for (int i = 0; i<nbins; i++){
+			double binContent = -99.99;
+			double sigma =-99.99;
+			binContent = VH->GetBinContent(i);
+			sigma = VH->GetBinError(i);
+			VH_CMSstatUp->SetBinContent(i,binContent+sigma);
+			if((binContent-sigma) < 0) sigma  = 0;
+			VH_CMSstatDown->SetBinContent(i,binContent-sigma);
+			binContent = TT->GetBinContent(i);
+			sigma = TT->GetBinError(i);
+			TT_CMSstatUp->SetBinContent(i,binContent+sigma);
+			if((binContent-sigma) < 0) sigma  = 0;
+			TT_CMSstatDown->SetBinContent(i,binContent-sigma);
+			binContent = ZjLF->GetBinContent(i);
+			sigma = ZjLF->GetBinError(i);
+			ZjLF_CMSstatUp->SetBinContent(i,binContent+sigma);
+			if((binContent-sigma) < 0) sigma  = 0;
+			ZjLF_CMSstatDown->SetBinContent(i,binContent-sigma);
+		}
+		VH_CMSstatUp->Write();
+		TT_CMSstatUp->Write();
+		ZjLF_CMSstatUp->Write();
+		VH_CMSstatDown->Write();
+		TT_CMSstatDown->Write();
+		ZjLF_CMSstatDown->Write();
 		
 		
 		THStack *histBdt_BkgStack = new THStack("histBdt_BkgStack","Stacked Background BDT");
-		hDYM50->SetFillColor(kYellow);
-		hTTJets->SetFillColor(kBlue);
-		histBdt_BkgStack->Add(hDYM50);
-		histBdt_BkgStack->Add(hTTJets);
+		ZjLF->SetFillColor(kYellow);
+		TT->SetFillColor(kBlue);
+		histBdt_BkgStack->Add(ZjLF);
+		histBdt_BkgStack->Add(TT);
 		histBdt_BkgStack->Draw();
-		hSig->SetLineWidth(3);
-		hSig->Draw("same hist");
+		VH->SetLineWidth(3);
+		VH->Scale(100);
+		VH->Draw("same hist");
 		TLegend myLegend(0.7, 0.5, 0.89, 0.8);
 		myLegend.SetTextSize(0.03);
-		myLegend.AddEntry(hSig, "ZH_M115 x 100", "l");	
-		myLegend.AddEntry(hTTJets, "DYJetsToLL_M50", "f");	
-		myLegend.AddEntry(hDYM50, "TTJets", "f");	
+		myLegend.AddEntry(VH, "ZH_M115 x 100", "l");	
+		myLegend.AddEntry(TT, "DYJetsToLL_M50", "f");	
+		myLegend.AddEntry(ZjLF, "TTJets", "f");	
 		myLegend.Draw();		
 		//plot = directory+"DphiZMET"+cut.c_str()+suffixps;
-		plot = TString::Format(directory+"BDT%0.02f.gif",cut).Data();
+		plot = TString::Format("%sBDT%0.02f.gif",directory.c_str(),cut).Data();
 		c1->Print(plot);
 		c1->Clear();		
 		
 		cout << "significance is " <<significance << " at " << cut  << " S/B " << SoB << endl;
-		hSig->Clear();
-		hTTJets->Clear();
-		hDYM50->Clear();
+		VH->Reset("ICES");
+		TT->Reset("ICES");
+		ZjLF->Reset("ICES");
+		VH_CMSstatUp->Reset("ICES");
+		TT_CMSstatUp->Reset("ICES");
+		ZjLF_CMSstatUp->Reset("ICES");
+		VH_CMSstatDown->Reset("ICES");
+		TT_CMSstatDown->Reset("ICES");
+		ZjLF_CMSstatDown->Reset("ICES");
+		theHistogramFile->Delete();
 		
 	}//icut for loop
 	
 	cout << "The max significance is " <<maxSig << " at " << corrCut<< endl;
-		
+	
 	c1->Close();
-	hSig->Delete();
-	hTTJets->Delete();
-	hDYM50->Delete();
+	VH->Delete();
+	TT->Delete();
+	ZjLF->Delete();
+	VH_CMSstatUp->Delete();
+	TT_CMSstatUp->Delete();
+	ZjLF_CMSstatUp->Delete();
+	VH_CMSstatDown->Delete();
+	TT_CMSstatDown->Delete();
+	ZjLF_CMSstatDown->Delete();
+	data_obs->Delete();
 	
 	
+	
+}
+
+void makeDataCard(float VHrate, float TTrate, float ZjLFrate, float Thiscut, string dir, string shapefile){
+ofstream myfile (TString::Format("%s/ShapeDataCard%0.03fcut.txt",dir.c_str(),Thiscut).Data());
+	myfile<<"imax 1  number of channels"<<endl;
+	myfile<<"jmax 2  number of backgrounds"<<endl;;
+	myfile<<"kmax *  number of nuisance parameters (sources of systematical uncertainties)"<<endl;;
+	myfile<<TString::Format("shapes * * %s $PROCESS $PROCESS_$SYSTEMATIC", shapefile.c_str()).Data()<<endl;
+	myfile<<"bin Zemu" <<endl;
+	myfile<<"observation 0"<<endl;
+	myfile<<"bin Zemu Zemu Zemu"<<endl;
+	myfile<<"process \t VH \t ZjLF \t TT "<<endl;
+	myfile<<"process  \t 0 \t 1 \t 2 "<<endl;
+	myfile<<TString::Format("rate \t %0.3f \t %0.3f \t %0.3f ",VHrate,ZjLFrate,TTrate).Data()<<endl;
+	myfile<<"\n";
+	myfile<<"lumi \t lnN \t 1.022 \t - \t - "<<endl; 
+	myfile<<"pdf_qqbar \t lnN \t 1.01 \t - \t - "<<endl; 
+	myfile<<"QCDscale_VH \t lnN \t 1.04 \t - \t - "<<endl; 
+	myfile<<"CMS_vhbb_ZjLF_SF \t lnN \t - \t 1.06 \t - "<<endl; 
+	myfile<<"CMS_vhbb_ZjLF_ex \t lnN \t - \t 1.05 \t -" << endl; 
+	myfile<<"CMS_vhbb_TT_SF \t lnN  \t - \t -  \t 1.21 "<<endl; 
+	myfile<<"CMS_vhbb_TT_ex \tlnN \t - \t - \t 1.05"<<endl;
+	myfile<<"CMS_trigger_m  \t lnN  \t 1.01  \t - \t - "<<endl; 
+	myfile<<"CMS_trigger_3  \t lnN  \t 1.02  \t - \t - "<<endl; 
+	myfile<<"CMS_eff_m  \t lnN  \t 1.04 \t - \t - "<<endl; 
+	myfile<<"CMS_eff_e  \t lnN  \t 1.04 \t - \t - "<<endl; 
+	myfile<<"CMS_eff_b  \t lnN  \t 1.11 \t 1.07 \t 1 "<<endl; 
+	myfile<<"CMS_fake_b  \t lnN  \t 1.05 \t 1.12 \t 1 "<<endl; 
+	myfile<<"CMS_scale_j  \t lnN  \t 1.03 \t -  \t -  "<<endl;  
+	myfile<<"CMS_res_j  \t lnN  \t 1.05 \t 1.04 \t 1.04 "<<endl;  
+	myfile<<"CMSstat \t shape \t 1.0 \t - \t -"<< endl;
+	myfile<<"CMSstat \t shape \t - \t 1.0 \t -"<< endl;
+	myfile<<"CMSstat \t shape \t - \t - \t 1.0"<< endl;
+	myfile.close();
+	
+
+
+	
+
+
 }

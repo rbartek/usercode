@@ -19,17 +19,27 @@
   <use   name="rootgraphics"/>
   <use   name="UserCode/wilken"/>
 </bin>
-<bin   name="Zbb_TauemuTuples" file="Zbb_TauemuTuples.cc">
-  <use   name="root"/>
-  <use   name="rootgraphics"/>
-  <use   name="UserCode/wilken"/>
-</bin>
 <bin   name="exampleSort" file="exampleSort.cc">
   <use   name="root"/>
   <use   name="rootgraphics"/>
   <use   name="UserCode/wilken"/>
 </bin>
 <bin   name="Zbb_tree" file="Zbb_tree.cc">
+  <use   name="root"/>
+  <use   name="rootgraphics"/>
+  <use   name="UserCode/wilken"/>
+</bin>
+<bin   name="TriggerStudyElectron" file="TriggerStudyElectron.cc">
+  <use   name="root"/>
+  <use   name="rootgraphics"/>
+  <use   name="UserCode/wilken"/>
+</bin>
+<bin   name="TriggerStudyMuon" file="TriggerStudyMuon.cc">
+  <use   name="root"/>
+  <use   name="rootgraphics"/>
+  <use   name="UserCode/wilken"/>
+</bin>
+<bin   name="Zbb_JetStudy" file="Zbb_JetStudy.cc">
   <use   name="root"/>
   <use   name="rootgraphics"/>
   <use   name="UserCode/wilken"/>

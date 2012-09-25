@@ -1,4 +1,4 @@
-// @(#)root/tmva $Id: TMVARegression.C 31458 2009-11-30 13:58:20Z stelzer $
+// @(#)root/tmva $Id: TMVARegression.C 37399 2010-12-08 15:22:07Z evt $
 /**********************************************************************************
  * Project   : TMVA - a Root-integrated toolkit for multivariate data analysis    *
  * Package   : TMVA                                                               *
@@ -35,7 +35,7 @@
 #include "TObjString.h"
 #include "TSystem.h"
 #include "TROOT.h"
-#include "TPluginManager.h"
+#include "TLorentzVector.h"
 
 #include "TMVARegGui.C"
 
@@ -43,6 +43,40 @@
 #include "TMVA/Tools.h"
 #include "TMVA/Factory.h"
 #endif
+
+double evalEt( double pt, double eta, double phi, double e){
+  TLorentzVector j;
+  j.SetPtEtaPhiE(pt,eta,phi, e );
+  return j.Et(); 
+
+}
+
+
+double evalMt( double pt, double eta, double phi, double e){
+  TLorentzVector j;
+  j.SetPtEtaPhiE(pt,eta,phi, e );
+  return j.Mt(); 
+
+}
+
+double deltaPhi(double phi1, double phi2) 
+{ 
+    double PI = 3.14159265;
+    double result = phi1 - phi2;
+    while (result > PI) result -= 2*PI;
+    while (result <= -PI) result += 2*PI;
+    return result;
+}
+
+double MindeltaPhi(double phi1, double phi2, double ph3)
+{
+double dphi1 = deltaPhi(phi1,phi2);
+double dphi2 = deltaPhi(phi1,phi3);
+if (dphi1<dphi2) return dphi1;
+else return dphi2;
+}
+
+
 
 using namespace TMVA;
    
@@ -57,37 +91,45 @@ void TMVARegression( TString myMethodList = "" )
    // mylinux~> root -l TMVARegression.C\(\"myMethod1,myMethod2,myMethod3\"\)
    //
 
-   // this loads the library
+   //---------------------------------------------------------------
+   // This loads the library
+
+
+
    TMVA::Tools::Instance();
 
-   //---------------------------------------------------------------
-   // default MVA methods to be trained + tested
+   // Default MVA methods to be trained + tested
    std::map<std::string,int> Use;
 
-   Use["PDERS"]           = 1;
-   Use["PDERSkNN"]        = 0; // depreciated until further notice
-   Use["PDEFoam"]         = 1; // preparation for new TMVA version "reader". This method is not available in this version of TMVA
-   // ---
-   Use["KNN"]             = 0;
-   // ---
-   Use["LD"]		        = 1;
-   // ---
+   // --- Mutidimensional likelihood and Nearest-Neighbour methods
+   Use["PDERS"]           = 0;
+   Use["PDEFoam"]         = 0; 
+   Use["KNN"]             = 1;
+   // 
+   // --- Linear Discriminant Analysis
+   Use["LD"]		        = 0;
+   // 
+   // --- Function Discriminant analysis
    Use["FDA_GA"]          = 0;
    Use["FDA_MC"]          = 0;
-   Use["FDA_MT"]          = 1;
+   Use["FDA_MT"]          = 0;
    Use["FDA_GAMT"]        = 0;
-   // ---
+   // 
+   // --- Neural Network
    Use["MLP"]             = 1; 
-   // ---
+   // 
+   // --- Support Vector Machine 
    Use["SVM"]             = 0;
-   // ---
-   Use["BDT"]             = 0;
-   Use["BDTG"]            = 0;
+   // 
+   // --- Boosted Decision Trees
+   Use["BDT"]             = 1;
+   Use["BDTG"]            = 1;
    // ---------------------------------------------------------------
 
    std::cout << std::endl;
    std::cout << "==> Start TMVARegression" << std::endl;
 
+   // Select methods (don't look at this code - not of interest)
    if (myMethodList != "") {
       for (std::map<std::string,int>::iterator it = Use.begin(); it != Use.end(); it++) it->second = 0;
 
@@ -104,6 +146,10 @@ void TMVARegression( TString myMethodList = "" )
          Use[regMethod] = 1;
       }
    }
+
+   // --------------------------------------------------------------------------------------------------
+
+   // --- Here the preparation phase begins
 
    // Create a new root output file
    TString outfileName( "TMVAReg.root" );
@@ -125,37 +171,55 @@ void TMVARegression( TString myMethodList = "" )
    // If you wish to modify default settings 
    // (please check "src/Config.h" to see all available global options)
    //    (TMVA::gConfig().GetVariablePlotting()).fTimesRMS = 8.0;
-   //    (TMVA::gConfig().GetIONames()).fWeightFileDir = "myWeightDirectory";
+   
 
    // Define the input variables that shall be used for the MVA training
    // note that you may also use variable expressions, such as: "3*var1/var2*abs(var3)"
    // [all types of expressions that can also be parsed by TTree::Draw( "expression" )]
-   factory->AddVariable( "var1", "Variable 1", "units", 'F' );
-   factory->AddVariable( "var2", "Variable 2", "units", 'F' );
+   
+   factory->AddVariable( "hJet_pt", "hJet_pt", "units", 'F' );
+   //	factory->AddVariable( "hJet_ptRawJER", "hJet_ptRawJER", "units", 'F' );
+   //factory->AddVariable( "hJet_ptRaw", "hJet_ptRaw", "units", 'F' );
+   //factory->AddVariable( "rho25", "rho25", "units", 'F' );
+   factory->AddVariable( "hJet_eta", "hJet_eta", "units", 'F' );
+   //factory->AddVariable( "hJet_et:=evalEt(hJet_pt, hJet_eta, hJet_phi, hJet_e)", "hJet_et", "units", 'F' );
+   //factory->AddVariable( "hJet_Mt:=evalMt(hJet_pt, hJet_eta, hJet_phi, hJet_e)", "hJet_Mt", "units", 'F' );
+   //factory->AddVariable( "hJet_ptLeadTrack", "hJet_ptLeadTrack", "units", 'F' );
+   factory->AddVariable( "hJet_chf", "hJet_chf", "units", 'F' );
+   //factory->AddVariable( "hJet_cef", "hJet_cef", "units", 'F' );
+	factory->AddVariable( "hJet_nconstituents", "hJet_nconstituents", "units", 'F' );
+	//factory->AddVariable( "hJet_nch", "hJet_nch", "units", 'F' );
 
-   // You can add so-called "Spectator variables", which are not used in the MVA training, 
-   // but will appear in the final "TestTree" produced by TMVA. This TestTree will contain the 
-   // input variables, the response values of all trained MVAs, and the spectator variables
-   factory->AddSpectator( "spec1:=var1*2",  "Spectator 1", "units", 'F' );
-   factory->AddSpectator( "spec2:=var1*3",  "Spectator 2", "units", 'F' );
-
+ // factory->AddVariable( "hJet_nef", "hJet_nef", "units", 'F' );
+   // factory->AddVariable( "hJet_Mt", "hJet_Mt", "units", 'F' );
+   factory->AddVariable( "hJet_vtxPt", "hJet_vtxPt", "units", 'F' );
+   factory->AddVariable( "hJet_vtx3dL", "hJet_vtx3dL", "units", 'F' );
+	factory->AddVariable( "hJet_vtx3deL", "hJet_vtx3deL", "units", 'F' );
+	factory->AddVariable( "hJet_JECUnc", "hJet_JECUnc", "units", 'F' );
+	factory->AddVariable( "hJet_e", "hJet_e", "units", 'F' );
+	factory->AddVariable( "pfMET:=METtype1corr.et", "pfMET", "units", 'F' );
+	factory->AddVariable( "minDeltaPhijetMET", "minDeltaPhijetMET", "units", 'F' );
+   
    // Add the variable carrying the regression target
-   factory->AddTarget  ( "fvalue" ); 
+   factory->AddTarget( "hJet_genPt" ); 
+   
+   
+
+
+
 
    // It is also possible to declare additional targets for multi-dimensional regression, ie:
    // -- factory->AddTarget( "fvalue2" );
    // BUT: this is currently ONLY implemented for MLP
 
-   // read training and test data (see TMVAClassification for reading ASCII files)
+   // Read training and test data (see TMVAClassification for reading ASCII files)
    // load the signal and background event samples from ROOT trees
-   TFile *input(0);
-   TString fname = "./tmva_reg_example.root";
-   if (!gSystem->AccessPathName( fname )) {
+/*   TFile *input(0);
+   TString fname = "/tigress-hsm/dlopes/Step2_28Feb12/TestBDT24_WH115_Fall11.root";
+   if (!gSystem->AccessPathName( fname )) 
       input = TFile::Open( fname ); // check if file in local directory exists
-   } 
-   else { 
+   else 
       input = TFile::Open( "http://root.cern.ch/files/tmva_reg_example.root" ); // if not: download from ROOT server
-   }
    
    if (!input) {
       std::cout << "ERROR: could not open data file" << std::endl;
@@ -163,37 +227,66 @@ void TMVARegression( TString myMethodList = "" )
    }
    std::cout << "--- TMVARegression           : Using input file: " << input->GetName() << std::endl;
 
-   TTree *regTree = (TTree*)input->Get("TreeR");
+   // --- Register the regression tree
+
+   TTree *regTree = (TTree*)input->Get("tree");
+*/
+
+   TChain chain("tautree");
+/*   chain.Add("/tigress-hsm/dlopes/Step2_28Feb12/TestBDT24_WH110_Fall11.root");
+   chain.Add("/tigress-hsm/dlopes/Step2_28Feb12/TestBDT24_WH115_Fall11.root");
+   chain.Add("/tigress-hsm/dlopes/Step2_28Feb12/TestBDT24_WH120_Fall11.root");
+   chain.Add("/tigress-hsm/dlopes/Step2_28Feb12/TestBDT24_WH125_Fall11.root");
+   chain.Add("/tigress-hsm/dlopes/Step2_28Feb12/TestBDT24_WH130_Fall11.root");
+*/
+	chain.Add("/home/hep/wilken/Regression/src/VHbbAnalysis/VHbbDataFormats/bin/RegTrig_ZH125Fall11.root");
+   /*
+   chain.Add("../../April25/ZnunuH_115_Summer11_1.root");
+   chain.Add("../../April25/ZnunuH_120_Summer11_1.root");
+   chain.Add("../../April25/ZnunuH_125_Summer11_1.root");
+   chain.Add("../../April25/ZnunuH_130_Summer11_1.root");
+   chain.Add("../../April25/ZnunuH_135_Summer11_1.root");
+   */
+/*   chain.Add("../April25/ZnunuH_115.root");
+   chain.Add("../April25/ZnunuH_120.root");
+   chain.Add("../April25/ZnunuH_125.root");
+   chain.Add("../April25/ZnunuH_130.root");
+   chain.Add("../April25/ZnunuH_135.root");
+*/
+// ../mjj/TestZnunuHbb120PU32.root");
+
+   TTree *regTree = (TTree*) tautree;
 
    // global event weights per tree (see below for setting event-wise weights)
    Double_t regWeight  = 1.0;   
 
-   // ====== register trees ====================================================
-   //
-   // the following method is the prefered one:
-   // you can add an arbitrary number of regression trees
+   // You can add an arbitrary number of regression trees
    factory->AddRegressionTree( regTree, regWeight );
 
-   // Alternative call:
-   // -- factory->AddRegressionTree( regTree, regWeight );
-   
    // This would set individual event weights (the variables defined in the 
    // expression need to exist in the original TTree)
-   factory->SetWeightExpression( "var1", "Regression" );
+//   factory->SetWeightExpression( "var1", "Regression" );
 
    // Apply additional cuts on the signal and background samples (can be different)
-   TCut mycut = ""; // for example: TCut mycut = "abs(var1)<0.5 && abs(var2-0.5)<1";
+//   TCut mycut = "hJet_pt>30. && H.pt>100."; // for exampl                                        "nTrain_Regression=0:nTest_Regression=0:SplitMode=Random:NormMode=NumEvents:!V" );
+//e: TCut mycut = "abs(var1)<0.5 && abs(var2-0.5)<1"; 
+//	TCut mycut = "hJet_genPt[0]>30. && hJet_genPt[1]>30.  && MET.et>80 &&  hJet_csv[0]>0.24 && hJet_csv[1]>0.24"; 
+//	TCut mycut = "hJet_genPt[0]>30. && hJet_genPt[1]>30.  &&  hJet_csv[0]>0. && hJet_csv[1]>0."; 
+	TCut mycut = "hJet_pt[0]>20. && hJet_pt[1]>20.  &&  hJet_csv[0]>0.0 && hJet_csv[1]>0.0 && abs(hJet_eta[1])<2.4 && abs(hJet_eta[0])<2.4"; 
+ // for example: TCut mycut = "abs(var1)<0.5 && abs(var2-0.5)<1";
+   // train on 25% of data
+   //TCut mycut = "( hJet_vtxMass!=-99 && hJet_vtxMass[1]!=-99)"; // && 
+   //TCut mycut = "( (hJet_eta * 100000000 %2) && (hJet_eta[1] * 100000000 %2)) "; // for example: TCut mycut = "abs(var1)<0.5 && abs(var2-0.5)<1";
 
    // tell the factory to use all remaining events in the trees after training for testing:
-   factory->PrepareTrainingAndTestTree( mycut, 
-                                        "nTrain_Regression=0:nTest_Regression=0:SplitMode=Random:NormMode=NumEvents:!V" );
+   //   factory->PrepareTrainingAndTestTree( mycut, 
+   //                                   "nTrain_Regression=0:nTest_Regression=0:SplitMode=Random:NormMode=NumEvents:!V" );
+  factory->PrepareTrainingAndTestTree( mycut,
+                                       "nTrain_Regression=100000:nTest_Regression=100000:SplitMode=Random:NormMode=NumEvents:!V" );
 
-   // If no numbers of events are given, half of the events in the tree are used for training, and 
-   // the other half for testing:
+   // If no numbers of events are given, half of the events in the tree are used 
+   // for training, and the other half for testing:
    //    factory->PrepareTrainingAndTestTree( mycut, "SplitMode=random:!V" );  
-   // To also specify the number of testing events, use:
-   //    factory->PrepareTrainingAndTestTree( mycut, 
-   //                                         "NSigTrain=3000:NBkgTrain=3000:NSigTest=3000:NBkgTest=3000:SplitMode=Random:!V" );  
 
    // ---- Book MVA methods
    //
@@ -210,14 +303,9 @@ void TMVARegression( TString myMethodList = "" )
    //      "!H:!V:VolumeRangeMode=MinMax:DeltaFrac=0.2:KernelEstimator=Gauss:GaussSigma=0.3" );   
    //      "!H:!V:VolumeRangeMode=RMS:DeltaFrac=3:KernelEstimator=Gauss:GaussSigma=0.3" );   
 
-   if (Use["PDERSkNN"]) // depreciated until further notice
-      factory->BookMethod( TMVA::Types::kPDERS, "PDERSkNN", 
-                           "!H:!V:VolumeRangeMode=kNN:KernelEstimator=Gauss:GaussSigma=0.3:NEventsMin=400:NEventsMax=600" );
-
    if (Use["PDEFoam"])
        factory->BookMethod( TMVA::Types::kPDEFoam, "PDEFoam", 
-			    "!H:!V:MultiTargetRegression=F:TargetSelection=Mpv:TailCut=0.001:VolFrac=0.0333:nActiveCells=500:nSampl=2000:nBin=5:Compress=T:Kernel=None:CutNmin=T:Nmin=10:VarTransform=None" );
-
+			    "!H:!V:MultiTargetRegression=F:TargetSelection=Mpv:TailCut=0.001:VolFrac=0.0333:nActiveCells=500:nSampl=2000:nBin=5:Compress=T:Kernel=None:Nmin=10:VarTransform=None" );
 
    // K-Nearest Neighbour classifier (KNN)
    if (Use["KNN"])
@@ -248,7 +336,7 @@ void TMVARegression( TString myMethodList = "" )
 
    // Neural network (MLP)
    if (Use["MLP"])
-      factory->BookMethod( TMVA::Types::kMLP, "MLP", "!H:!V:VarTransform=Norm:NeuronType=tanh:NCycles=5000:HiddenLayers=N+5,N+2:TestRate=6:TrainingMethod=BP:Sampling=0.3:SamplingEpoch=0.8:ConvergenceImprove=1e-6:ConvergenceTests=15" );
+      factory->BookMethod( TMVA::Types::kMLP, "MLP", "!H:!V:VarTransform=Norm:NeuronType=tanh:NCycles=20000:HiddenLayers=N+20:TestRate=6:TrainingMethod=BFGS:Sampling=0.3:SamplingEpoch=0.8:ConvergenceImprove=1e-6:ConvergenceTests=15:!UseRegulator" );
 
    // Support Vector Machine
    if (Use["SVM"])
@@ -261,7 +349,7 @@ void TMVARegression( TString myMethodList = "" )
 
    if (Use["BDTG"])
      factory->BookMethod( TMVA::Types::kBDT, "BDTG",
-                           "!H:!V:NTrees=200::BoostType=Grad:Shrinkage=1.0:UseBaggedGrad:SeparationType=GiniIndex:nCuts=20:NNodesMax=5" );
+                           "!H:!V:NTrees=2000::BoostType=Grad:Shrinkage=0.1:UseBaggedGrad:GradBaggingFraction=0.5:nCuts=20:MaxDepth=3:NNodesMax=15" );
    // --------------------------------------------------------------------------------------------------
 
    // ---- Now you can tell the factory to train, test, and evaluate the MVAs

@@ -5,7 +5,7 @@
  
  \verbatim
  mkdir [directoryName]
- Zbb_TauemuTuples <inputfile> [outputfilename] [directoryName]
+ TriggerStudyElectron <inputfile> [outputfilename] [directoryName]
  \endverbatim
  
  @param inputfile Either a ROOT file or an ASCII file containing list of
@@ -49,7 +49,7 @@ int main(int argc, char** argv) {
     // First argument: a ROOT file or an ASCII file containing list of
     // ROOT files.
     std::string ifilename(argv[1]);
-    std::string ofilename("output.root");
+    std::string ofilename("trigEle.root");
     std::string directory("plots");
 	
     if (argc == 3) {
@@ -208,288 +208,15 @@ int main(int argc, char** argv) {
 	FOM_tree->Branch("ProjVisT",&ProjVisT, "ProjVisT/F");
 	FOM_tree->Branch("ProjMissT",&ProjMissT, "ProjMissT/F");
 	
+	float ptMin = -99.99, ptMax = -99.99, etaMin = -99.99, etaMax = -99.99, scale = -99.99, error = -99.99;
 	
-	
-	TTree *TMVA_tree = new TTree("TMVA_tree","Tree for TMVA input");
-	TMVA_tree->Branch("nJets",&nJets, "nJets/I");
-	TMVA_tree->Branch("Naj",&Naj, "Naj/I");
-	TMVA_tree->Branch("Nab",&Nab, "Nab/I");
-	TMVA_tree->Branch("naJets",&naJets, "naJets/I");
-	TMVA_tree->Branch("eventFlavor",&eventFlavor, "eventFlavor/I");
-	TMVA_tree->Branch("CSV0",&CSV0, "CSV0/F");
-	TMVA_tree->Branch("CSV1",&CSV1, "CSV1/F");
-	TMVA_tree->Branch("Emumass",&Emumass, "Emumass/F");
-	TMVA_tree->Branch("Hmass",&Hmass, "Hmass/F");
-	TMVA_tree->Branch("DeltaPhiHV",&DeltaPhiHV, "DeltaPhiHV/F");
-	TMVA_tree->Branch("Hpt",&Hpt, "Hpt/F");
-	TMVA_tree->Branch("Zpt",&Zpt, "Zpt/F");
-	TMVA_tree->Branch("lep0pt",&lep0pt, "lep0pt/F");
-	TMVA_tree->Branch("ScalarSumPt",&ScalarSumPt, "ScalarSumPt/F");
-	TMVA_tree->Branch("ScalarSumJetPt",&ScalarSumJetPt, "ScalarSumJetPt/F");
-	TMVA_tree->Branch("ScalarSumHiggsJetPt",&ScalarSumHiggsJetPt, "ScalarSumHiggsJetPt/F");
-	TMVA_tree->Branch("Ht",&Ht, "Ht/F");
-	TMVA_tree->Branch("EtaStandDev",&EtaStandDev, "EtaStandDev/F");
-	TMVA_tree->Branch("UnweightedEta",&UnweightedEta, "UnweightedEta/F");
-	TMVA_tree->Branch("EvntShpCircularity",&EvntShpCircularity, "EvntShpCircularity/F");
-	TMVA_tree->Branch("alpha_j",&alpha_j, "alpha_j/F");
-	TMVA_tree->Branch("qtb1",&qtb1, "qtb1/F");
-	TMVA_tree->Branch("nSV",&nSV, "nSV/I");
-	TMVA_tree->Branch("Trigweight",&Trigweight, "Trigweight/F");
-	TMVA_tree->Branch("B2011PUweight",&B2011PUweight, "B2011PUweight/F");
-	TMVA_tree->Branch("A2011PUweight",&A2011PUweight, "A2011PUweight/F");
-	TMVA_tree->Branch("btag2CSF",&btag2CSF, "btag2CSF/F");
-	TMVA_tree->Branch("DetaJJ",&DetaJJ, "DetaJJ/F");
-	TMVA_tree->Branch("jetCHF0",&jetCHF[0], "jetCHF0/F");
-	TMVA_tree->Branch("jetCHF1",&jetCHF[1], "jetCHF1/F");
-	TMVA_tree->Branch("jetPt0",&jetPt[0], "jetPt0/F");
-	TMVA_tree->Branch("jetPt1",&jetPt[1], "jetPt1/F");
-	TMVA_tree->Branch("jetEta0",&jetEta[0], "jetEta0/F");
-	TMVA_tree->Branch("jetEta1",&jetEta[1], "jetEta1/F");
-	TMVA_tree->Branch("CSVNewShape0",&CSVNewShape[0], "CSVNewShape0/F");
-	TMVA_tree->Branch("CSVNewShape1",&CSVNewShape[1], "CSVNewShape1/F");
-	TMVA_tree->Branch("lep1pt",&leptonPt[1], "lep1pt/F");
-	TMVA_tree->Branch("lep_pfCombRelIso0",&lep_pfCombRelIso[0], "lep_pfCombRelIso0/F");
-	TMVA_tree->Branch("lep_pfCombRelIso1",&lep_pfCombRelIso[1], "lep_pfCombRelIso1/F");
-	TMVA_tree->Branch("DphiJJ",&DphiJJ, "DphiJJ/F");
-	TMVA_tree->Branch("RMS_eta",&RMS_eta, "RMS_eta/F");
-	TMVA_tree->Branch("PtbalZH",&PtbalZH, "PtbalZH/F");
-	TMVA_tree->Branch("EventPt",&EventPt, "EventPt/F");
-	TMVA_tree->Branch("EventMass",&EventMass, "EventMass/F");
-	TMVA_tree->Branch("AngleHemu",&AngleHemu, "AngleHemu/F");
-	TMVA_tree->Branch("Centrality",&Centrality, "Centrality/F");
-	TMVA_tree->Branch("MET",&MET, "MET/F");
-	TMVA_tree->Branch("EvntShpAplanarity",&EvntShpAplanarity, "EvntShpAplanarity/F");
-	TMVA_tree->Branch("EvntShpSphericity",&EvntShpSphericity, "EvntShpSphericity/F");
-	TMVA_tree->Branch("EvntShpIsotropy",&EvntShpIsotropy, "EvntShpIsotropy/F");
-	TMVA_tree->Branch("Zphi",&Zphi, "Zphi/F");
-	TMVA_tree->Branch("Hphi",&Hphi, "Hphi/F");
-	TMVA_tree->Branch("SV_mass",&SV_mass, "SV_mass/F");
-	TMVA_tree->Branch("Mte",&Mte, "Mte/F");
-	TMVA_tree->Branch("Mtmu",&Mtmu, "Mtmu/F");
-	TMVA_tree->Branch("delPullAngle",&delPullAngle, "delPullAngle/F");
-	TMVA_tree->Branch("delPullAngle2",&delPullAngle2, "delPullAngle2/F");
-	TMVA_tree->Branch("Mt",&Mt, "Mt/F");
-	TMVA_tree->Branch("dPhiHMET",&dPhiHMET, "dPhiHMET/F");
-	TMVA_tree->Branch("DeltaPhijetMETmin",&DeltaPhijetMETmin, "DeltaPhijetMETmin/F");
-	TMVA_tree->Branch("DeltaPhijetMETZtaumin",&DeltaPhijetMETZtaumin, "DeltaPhijetMETZtaumin/F");
-	TMVA_tree->Branch("AngleEMU",&AngleEMU, "AngleEMU/F");
-	TMVA_tree->Branch("AaronEleMissE",&AaronEleMissE, "AaronEleMissE/F");
-	TMVA_tree->Branch("AaronMuMissE",&AaronMuMissE, "AaronMuMissE/F");
-	TMVA_tree->Branch("Dphiemu",&Dphiemu, "Dphiemu/F");
-	TMVA_tree->Branch("delRjj",&delRjj, "delRjj/F");
-	TMVA_tree->Branch("Detaemu",&Detaemu, "Detaemu/F");
-	TMVA_tree->Branch("DphiEleMET",&DphiEleMET, "DphiEleMET/F");
-	TMVA_tree->Branch("dphiMuMET",&dphiMuMET, "dphiMuMET/F");
-	TMVA_tree->Branch("PtbalMETH",&PtbalMETH, "PtbalMETH/F");
-	TMVA_tree->Branch("topPt",&topPt, "topPt/F");
-	TMVA_tree->Branch("MassEleb0",&MassEleb0, "MassEleb0/F");
-	TMVA_tree->Branch("MassMub0",&MassMub0, "MassMub0/F");
-	TMVA_tree->Branch("MassEleb1",&MassEleb1, "MassEleb1/F");
-	TMVA_tree->Branch("MassMub1",&MassMub1, "MassMub1/F");
-	TMVA_tree->Branch("METsig",&METsig, "METsig/F");
-	TMVA_tree->Branch("delRemu",&delRemu, "delRemu/F");
-	TMVA_tree->Branch("PtbalZMET",&PtbalZMET, "PtbalZMET/F");
-	TMVA_tree->Branch("DphiZMET",&DphiZMET, "DphiZMET/F");
-	TMVA_tree->Branch("Zmass",&Zmass, "Zmass/F");
-	TMVA_tree->Branch("ZmassSVD",&ZmassSVD, "ZmassSVD/F");
-	TMVA_tree->Branch("ZmassSVDnegSol",&ZmassSVDnegSol, "ZmassSVDnegSol/F");
-	TMVA_tree->Branch("ZmassNegInclu",&ZmassNegInclu, "ZmassNegInclu/F");
-	TMVA_tree->Branch("DphiSecondMET",&DphiSecondMET, "DphiSecondMET/F");
-	TMVA_tree->Branch("DphiLeadMET",&DphiLeadMET, "DphiLeadMET/F");
-	TMVA_tree->Branch("topMass",&topMass, "topMass/F");
-	TMVA_tree->Branch("ProjVisT",&ProjVisT, "ProjVisT/F");
-	TMVA_tree->Branch("ProjMissT",&ProjMissT, "ProjMissT/F");
-	
-	
-	
-	
-	TTree *BDT_tree = new TTree("BDT_tree","Tree for BDT output");
-	BDT_tree->Branch("nJets",&nJets, "nJets/I");
-	BDT_tree->Branch("naJets",&naJets, "naJets/I");
-	BDT_tree->Branch("Naj",&Naj, "Naj/I");
-	BDT_tree->Branch("Nab",&Nab, "Nab/I");
-	BDT_tree->Branch("eventFlavor",&eventFlavor, "eventFlavor/I");
-	BDT_tree->Branch("CSV0",&CSV0, "CSV0/F");
-	BDT_tree->Branch("CSV1",&CSV1, "CSV1/F");
-	BDT_tree->Branch("Emumass",&Emumass, "Emumass/F");
-	BDT_tree->Branch("Hmass",&Hmass, "Hmass/F");
-	BDT_tree->Branch("DeltaPhiHV",&DeltaPhiHV, "DeltaPhiHV/F");
-	BDT_tree->Branch("Hpt",&Hpt, "Hpt/F");
-	BDT_tree->Branch("Zpt",&Zpt, "Zpt/F");
-	BDT_tree->Branch("lep0pt",&lep0pt, "lep0pt/F");
-	BDT_tree->Branch("ScalarSumPt",&ScalarSumPt, "ScalarSumPt/F");
-	BDT_tree->Branch("ScalarSumJetPt",&ScalarSumJetPt, "ScalarSumJetPt/F");
-	BDT_tree->Branch("ScalarSumHiggsJetPt",&ScalarSumHiggsJetPt, "ScalarSumHiggsJetPt/F");
-	BDT_tree->Branch("Ht",&Ht, "Ht/F");
-	BDT_tree->Branch("EtaStandDev",&EtaStandDev, "EtaStandDev/F");
-	BDT_tree->Branch("UnweightedEta",&UnweightedEta, "UnweightedEta/F");
-	BDT_tree->Branch("EvntShpCircularity",&EvntShpCircularity, "EvntShpCircularity/F");
-	BDT_tree->Branch("alpha_j",&alpha_j, "alpha_j/F");
-	BDT_tree->Branch("qtb1",&qtb1, "qtb1/F");
-	BDT_tree->Branch("nSV",&nSV, "nSV/I");
-	BDT_tree->Branch("Trigweight",&Trigweight, "Trigweight/F");
-	BDT_tree->Branch("B2011PUweight",&B2011PUweight, "B2011PUweight/F");
-	BDT_tree->Branch("A2011PUweight",&A2011PUweight, "A2011PUweight/F");
-	BDT_tree->Branch("btag2CSF",&btag2CSF, "btag2CSF/F");
-	BDT_tree->Branch("DetaJJ",&DetaJJ, "DetaJJ/F");
-	BDT_tree->Branch("jetCHF0",&jetCHF[0], "jetCHF0/F");
-	BDT_tree->Branch("jetCHF1",&jetCHF[1], "jetCHF1/F");
-	BDT_tree->Branch("jetPt0",&jetPt[0], "jetPt0/F");
-	BDT_tree->Branch("jetPt1",&jetPt[1], "jetPt1/F");
-	BDT_tree->Branch("jetEta0",&jetEta[0], "jetEta0/F");
-	BDT_tree->Branch("jetEta1",&jetEta[1], "jetEta1/F");
-	BDT_tree->Branch("CSVNewShape0",&CSVNewShape[0], "CSVNewShape0/F");
-	BDT_tree->Branch("CSVNewShape1",&CSVNewShape[1], "CSVNewShape1/F");
-	BDT_tree->Branch("lep1pt",&leptonPt[1], "lep1pt/F");
-	BDT_tree->Branch("lep_pfCombRelIso0",&lep_pfCombRelIso[0], "lep_pfCombRelIso0/F");
-	BDT_tree->Branch("lep_pfCombRelIso1",&lep_pfCombRelIso[1], "lep_pfCombRelIso1/F");
-	BDT_tree->Branch("DphiJJ",&DphiJJ, "DphiJJ/F");
-	BDT_tree->Branch("RMS_eta",&RMS_eta, "RMS_eta/F");
-	BDT_tree->Branch("PtbalZH",&PtbalZH, "PtbalZH/F");
-	BDT_tree->Branch("EventPt",&EventPt, "EventPt/F");
-	BDT_tree->Branch("EventMass",&EventMass, "EventMass/F");
-	BDT_tree->Branch("AngleHemu",&AngleHemu, "AngleHemu/F");
-	BDT_tree->Branch("Centrality",&Centrality, "Centrality/F");
-	BDT_tree->Branch("MET",&MET, "MET/F");
-	BDT_tree->Branch("EvntShpAplanarity",&EvntShpAplanarity, "EvntShpAplanarity/F");
-	BDT_tree->Branch("EvntShpSphericity",&EvntShpSphericity, "EvntShpSphericity/F");
-	BDT_tree->Branch("EvntShpIsotropy",&EvntShpIsotropy, "EvntShpIsotropy/F");
-	BDT_tree->Branch("Zphi",&Zphi, "Zphi/F");
-	BDT_tree->Branch("Hphi",&Hphi, "Hphi/F");
-	BDT_tree->Branch("SV_mass",&SV_mass, "SV_mass/F");
-	BDT_tree->Branch("Mte",&Mte, "Mte/F");
-	BDT_tree->Branch("Mtmu",&Mtmu, "Mtmu/F");
-	BDT_tree->Branch("delPullAngle",&delPullAngle, "delPullAngle/F");
-	BDT_tree->Branch("delPullAngle2",&delPullAngle2, "delPullAngle2/F");
-	BDT_tree->Branch("Mt",&Mt, "Mt/F");
-	BDT_tree->Branch("dPhiHMET",&dPhiHMET, "dPhiHMET/F");
-	BDT_tree->Branch("DeltaPhijetMETmin",&DeltaPhijetMETmin, "DeltaPhijetMETmin/F");
-	BDT_tree->Branch("DeltaPhijetMETZtaumin",&DeltaPhijetMETZtaumin, "DeltaPhijetMETZtaumin/F");
-	BDT_tree->Branch("AngleEMU",&AngleEMU, "AngleEMU/F");
-	BDT_tree->Branch("AaronEleMissE",&AaronEleMissE, "AaronEleMissE/F");
-	BDT_tree->Branch("AaronMuMissE",&AaronMuMissE, "AaronMuMissE/F");
-	BDT_tree->Branch("Dphiemu",&Dphiemu, "Dphiemu/F");
-	BDT_tree->Branch("delRjj",&delRjj, "delRjj/F");
-	BDT_tree->Branch("Detaemu",&Detaemu, "Detaemu/F");
-	BDT_tree->Branch("DphiEleMET",&DphiEleMET, "DphiEleMET/F");
-	BDT_tree->Branch("dphiMuMET",&dphiMuMET, "dphiMuMET/F");
-	BDT_tree->Branch("PtbalMETH",&PtbalMETH, "PtbalMETH/F");
-	BDT_tree->Branch("topPt",&topPt, "topPt/F");
-	BDT_tree->Branch("MassEleb0",&MassEleb0, "MassEleb0/F");
-	BDT_tree->Branch("MassMub0",&MassMub0, "MassMub0/F");
-	BDT_tree->Branch("MassEleb1",&MassEleb1, "MassEleb1/F");
-	BDT_tree->Branch("MassMub1",&MassMub1, "MassMub1/F");
-	BDT_tree->Branch("METsig",&METsig, "METsig/F");
-	BDT_tree->Branch("delRemu",&delRemu, "delRemu/F");
-	BDT_tree->Branch("PtbalZMET",&PtbalZMET, "PtbalZMET/F");
-	BDT_tree->Branch("DphiZMET",&DphiZMET, "DphiZMET/F");
-	BDT_tree->Branch("Zmass",&Zmass, "Zmass/F");
-	BDT_tree->Branch("ZmassSVD",&ZmassSVD, "ZmassSVD/F");
-	BDT_tree->Branch("ZmassSVDnegSol",&ZmassSVDnegSol, "ZmassSVDnegSol/F");
-	BDT_tree->Branch("ZmassNegInclu",&ZmassNegInclu, "ZmassNegInclu/F");
-	BDT_tree->Branch("DphiSecondMET",&DphiSecondMET, "DphiSecondMET/F");
-	BDT_tree->Branch("DphiLeadMET",&DphiLeadMET, "DphiLeadMET/F");
-	BDT_tree->Branch("topMass",&topMass, "topMass/F");
-	BDT_tree->Branch("ProjVisT",&ProjVisT, "ProjVisT/F");
-	BDT_tree->Branch("ProjMissT",&ProjMissT, "ProjMissT/F");
-	
-	
-	
-	
-	TTree *BDT_btree = new TTree("BDT_btree","Tree of b jets for BDT output");
-	if (isZjets){
-		BDT_btree->Branch("nJets",&nJets, "nJets/I");
-		BDT_btree->Branch("Naj",&Naj, "Naj/I");
-		BDT_btree->Branch("Nab",&Nab, "Nab/I");
-		BDT_btree->Branch("naJets",&naJets, "naJets/I");
-		BDT_btree->Branch("eventFlavor",&eventFlavor, "eventFlavor/I");
-		BDT_btree->Branch("CSV0",&CSV0, "CSV0/F");
-		BDT_btree->Branch("CSV1",&CSV1, "CSV1/F");
-		BDT_btree->Branch("Emumass",&Emumass, "Emumass/F");
-		BDT_btree->Branch("Hmass",&Hmass, "Hmass/F");
-		BDT_btree->Branch("DeltaPhiHV",&DeltaPhiHV, "DeltaPhiHV/F");
-		BDT_btree->Branch("Hpt",&Hpt, "Hpt/F");
-		BDT_btree->Branch("Zpt",&Zpt, "Zpt/F");
-		BDT_btree->Branch("lep0pt",&lep0pt, "lep0pt/F");
-		BDT_btree->Branch("ScalarSumPt",&ScalarSumPt, "ScalarSumPt/F");
-		BDT_btree->Branch("ScalarSumJetPt",&ScalarSumJetPt, "ScalarSumJetPt/F");
-		BDT_btree->Branch("ScalarSumHiggsJetPt",&ScalarSumHiggsJetPt, "ScalarSumHiggsJetPt/F");
-		BDT_btree->Branch("Ht",&Ht, "Ht/F");
-		BDT_btree->Branch("EtaStandDev",&EtaStandDev, "EtaStandDev/F");
-		BDT_btree->Branch("UnweightedEta",&UnweightedEta, "UnweightedEta/F");
-		BDT_btree->Branch("EvntShpCircularity",&EvntShpCircularity, "EvntShpCircularity/F");
-		BDT_btree->Branch("alpha_j",&alpha_j, "alpha_j/F");
-		BDT_btree->Branch("qtb1",&qtb1, "qtb1/F");
-		BDT_btree->Branch("nSV",&nSV, "nSV/I");
-		BDT_btree->Branch("Trigweight",&Trigweight, "Trigweight/F");
-		BDT_btree->Branch("B2011PUweight",&B2011PUweight, "B2011PUweight/F");
-		BDT_btree->Branch("A2011PUweight",&A2011PUweight, "A2011PUweight/F");
-		BDT_btree->Branch("btag2CSF",&btag2CSF, "btag2CSF/F");
-		BDT_btree->Branch("DetaJJ",&DetaJJ, "DetaJJ/F");
-		BDT_btree->Branch("jetCHF0",&jetCHF[0], "jetCHF0/F");
-		BDT_btree->Branch("jetCHF1",&jetCHF[1], "jetCHF1/F");
-		BDT_btree->Branch("jetPt0",&jetPt[0], "jetPt0/F");
-		BDT_btree->Branch("jetPt1",&jetPt[1], "jetPt1/F");
-		BDT_btree->Branch("jetEta0",&jetEta[0], "jetEta0/F");
-		BDT_btree->Branch("jetEta1",&jetEta[1], "jetEta1/F");
-		BDT_btree->Branch("CSVNewShape0",&CSVNewShape[0], "CSVNewShape0/F");
-		BDT_btree->Branch("CSVNewShape1",&CSVNewShape[1], "CSVNewShape1/F");
-		BDT_btree->Branch("lep1pt",&leptonPt[1], "lep1pt/F");
-		BDT_btree->Branch("lep_pfCombRelIso0",&lep_pfCombRelIso[0], "lep_pfCombRelIso0/F");
-		BDT_btree->Branch("lep_pfCombRelIso1",&lep_pfCombRelIso[1], "lep_pfCombRelIso1/F");
-		BDT_btree->Branch("DphiJJ",&DphiJJ, "DphiJJ/F");
-		BDT_btree->Branch("RMS_eta",&RMS_eta, "RMS_eta/F");
-		BDT_btree->Branch("PtbalZH",&PtbalZH, "PtbalZH/F");
-		BDT_btree->Branch("EventPt",&EventPt, "EventPt/F");
-		BDT_btree->Branch("EventMass",&EventMass, "EventMass/F");
-		BDT_btree->Branch("AngleHemu",&AngleHemu, "AngleHemu/F");
-		BDT_btree->Branch("Centrality",&Centrality, "Centrality/F");
-		BDT_btree->Branch("MET",&MET, "MET/F");
-		BDT_btree->Branch("EvntShpAplanarity",&EvntShpAplanarity, "EvntShpAplanarity/F");
-		BDT_btree->Branch("EvntShpSphericity",&EvntShpSphericity, "EvntShpSphericity/F");
-		BDT_btree->Branch("EvntShpIsotropy",&EvntShpIsotropy, "EvntShpIsotropy/F");
-		BDT_btree->Branch("Zphi",&Zphi, "Zphi/F");
-		BDT_btree->Branch("Hphi",&Hphi, "Hphi/F");
-		BDT_btree->Branch("SV_mass",&SV_mass, "SV_mass/F");
-		BDT_btree->Branch("Mte",&Mte, "Mte/F");
-		BDT_btree->Branch("Mtmu",&Mtmu, "Mtmu/F");
-		BDT_btree->Branch("delPullAngle",&delPullAngle, "delPullAngle/F");
-		BDT_btree->Branch("delPullAngle2",&delPullAngle2, "delPullAngle2/F");
-		BDT_btree->Branch("Mt",&Mt, "Mt/F");
-		BDT_btree->Branch("dPhiHMET",&dPhiHMET, "dPhiHMET/F");
-		BDT_btree->Branch("DeltaPhijetMETmin",&DeltaPhijetMETmin, "DeltaPhijetMETmin/F");
-		BDT_btree->Branch("DeltaPhijetMETZtaumin",&DeltaPhijetMETZtaumin, "DeltaPhijetMETZtaumin/F");
-		BDT_btree->Branch("AngleEMU",&AngleEMU, "AngleEMU/F");
-		BDT_btree->Branch("AaronEleMissE",&AaronEleMissE, "AaronEleMissE/F");
-		BDT_btree->Branch("AaronMuMissE",&AaronMuMissE, "AaronMuMissE/F");
-		BDT_btree->Branch("Dphiemu",&Dphiemu, "Dphiemu/F");
-		BDT_btree->Branch("delRjj",&delRjj, "delRjj/F");
-		BDT_btree->Branch("Detaemu",&Detaemu, "Detaemu/F");
-		BDT_btree->Branch("DphiEleMET",&DphiEleMET, "DphiEleMET/F");
-		BDT_btree->Branch("dphiMuMET",&dphiMuMET, "dphiMuMET/F");
-		BDT_btree->Branch("PtbalMETH",&PtbalMETH, "PtbalMETH/F");
-		BDT_btree->Branch("topPt",&topPt, "topPt/F");
-		BDT_btree->Branch("MassEleb0",&MassEleb0, "MassEleb0/F");
-		BDT_btree->Branch("MassMub0",&MassMub0, "MassMub0/F");
-		BDT_btree->Branch("MassEleb1",&MassEleb1, "MassEleb1/F");
-		BDT_btree->Branch("MassMub1",&MassMub1, "MassMub1/F");
-		BDT_btree->Branch("METsig",&METsig, "METsig/F");
-		BDT_btree->Branch("delRemu",&delRemu, "delRemu/F");
-		BDT_btree->Branch("PtbalZMET",&PtbalZMET, "PtbalZMET/F");
-		BDT_btree->Branch("DphiZMET",&DphiZMET, "DphiZMET/F");
-		BDT_btree->Branch("Zmass",&Zmass, "Zmass/F");
-		BDT_btree->Branch("ZmassSVD",&ZmassSVD, "ZmassSVD/F");
-		BDT_btree->Branch("ZmassSVDnegSol",&ZmassSVDnegSol, "ZmassSVDnegSol/F");
-		BDT_btree->Branch("ZmassNegInclu",&ZmassNegInclu, "ZmassNegInclu/F");
-		BDT_btree->Branch("DphiSecondMET",&DphiSecondMET, "DphiSecondMET/F");
-		BDT_btree->Branch("DphiLeadMET",&DphiLeadMET, "DphiLeadMET/F");
-		BDT_btree->Branch("topMass",&topMass, "topMass/F");
-		BDT_btree->Branch("ProjVisT",&ProjVisT, "ProjVisT/F");
-		BDT_btree->Branch("ProjMissT",&ProjMissT, "ProjMissT/F");
-		
-		
-	}
-	
+	TTree *tree = new TTree("tree","Tree for Trigger Weight");
+	tree->Branch("ptMin",&ptMin, "ptMin/F");
+	tree->Branch("ptMax",&ptMax, "ptMax/F");
+	tree->Branch("etaMin",&etaMin, "etaMin/F");
+	tree->Branch("etaMax",&etaMax, "etaMax/F");
+	tree->Branch("scale",&scale, "scale/F");
+	tree->Branch("error",&error, "error/F");
 	
 	
     // Here one can declare histograms
@@ -498,29 +225,41 @@ int main(int argc, char** argv) {
 	
 	//Declare Histograms
 	
-    TH1F hallhJet_pt  ("hallhJet_pt","Pt of all jets in event",		150, 0.0, 150);
-    TH1F hEleIDReco  ("hEleIDReco","Electron ID/Reco weight after EleFakeCuts ",		101, -0.5, 2.0);
-	TH1F hCutFlow	("hCutFlow",  "Selection",					11, 0.5, 11.5);
+	double etas[5] = {0.,0.8,1.44,1.57,2.5};
+	double pts[] = {10.,15.,20.,25.,30.,35.,40.,45.,50.,200.};
 	
-	//NotThisCut
-	TH1F hMemu_NotThisCut		("hMemu_NotThisCut",  "Invariant Mass of two Leptons", 20, 0, 100);
-	TH1F hDphiZMET_NotThisCut		("hDphiZMET_NotThisCut", "Delta phi between Z and MET",  24, 0, 4.71238898);
-	TH1F hCSV0_NotThisCut	("hCSV0_NotThisCut", "CSV BTag Shape", 30, 0, 1.5);
-	TH1F hCHFb0_NotThisCut ("hCHFb0_NotThisCut", "charged Hadron Energy Fraction", 30, 0.0, 1.2);
-	TH1F hdelRemu_NotThisCut ("hdelRemu_NotThisCut", "Delta R emu", 20, 0, 5);
-
+	TH1F hallhJet_pt   ("hallhJet_pt","Pt of all jets in event",		150, 0.0, 150);
+    TH1F hEleIDReco  ("hEleIDReco","Muon ID/Reco weight after EleFakeCuts ",		101, -0.5, 2.0);
+	TH1F *hPtTurnOnCurve;
+	TH1F *hEtaTurnOnCurve;
+	TH1F *hPtPass = new TH1F	("hPtPass",  "hPt Pass Electron",					9, pts);
+	TH1F *hEtaPass = new TH1F	("hEtaPass",  "hEta Pass Electron",	4, etas);
+	TH1F *hPtAll = new TH1F	("hPtAll",  "hPt All Electron",					9, pts);
+	TH1F *hEtaAll = new TH1F	("hEtaAll",  "hEta All Electron",	4, etas);
+	hPtPass->Sumw2();
+	hEtaPass->Sumw2();
+	hPtAll->Sumw2();
+	hEtaAll->Sumw2();
+	
+	TH1F *hPtTurnOnCurve0_08;
+	TH1F *hPtTurnOnCurve08_144;
+	TH1F *hPtTurnOnCurve157_25;
+	TH1F *hPtPass0_08 = new TH1F	("hPtPass0_08",  "hPt Pass Electron 0 < eta < 0.8",					9, pts);
+	TH1F *hPtPass08_144 = new TH1F	("hPtPass08_144",  "hPt Pass Electron 0.8 < ela < 1.44",					9, pts);
+	TH1F *hPtPass157_25 = new TH1F	("hPtPass157_25",  "hPt Pass Electron 1.57 < eta < 2.5",					9, pts);
+	TH1F *hPtAll0_08 = new TH1F	("hPtAll0_08",  "hPt All Electron  0 < eta < 0.8",					9, pts);
+	TH1F *hPtAll08_144 = new TH1F	("hPtAll08_144",  "hPt All Electron 0.8 < ela < 1.44",					9, pts);
+	TH1F *hPtAll157_25 = new TH1F	("hPtAll157_25",  "hPt All Electron 1.57 < eta < 2.5",					9, pts);
+	
 	
 	if (debug) std::cout << "all histograms declared " << std::endl;
 	
     // Loop over all events.
     // For other methods to access event/navigate through the sample,
     // see the documentation of RootTreeReader class.
-	float  N_Vtype =0.0, Ntrigger = 0.0, Npreselect =0.0, N_Mjj =0.0, N_DphiZMET =0.0, NMemu =0.0, N_Naj =0.0, N_CSV0 =0.0, N_EfakeCuts =0.0, N_jetCHF0 = 0.0;
-	int event =0, Ntree =0, N_isomu = 0, N_tightDoubleele = 0, N_loosedoubleEle = 0, N_sigleEleWP80 = 0, N_singleEleDiJet = 0;
-	float N_TopCR = 0.0, N_SingleTopCR = 0.0, N_LFCR = 0.0, N_HFCR =0.0;
-	float FailedJetID=0.0, NTMVAtree =0.0, NBDTtree =0.0, NBDTbtree = 0.0;
-	int  NNegEleMissE = 0, NPosEleMissE = 0, NPosMuMissE = 0, NNegMuMissE = 0;
-	int NBothMissENeg = 0, NMixedEleMissENeg = 0, NMixedMuonMissENeg =0;
+	float  N_Vtype =0.0, Npreselect =0.0, N_EfakeCuts =0.0;
+	int event =0;
+	float FailedJetID=0.0;
 	bool firstevent = true;
 	
 	//	double Emumass = 91.1976;
@@ -687,8 +426,8 @@ int main(int argc, char** argv) {
 					CSVNewShape[1] = indexedJetCSV[1].second;
 					
 					DetaJJ = sample.hJet_eta[indexedJetCSV[0].first]-sample.hJet_eta[indexedJetCSV[1].first];				
-					Hmass = sample.newHiggsMass;
-					Hpt = sample.newHiggsPt;
+					Hmass = sample.H_mass;
+					Hpt = sample.H_pt;
 					ScalarSumHiggsJetPt = sample.hJet_pt[indexedJetCSV[1].first] + sample.hJet_pt[indexedJetCSV[0].first];
 					ScalarSumJetPt = ScalarSumJetPt+ sample.hJet_pt[indexedJetCSV[1].first] + sample.hJet_pt[indexedJetCSV[0].first];
 					//cout << "weight of the Jet Histograms: " << weight << endl;
@@ -899,15 +638,6 @@ int main(int argc, char** argv) {
 						Zmass = sqrt((2*1.77682*1.77682)+(2*(AaronEleMissE+Electron.E())*(AaronMuMissE+Muon.E())*(1-cos(AngleEMU))));
 					}
 					ZmassNegInclu = sqrt((2*1.77682*1.77682)+(2*(AaronEleMissE+Electron.E())*(AaronMuMissE+Muon.E())*(1-cos(AngleEMU))));
-					if(AaronMuMissE < 0 || AaronEleMissE < 0){
-						if (AaronMuMissE < 0 && AaronEleMissE < 0) NBothMissENeg++;
-						if (AaronMuMissE > 0 && AaronEleMissE < 0) NMixedEleMissENeg++;
-						if (AaronMuMissE < 0 && AaronEleMissE > 0) NMixedMuonMissENeg++;
-					}				
-					if (AaronEleMissE < 0) NNegEleMissE++;
-					if (AaronEleMissE > 0) NPosEleMissE++;
-					if (AaronMuMissE > 0) NPosMuMissE++;
-					if (AaronMuMissE < 0) NNegMuMissE++;
 					
 					ScalarSumPt = FirstJet.Pt()+SecondJet.Pt()+Muon.Pt()+Electron.Pt();
 					DphiJJ = FirstJet.DeltaPhi(SecondJet);
@@ -969,198 +699,68 @@ int main(int argc, char** argv) {
 				
 				if (debug) cout << "done filling histograms for event: " << event << endl;
 				
-				N_Vtype++;
-				if (sample.triggerFlags[0]){//IsoMuHLT
-					N_isomu++;
-				}
-				if (sample.triggerFlags[6]){
-					N_tightDoubleele++;
-				}
-				if (sample.triggerFlags[5]){
-					N_loosedoubleEle++;
-				}
-				if (sample.triggerFlags[4]){
-					N_sigleEleWP80++;
-				}
-				if (sample.triggerFlags[17]){
-					N_singleEleDiJet++;
-				}
+				N_Vtype++;				
 				
 				
 				
-				
-				if ((sample.vLepton_pt[1] > 20 || sample.vLepton_pt[0] > 20) && (sample.vLepton_pt[1]>10 && sample.vLepton_pt[0]> 10)){
-					//	if (sample.triggerFlags[39]||sample.triggerFlags[40]||sample.triggerFlags[41]){
-					Ntrigger = Ntrigger + 1*PUweight2011;
-					//cout << "PUweight2011 inside trigger requirement" << PUweight2011 << endl;
-					JetDistributions("HLT", weight);
-					LeptonDistributions("HLT", weight);
-					TH2FDistributions("HLT", weight);
-					EventShapeDistributions("HLT", weight);
-					EventDistributions("HLT", weight);				
-					if ( jetPt[0] > 20 && jetPt[1] > 20 && 
-						fabs(sample.vLepton_eta[0]) < 2.5 && fabs(sample.vLepton_eta[1]) < 2.4 && fabs(sample.hJet_eta[0]) < 2.5 &&
-						fabs(sample.hJet_eta[1]) < 2.5 && sample.hJet_id[0]==1 && sample.hJet_id[1]==1 && sample.hbhe){
-						Npreselect = Npreselect + 1*PUweight2011;
-						FOM_tree->Fill();
-						/*if (Hmass<250){
-						 // Ntree = Ntree + 1*PUweight2011;
-						 Ntree++;
-						 if (Ntree%2){
-						 TMVA_tree->Fill();
-						 NTMVAtree =NTMVAtree + 1*PUweight2011;}else{
-						 if (isZjets){
-						 if (sample.eventFlav == 5){
-						 NBDTbtree = NBDTbtree + 1*PUweight2011;
-						 BDT_btree->Fill();
-						 }else{
-						 BDT_tree->Fill();
-						 NBDTtree = NBDTtree + 1*PUweight2011;
-						 }
-						 }
-						 else{
-						 BDT_tree->Fill();
-						 NBDTtree = NBDTtree + 1*PUweight2011;
-						 }
-						 }	
-						 }//if higgs mass reasonable */
-						JetDistributions("PreSelect", weight);
-						LeptonDistributions("PreSelect", weight);
-						TH2FDistributions("PreSelect", weight);
-						EventShapeDistributions("PreSelect", weight);
-						EventDistributions("PreSelect", weight);
-						if (isDATA) isdata = true;
-						if (fabs(DphiZMET) < 1.250 && (Hmass>=80)&&(Hmass<=150) && CSV0>0.244 && Emumass< 85 && Emumass>10 ) hdelRemu_NotThisCut.Fill(delRemu, weight);
-						if(delRemu>0.4){
+				//	if (sample.triggerFlags[39]||sample.triggerFlags[40]||sample.triggerFlags[41]){
+				FOM_tree->Fill();
+				if ( jetPt[0] > 20 && jetPt[1] > 20 && 
+					fabs(sample.vLepton_eta[0]) < 2.5 && fabs(sample.vLepton_eta[1]) < 2.4 && fabs(sample.hJet_eta[0]) < 2.5 &&
+					fabs(sample.hJet_eta[1]) < 2.5 && sample.hJet_id[0]==1 && sample.hJet_id[1]==1 && sample.hbhe){
+					Npreselect = Npreselect + 1*PUweight2011;
+					JetDistributions("PreSelect", weight);
+					LeptonDistributions("PreSelect", weight);
+					TH2FDistributions("PreSelect", weight);
+					EventShapeDistributions("PreSelect", weight);
+					EventDistributions("PreSelect", weight);
+					if (isDATA) isdata = true;
+					if(delRemu>0.4){
+						if(sample.vLepton_pt[1]>20){
+							//	"HLT_IsoMu17_v.*" , #0
+							//							"HLT_IsoMu17_eta2p1_DiCentralJet30_v.*", #24
+							if (!(sample.triggerFlags[0]||sample.triggerFlags[24])) cout << "NO Muon TRIGGER"<< endl;
 							N_EfakeCuts = N_EfakeCuts + 1*PUweight2011;
-							//+ 1*PUweight2011;
-							JetDistributions("delRemu", weight);
-							LeptonDistributions("delRemu", weight);
-							TH2FDistributions("delRemu", weight);
-							EventShapeDistributions("delRemu", weight);
-							EventDistributions("delRemu", weight);
-//										if(CSV0 > 0.244 && DeltaPhiHV> 2 && Hmass>45 && Hmass < 150 && Emumass > 10 && Emumass < 70)FOM_tree->Fill();
-								if (fabs(DphiZMET) < 1.250 && (Hmass>=80)&&(Hmass<=150) && CSV0>0.244 ) hMemu_NotThisCut.Fill(Emumass, weight);
-								if (Emumass< 85 && Emumass>10) { 
-									NMemu = NMemu + 1*PUweight2011;
-									JetDistributions("MemuCut", weight);
-									LeptonDistributions("MemuCut", weight);
-									TH2FDistributions("MemuCut", weight);
-									EventShapeDistributions("MemuCut", weight);
-									EventDistributions("MemuCut", weight);
-									if (fabs(DphiZMET) < 1.250 && (Hmass>=80)&&(Hmass<=150) && CSV0<0.244 && Naj < 2 ){	
-										if ((sample.vLepton_pt[1] > 25 || sample.vLepton_pt[0] > 25) && (sample.vLepton_pt[1]>15 && sample.vLepton_pt[0]> 15)){
-										N_LFCR = N_LFCR + 1*PUweight2011;
-										JetDistributions("LFCR", weight);
-										LeptonDistributions("LFCR", weight);
-										TH2FDistributions("LFCR", weight);
-										EventShapeDistributions("LFCR", weight);
-										EventDistributions("LFCR", weight);	
-										}//HLT plateau cuts
-									}// LF Control Region								
-									if (fabs(DphiZMET) < 1.250 && (Hmass>=80)&&(Hmass<=150) ) hCSV0_NotThisCut.Fill(CSV0, weight);
-									if(CSV0>0.244){
-										N_CSV0 = N_CSV0 + 1*PUweight2011;
-										JetDistributions("CSV0", weight);
-										LeptonDistributions("CSV0", weight);
-										TH2FDistributions("CSV0", weight);
-										EventShapeDistributions("CSV0", weight);
-										EventDistributions("CSV0", weight);							
-										if (fabs(DphiZMET) > 1.250 && Hmass>=80&&Hmass<=150){
-											if (CSV1>0.244 && EvntShpAplanarity > 0.1 ){
-												if ((sample.vLepton_pt[1] > 25 || sample.vLepton_pt[0] > 25) && (sample.vLepton_pt[1]>15 && sample.vLepton_pt[0]> 15)){
-													N_TopCR = N_TopCR + 1*PUweight2011;
-													JetDistributions("TopCR", weight);
-													LeptonDistributions("TopCR", weight);
-													TH2FDistributions("TopCR", weight);
-													EventShapeDistributions("TopCR", weight);
-													EventDistributions("TopCR", weight);
-												}//HLT emulation											
-											}//CHF cut
-										}// Top CR
-										if (fabs(DphiZMET) > 1.250 && (Hmass>=80)&&(Hmass<=150) ){
-											if (CSV0 > 0.5 && EvntShpAplanarity < 0.1 && CSV1 < 0.898  && Nab < 1){
-										if ((sample.vLepton_pt[1] > 25 || sample.vLepton_pt[0] > 25) && (sample.vLepton_pt[1]>15 && sample.vLepton_pt[0]> 15)){
-													N_SingleTopCR = N_SingleTopCR + 1*PUweight2011;
-													JetDistributions("SingleTopCR", weight);
-													LeptonDistributions("SingleTopCR", weight);
-													TH2FDistributions("SingleTopCR", weight);
-													EventShapeDistributions("SingleTopCR", weight);
-													EventDistributions("SingleTopCR", weight);
-												}//HLT emulation											
-											}//CHF cut
-										}// Single Top CR																		
-										if ((Hmass>=80)&&(Hmass<=150)) hDphiZMET_NotThisCut.Fill(DphiZMET, weight);
-										if (fabs(DphiZMET) < 1.250){
-											N_DphiZMET = N_DphiZMET + 1*PUweight2011;
-											JetDistributions("DphiZMET", weight);
-											LeptonDistributions("DphiZMET", weight);
-											TH2FDistributions("DphiZMET", weight);
-											EventShapeDistributions("DphiZMET", weight);
-											EventDistributions("DphiZMET", weight);
-											if((Hmass>=80)&&(Hmass<=150)){
-												N_Mjj = N_Mjj + 1*PUweight2011; 
-												JetDistributions("Mjj", weight);
-												LeptonDistributions("Mjj", weight);
-												TH2FDistributions("Mjj", weight);
-												EventShapeDistributions("Mjj", weight);
-												EventDistributions("Mjj", weight);
-												Ntree++;
-												if (Ntree%2){
-													TMVA_tree->Fill();
-												NTMVAtree = NTMVAtree + 1*PUweight2011;}else{
-													if (isZjets){
-														if (sample.eventFlav == 5){
-															NBDTbtree = NBDTbtree + 1*PUweight2011;
-															BDT_btree->Fill();
-														}else{
-															BDT_tree->Fill();
-															NBDTtree = NBDTtree + 1*PUweight2011;
-														}
-													}
-													else{
-														BDT_tree->Fill();
-														NBDTtree = NBDTtree + 1*PUweight2011;
-													}		
-												}											
-											}//Mjj			
-											if ((Hmass<80 || Hmass>150) && Hmass < 250 && CSV0>0.898 && Nab < 1 ){
-												N_HFCR = N_HFCR + 1*PUweight2011;
-												JetDistributions("HFCR", weight);
-												LeptonDistributions("HFCR", weight);
-												TH2FDistributions("HFCR", weight);
-												EventShapeDistributions("HFCR", weight);
-												EventDistributions("HFCR", weight);											
-											}// HF Control Region
-											if((Hmass>=80)&&(Hmass<=150)){
-												if (Naj <2) hCHFb0_NotThisCut.Fill(jetCHF[0], weight);
-												if(jetCHF[0] > 0.15) {
-													N_jetCHF0 = N_jetCHF0 + 1*PUweight2011;
-													JetDistributions("jetCHF0", weight);
-													LeptonDistributions("jetCHF0", weight);
-													TH2FDistributions("jetCHF0", weight);
-													EventShapeDistributions("jetCHF0", weight);
-													EventDistributions("jetCHF0", weight);														
-													if (Naj<2){
-														N_Naj = N_Naj + 1*PUweight2011;
-														JetDistributions("Naj", weight);
-														LeptonDistributions("Naj", weight);
-														TH2FDistributions("Naj", weight);
-														EventShapeDistributions("Naj", weight);
-														EventDistributions("Naj", weight);
-													}	//Naj
-												}//jetCHF[0]
-											}//Mjj							
-										}// Delta Phi Z, MET (Z is emu vectors only)
-									}//CSV
-								}//emu mass requirement
-						}//EleFakeCuts
-					} else {
-						FailedJetID = FailedJetID + 1*PUweight2011;
-					}//Jet ID and eta requirement
-				}//end trigger emulation
+							hPtAll->Fill(sample.vLepton_pt[0]);
+							hEtaAll->Fill(fabs(sample.vLepton_eta[0]));
+							if (sample.triggerFlags[39]){
+								hPtPass->Fill(sample.vLepton_pt[0]);
+								hEtaPass->Fill(fabs(sample.vLepton_eta[0]));
+							}
+							for(int i = 0; i<4; i++){
+								if(sample.vLepton_eta[0] > etas[i] && sample.vLepton_eta[0] < etas[i+1]){
+									switch (i){
+										case 0:
+											hPtAll0_08->Fill(sample.vLepton_pt[0]);
+											if (sample.triggerFlags[39]) hPtPass0_08->Fill(sample.vLepton_pt[0]);
+											break;
+										case 1:
+											hPtAll08_144->Fill(sample.vLepton_pt[0]);
+											if (sample.triggerFlags[39]) hPtPass08_144->Fill(sample.vLepton_pt[0]);
+											break;
+										case 2:
+											break;
+										case 3:
+											hPtAll157_25->Fill(sample.vLepton_pt[0]);
+											if (sample.triggerFlags[39]) hPtPass157_25->Fill(sample.vLepton_pt[0]);
+											break;
+										default:
+											cout << "ERROR ERROR ERROR BINS ARE WRONG" << endl;
+									}//end switch
+								}//end if statement
+							}//end for loop
+						}
+						JetDistributions("delRemu", weight);
+						LeptonDistributions("delRemu", weight);
+						TH2FDistributions("delRemu", weight);
+						EventShapeDistributions("delRemu", weight);
+						EventDistributions("delRemu", weight);
+					}//EleFakeCuts
+				} else {
+					FailedJetID = FailedJetID + 1*PUweight2011;
+				}//Jet ID and eta requirement
 				isdata = false;
-				EventDistributions("allEvts", weight);
+				EventDistributions("allEvts",weight);
 			}//end requirement Zemu event
 		}//end isM50sample genZpt cut
 	} while (sample.nextEvent());
@@ -1170,54 +770,84 @@ int main(int argc, char** argv) {
 	std::cout << endl << endl;
 	std::cout << "Number of events " << event << endl;
 	std::cout << "Vtype 5 " << N_Vtype << endl;	
-	std::cout << "emu trigger " << Ntrigger << endl;
 	std::cout << "PreSelection: " << Npreselect << endl;
 	std::cout << "EleFakeCuts: " << N_EfakeCuts << endl;
-	std::cout << "Memu: " << NMemu << endl;	
-	std::cout << "CSV0: " << N_CSV0 << endl;
-	std::cout << "DphiZMET: " << N_DphiZMET << endl;
-	std::cout << "Mjj: " << N_Mjj << endl;
-	std::cout << "CHFb0: " << N_jetCHF0 << endl;
-	std::cout << "Naj: " << N_Naj << endl;
-	
-	
-	
-	std::cout << endl << endl;
-	std::cout << "Top CR: " << N_TopCR << endl;
-	std::cout << "Single Top CR: " << N_SingleTopCR << endl;
-	std::cout << "LF CR: " << N_LFCR << endl;
-	std::cout << "HF CR: " << N_HFCR << endl;
-	
 	
 	std::cout << endl << endl;
 	std::cout << "Number of Events that failed JetID " << FailedJetID << endl;
-	std::cout << "BDT tree: " << NBDTtree << endl;
-	std::cout << "BDT  bjet tree: " << NBDTbtree << endl;
-	std::cout << "TMVA tree: " << NTMVAtree << endl;
 	
 	ofstream myfile;
-	myfile.open(TString::Format("%sDataEntry.txt",directory.c_str()).Data());	
+	myfile.open(TString::Format("%sElectronTrigEff.txt",directory.c_str()).Data());	
 	myfile<<TString::Format("\t %s",directory.c_str()).Data()<<endl;
 	//	myfile<<TString::Format("Number of events \t %f \t %0.5f",event,event*LumiWeight).Data()<<endl;
 	//	myfile<<TString::Format("Vtype 5 \t %f \t %0.5f",N_Vtype,N_Vtype*LumiWeight).Data()<<endl;
-	myfile<<TString::Format("emu trigger \t %0.5f \t %0.5f",Ntrigger,Ntrigger*LumiWeight).Data()<<endl;
-	myfile<<TString::Format("PreSelection \t %0.5f \t %0.5f",Npreselect,Npreselect*LumiWeight).Data()<<endl;
-	myfile<<TString::Format("EleFakeCuts \t %0.5f \t %0.5f",N_EfakeCuts,N_EfakeCuts*LumiWeight).Data()<<endl;
-	myfile<<TString::Format("Memu \t %0.5f \t %0.5f",NMemu,NMemu*LumiWeight).Data()<<endl;
-	myfile<<TString::Format("CSV0 \t %0.5f \t %0.5f",N_CSV0,N_CSV0*LumiWeight).Data()<<endl;
-	myfile<<TString::Format("DphiZMET \t %0.5f \t %0.5f",N_DphiZMET,N_DphiZMET*LumiWeight).Data()<<endl;
-	myfile<<TString::Format("Mjj\t %0.5f \t %0.5f",N_Mjj,N_Mjj*LumiWeight).Data()<<endl;
-	myfile<<TString::Format("CHFb0 \t %0.5f \t %0.5f",N_jetCHF0,N_jetCHF0*LumiWeight).Data()<<endl;
-	myfile<<TString::Format("Naj \t %0.5f \t %0.5f",N_Naj,N_Naj*LumiWeight).Data()<<endl;
-	myfile<<endl;
-	myfile<<TString::Format("Top CR	\t %0.5f \t %0.5f",N_TopCR,N_TopCR*LumiWeight).Data()<<endl;
-	myfile<<TString::Format("Single Top CR \t %0.5f \t %0.5f",N_SingleTopCR,N_SingleTopCR*LumiWeight).Data()<<endl;
-	myfile<<TString::Format("LF CR \t %0.5f \t %0.5f",N_LFCR,N_LFCR*LumiWeight).Data()<<endl;
-	myfile<<TString::Format("HF CR \t %0.5f \t %0.5f",N_HFCR,N_HFCR*LumiWeight).Data()<<endl;
+	myfile<<TString::Format("pass pt bins \t %0.0f \t %0.0f  \t %0.0f \t %0.0f  \t %0.0f \t %0.0f  \t %0.0f ",hPtPass->GetBinContent(1),hPtPass->GetBinContent(2),hPtPass->GetBinContent(3)
+							,hPtPass->GetBinContent(4),hPtPass->GetBinContent(5),hPtPass->GetBinContent(6),hPtPass->GetBinContent(7)).Data()<<endl;
+	myfile<<TString::Format("all pt bins \t %0.0f \t %0.0f  \t %0.0f \t %0.0f  \t %0.0f \t %0.0f  \t %0.0f ",hPtAll->GetBinContent(1),hPtAll->GetBinContent(2),hPtAll->GetBinContent(3)
+							,hPtAll->GetBinContent(4),hPtAll->GetBinContent(5),hPtAll->GetBinContent(6),hPtAll->GetBinContent(7)).Data()<<endl;
+	myfile<<TString::Format("eff pt bin \t %0.5f \t %0.5f  \t %0.5f \t %0.5f  \t %0.5f \t %0.5f  \t %0.5f ",hPtPass->GetBinContent(1)/hPtAll->GetBinContent(1),
+							hPtPass->GetBinContent(2)/hPtAll->GetBinContent(2),hPtPass->GetBinContent(3)/hPtAll->GetBinContent(3),hPtPass->GetBinContent(4)/hPtAll->GetBinContent(4),
+							hPtPass->GetBinContent(5)/hPtAll->GetBinContent(5),hPtPass->GetBinContent(6)/hPtAll->GetBinContent(6),hPtPass->GetBinContent(7)/hPtAll->GetBinContent(7)).Data()<<endl;
+	myfile<<TString::Format("pass eta bins \t %0.0f \t %0.0f  \t %0.0f \t %0.0f ",hEtaPass->GetBinContent(1),hEtaPass->GetBinContent(2),hEtaPass->GetBinContent(3),hEtaPass->GetBinContent(4)).Data()<<endl;
+	myfile<<TString::Format("all eta bins \t %0.0f \t %0.0f  \t %0.0f  \t %0.0f",hEtaAll->GetBinContent(1),hEtaAll->GetBinContent(2),hEtaAll->GetBinContent(3),hEtaAll->GetBinContent(4)).Data()<<endl;
+	myfile<<TString::Format("eff eta bins \t %0.5f \t %0.5f \t %0.5f \t %0.5f",hEtaPass->GetBinContent(1)/hEtaAll->GetBinContent(1),
+							hEtaPass->GetBinContent(2)/hEtaAll->GetBinContent(2),hEtaPass->GetBinContent(3)/hEtaAll->GetBinContent(3),hEtaPass->GetBinContent(4)/hEtaAll->GetBinContent(4)).Data()<<endl;
 	
+	hPtTurnOnCurve = new TH1F	("hPtTurnOnCurve",  "hPtTurnOnCurve Electron",		9, pts);
+	hEtaTurnOnCurve = new TH1F	("hEtaTurnOnCurve",  "hEtaTurnOnCurve Electron",	4, etas);
+	
+	hPtTurnOnCurve->Sumw2();
+	hEtaTurnOnCurve->Sumw2();
+	hPtTurnOnCurve->Divide(hPtPass,hPtAll,1,1,"B");
+	hEtaTurnOnCurve->Divide(hEtaPass,hEtaAll,1,1,"B");
+	
+	
+	myfile<<TString::Format("error pt bins \t %0.5f \t %0.5f  \t %0.5f \t %0.5f  \t %0.5f \t %0.5f  \t %0.5f ",hPtTurnOnCurve->GetBinError(1),hPtTurnOnCurve->GetBinError(2),hPtTurnOnCurve->GetBinError(3)
+							,hPtTurnOnCurve->GetBinError(4),hPtTurnOnCurve->GetBinError(5),hPtTurnOnCurve->GetBinError(6),hPtTurnOnCurve->GetBinError(7)).Data()<<endl;
+	myfile<<TString::Format("error eta bins \t %0.5f \t %0.5f  \t %0.5f \t %0.5f ",hEtaTurnOnCurve->GetBinError(1),hEtaTurnOnCurve->GetBinError(2),hEtaTurnOnCurve->GetBinError(3),hEtaTurnOnCurve->GetBinError(4)).Data()<<endl;
+	
+	
+	myfile<<endl;
 	myfile.close();
 	
+	hPtTurnOnCurve0_08 = new TH1F	("hPtTurnOnCurve0_08",  "hPtTurnOnCurve Electron 0 < eta < 0.8",		9, pts);
+	hPtTurnOnCurve0_08->Sumw2();
+	hPtTurnOnCurve0_08->Divide(hPtPass0_08,hPtAll0_08,1,1,"B");
+	hPtTurnOnCurve08_144 = new TH1F	("hPtTurnOnCurve08_144",  "hPtTurnOnCurve Electron 0.8 < ela < 1.44",		9, pts);
+	hPtTurnOnCurve08_144->Sumw2();
+	hPtTurnOnCurve08_144->Divide(hPtPass08_144,hPtAll08_144,1,1,"B");
+	hPtTurnOnCurve157_25 = new TH1F	("hPtTurnOnCurve157_25",  "hPtTurnOnCurve Electron 1.57 < eta < 2.5",		9, pts);
+	hPtTurnOnCurve157_25->Sumw2();
+	hPtTurnOnCurve157_25->Divide(hPtPass157_25,hPtAll157_25,1,1,"B");
 	
+			for(int i = 0; i<4; i++){
+					for(int j = 0; j<9; j++){
+							ptMin = pts[j];
+							ptMax = pts[j+1];
+							etaMin = etas[i];
+							etaMax  = etas[i+1];
+							switch (i){
+								case 0:
+									scale = hPtTurnOnCurve0_08->GetBinContent(j);
+									error = hPtTurnOnCurve0_08->GetBinError(j);
+									break;
+								case 1:
+									scale = hPtTurnOnCurve08_144->GetBinContent(j);
+									error = hPtTurnOnCurve08_144->GetBinError(j);
+									break;
+								case 2:
+									scale = -99.99;
+									break;
+								case 3:
+									scale = hPtTurnOnCurve157_25->GetBinContent(j);
+									error = hPtTurnOnCurve157_25->GetBinError(j);
+									break;
+								default:
+									cout << "ERROR ERROR ERROR BINS ARE WRONG" << endl;
+							}//end switch
+							if ((scale +99.99)>1) tree->Fill();
+					}// end pt for loop
+			}//end eta for loop
 	
 	// Here one can create canvas, draw and print the histogram.
 	TCanvas c1("c1","c1");
@@ -1230,40 +860,27 @@ int main(int argc, char** argv) {
 	c1.Print((directory+"/PtAllJets"+suffixps).c_str());
 	
 	c1.Clear(); // don't create a new canvas
-	hMemu_NotThisCut.Draw();
-	c1.Print((directory+"/Memu_NotThisCut"+suffixps).c_str());
+	hPtTurnOnCurve->Draw();
+	c1.Print((directory+"/PtTurnOnCurve"+suffixps).c_str());
 	
 	c1.Clear(); // don't create a new canvas
-	hDphiZMET_NotThisCut.Draw();
-	c1.Print((directory+"/DphiZMET_NotThisCut"+suffixps).c_str());
+	hEtaTurnOnCurve->Draw();
+	c1.Print((directory+"/EtaTurnOnCurve"+suffixps).c_str());
 	
 	c1.Clear(); // don't create a new canvas
-	hCSV0_NotThisCut.Draw();
-	c1.Print((directory+"/CSV0_NotThisCut"+suffixps).c_str());
+	hPtPass->Draw();
+	c1.Print((directory+"/PtPass"+suffixps).c_str());
 	
 	c1.Clear(); // don't create a new canvas
-	hdelRemu_NotThisCut.Draw();
-	c1.Print((directory+"/delRemu_NotThisCut"+suffixps).c_str());
+	hEtaPass->Draw();
+	c1.Print((directory+"/EtaPass"+suffixps).c_str());
 	
 	c1.Clear(); // don't create a new canvas
-	hCHFb0_NotThisCut.Draw();
-	c1.Print((directory+"/CHFb0_NotThisCut"+suffixps).c_str());
-		
-	hCutFlow.SetBinContent(1,N_Vtype );
-	hCutFlow.SetBinContent(2,Ntrigger );
-	hCutFlow.SetBinContent(3,Npreselect );
-	hCutFlow.SetBinContent(4,N_EfakeCuts );
-	hCutFlow.SetBinContent(5,NMemu );
-	hCutFlow.SetBinContent(6,N_CSV0 );
-	hCutFlow.SetBinContent(7,N_DphiZMET );
-	hCutFlow.SetBinContent(8,N_Mjj );
-	hCutFlow.SetBinContent(9,N_jetCHF0 );
-	hCutFlow.SetBinContent(10,N_Naj );
-	hCutFlow.Draw();
-	c1.Print((directory+"/CutFlow"+suffixps).c_str());
+	hPtAll->Draw();
+	c1.Print((directory+"/PtAll"+suffixps).c_str());
 	
-	TMVA_tree->Write();
-	BDT_tree->Write();
+	FOM_tree->Write();
+	tree->Write();
 	
 	////////
 	// write histos to file:
@@ -1298,12 +915,10 @@ double SetWeight( std::string filename){
 	if (findString(filename, "ZH115_1M")){ 
 		SampleWeight = lumi/lumiZH115;
 	cout << "found ZH_ZToLL_HToBB_M-115 string" << endl;}
-	if (findString(filename, "ZH115")){ SampleWeight = lumi/(2.19999000000000000e+05/xsecbfZH115);}
-	if (findString(filename, "ZH125Fall11")){ SampleWeight = lumi/(2.16759000000000000e+05/xsecbfZH125);}
-	if (findString(filename, "Filtered115emu")){ SampleWeight = lumi/lumiZH115;}
-	if (findString(filename, "Filtered125emu")){ SampleWeight = lumi/lumiZH125;}
-	if (findString(filename, "DYPtZ")){ SampleWeight = lumi/lumiZJH;}
-	if (findString(filename, "DYM50")){ SampleWeight = lumi/lumiZJL;}
+	if (findString(filename, "ZH115_Fall11")){ SampleWeight = lumi/(2.28079234375000000e+05/xsecbfZH115);}
+	if (findString(filename, "Filteredemu")){ SampleWeight = lumi/lumiZH115;}
+	if (findString(filename, "DY_PtZ")){ SampleWeight = lumi/lumiZJH;}
+	if (findString(filename, "DY_M50")){ SampleWeight = lumi/lumiZJL;}
 	if (findString(filename, "120to170")){ SampleWeight = lumi/lumiQCD120;}
 	if (findString(filename, "170to300")){ SampleWeight = lumi/lumiQCD170;}
 	if (findString(filename, "300to470")){ SampleWeight = lumi/lumiQCD300;}
@@ -1312,14 +927,14 @@ double SetWeight( std::string filename){
 	if (findString(filename, "TTJets")){ SampleWeight = lumi/(lumiTT);}
 	if (findString(filename, "T_TuneZ2_s")){ SampleWeight = lumi/lumiTs;}
 	if (findString(filename, "T_TuneZ2_t-channel")){ SampleWeight = lumi/lumiTt;}
-	if (findString(filename, "T_tW")){ SampleWeight = lumi/lumiTtW;}
+	if (findString(filename, "T_TuneZ2_tW-channel-DR")){ SampleWeight = lumi/lumiTtW;}
 	if (findString(filename, "T_TuneZ2_tW-channel-DS")){ SampleWeight = lumi/(828002.00/xsecbfTtW) ;}
 	if (findString(filename, "Tbar_TuneZ2_s")){ SampleWeight = lumi/lumiTsb;}
 	if (findString(filename, "Tbar_TuneZ2_t-channel")){ SampleWeight = lumi/lumiTtb;}
-	if (findString(filename, "Tbar_tW")){ SampleWeight = lumi/lumiTtWb;}
+	if (findString(filename, "Tbar_TuneZ2_tW-channel-DR")){ SampleWeight = lumi/lumiTtWb;}
 	if (findString(filename, "Tbar_TuneZ2_tW-channel-DS")){ SampleWeight = lumi/(727800.6250000/xsecbfTtWb);}
 	if (findString(filename, "WJetsToLNu_Pt-100")){ SampleWeight = lumi/(18859930.0/(685.69*1000) );}
-	if (findString(filename, "WJets.root")){ SampleWeight = lumi/lumiWJ;}
+	if (findString(filename, "WJetsToLNu_TuneZ2")){ SampleWeight = lumi/lumiWJ;}
 	if (findString(filename, "WW")){ SampleWeight = lumi/lumiWW;}
 	if (findString(filename, "WZ")){ SampleWeight = lumi/lumiWZ;}
 	if (findString(filename, "ZJetsToLL")){ SampleWeight = lumi/(2349387.0/(3048*1000));}
@@ -1338,7 +953,7 @@ bool findString(std::string strToSearch, std::string strPattern){
 	bool foundStr = false;
 	
 	found=strToSearch.find(strPattern);
-    if (found!=string::npos)
+	if (found!=string::npos)
 		foundStr = true;
 	
 	return foundStr;		

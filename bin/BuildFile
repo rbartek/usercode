@@ -1,5 +1,5 @@
 #
-# $Id: BuildFile,v 1.5 2011/11/16 23:18:12 wilken Exp $
+# $Id: BuildFile,v 1.6 2011/11/23 18:03:27 wilken Exp $
 #
 # Package  : UserCode/wilken
 # Filename : bin/BuildFile
@@ -34,6 +34,21 @@
     <use name=UserCode/wilken>
 </bin>
 <bin name=Zbb_tree file=Zbb_tree.cc>
+    <use name=root>
+    <use name=rootgraphics>
+    <use name=UserCode/wilken>
+</bin>
+<bin name=TriggerStudyElectron file=TriggerStudyElectron.cc>
+    <use name=root>
+    <use name=rootgraphics>
+    <use name=UserCode/wilken>
+</bin>
+<bin name=TriggerStudyMuon file=TriggerStudyMuon.cc>
+    <use name=root>
+    <use name=rootgraphics>
+    <use name=UserCode/wilken>
+</bin>
+<bin name=Zbb_JetStudy file=Zbb_JetStudy.cc>
     <use name=root>
     <use name=rootgraphics>
     <use name=UserCode/wilken>

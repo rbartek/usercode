@@ -6,7 +6,7 @@
 #include <UserCode/wilken/interface/GenericTool.h>
 #include "UserCode/wilken/interface/btagshapeNew.h"
 //#include "UserCode/wilken/interface/xsectauFall11.h"
-#include "UserCode/wilken/interface/xsecV21.h"
+#include "UserCode/wilken/interface/xsecRegressed.h"
 #include "PhysicsTools/CandUtils/interface/EventShapeVariables.h"
 
 #include <string>

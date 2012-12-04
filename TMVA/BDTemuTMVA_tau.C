@@ -1,4 +1,4 @@
-// @(#)root/tmva $Id: TMVAClassification.C 38895 2011-04-18 11:59:54Z evt $
+// @(#)root/tmva $Id: BDTemuTMVA_tau.C,v 1.1 2012/07/17 14:47:36 wilken Exp $
 /**********************************************************************************
  * Project   : TMVA - a ROOT-integrated toolkit for multivariate data analysis    *
  * Package   : TMVA                                                               *
@@ -31,7 +31,7 @@
 #include <iostream>
 #include <map>
 #include <string>
-#include "/home/hep/wilken/taus/CMSSW_4_4_2_patch8/src/UserCode/wilken/interface/xsecV21.h" 
+#include "UserCode/wilken/interface/xsecTauCand.h"
 #include "TChain.h"
 #include "TFile.h"
 #include "TTree.h"
@@ -61,8 +61,8 @@ double deltaPhi(double phi1, double phi2)
 void BDTemuTMVA_tau( TString myMethodList = "" )
 {
 
-	double lumi = 4.457;
-	int lnum = 115; 
+	double lumi = 4.982;
+	int lnum = 125; 
 	std::cout << "Training " << lnum <<std::endl;
 	
    // The explicit loading of the shared libTMVA is done in TMVAlogon.C, defined in .rootrc
@@ -195,10 +195,10 @@ void BDTemuTMVA_tau( TString myMethodList = "" )
    // Define the input variables that shall be used for the MVA training
    // note that you may also use variable expressions, such as: "3*var1/var2*abs(var3)"
    // [all types of expressions that can also be parsed by TTree::Draw( "expression" )]
-      factory->AddVariable( "Hmass"    ,  "H Mass"    , "GeV" , 'F' );//0
+      factory->AddVariable( "oldHmass"    ,  "H Mass"    , "GeV" , 'F' );//0
    //     factory->AddVariable( "Naj"      ,  "Naj"      , ""         , 'F' );//1
-        factory->AddVariable( "CSV0"      ,  "CSV 1"     , ""           , 'F' );//2
-        factory->AddVariable( "Emumass"        ,  "Emumass"          , "GeV"      , 'F' );//3
+        factory->AddVariable( "CSV0"      ,  "CSV 0"     , ""           , 'F' );//2
+        factory->AddVariable( "DitauMass"        ,  "DitauMass"          , "GeV"      , 'F' );//3
         factory->AddVariable( "DeltaPhiHV"   ,  "DeltaPhiHV", ""      , 'F' );//4
         factory->AddVariable( "Mt"      ,  "Mt"     , ""              , 'F' );//5
         factory->AddVariable( "dPhiHMET"      ,  "dPhiHMET"     , ""            , 'F' );//6
@@ -217,18 +217,16 @@ void BDTemuTMVA_tau( TString myMethodList = "" )
 
    // Read training and test data
    // (it is also possible to use ASCII format as input -> see TMVA Users Guide)
-	TFile *inputBtt  =   TFile::Open("/home/hep/wilken/taus/CMSSW_4_4_2_patch8/src/UserCode/wilken/V21/TTJets.root");
-	TFile *inputBzz  =   TFile::Open("/home/hep/wilken/taus/CMSSW_4_4_2_patch8/src/UserCode/wilken/V21/ZZ.root"            );
-	TFile *inputtw   =   TFile::Open("/home/hep/wilken/taus/CMSSW_4_4_2_patch8/src/UserCode/wilken/V21/T_tW.root"     );
-	TFile *inputtbw   =  TFile::Open("/home/hep/wilken/taus/CMSSW_4_4_2_patch8/src/UserCode/wilken/V21/Tbar_tW.root"  );
-	TFile *inputww   =   TFile::Open("/home/hep/wilken/taus/CMSSW_4_4_2_patch8/src/UserCode/wilken/V21/WW.root"		      );
-	TFile *inputwz   =   TFile::Open("/home/hep/wilken/taus/CMSSW_4_4_2_patch8/src/UserCode/wilken/V21/WZ.root"                 );
-	TFile *inputwj   =   TFile::Open("/home/hep/wilken/taus/CMSSW_4_4_2_patch8/src/UserCode/wilken/V21/WJets.root"        );
-	TFile *inputBzj   =  TFile::Open("/home/hep/wilken/taus/CMSSW_4_4_2_patch8/src/UserCode/wilken/V21/DY_M50.root"   );
-	TFile *inputBzj2   = TFile::Open("/home/hep/wilken/taus/CMSSW_4_4_2_patch8/src/UserCode/wilken/V21/DY_PtZ.root");
-	
-//	TFile *inputS = TFile::Open("/home/hep/wilken/taus/CMSSW_4_4_2_patch8/src/UserCode/wilken/V21/ZH115_1M.root");
-	TFile *inputS = TFile::Open("/home/hep/wilken/taus/CMSSW_4_4_2_patch8/src/UserCode/wilken/V21/Filteredemu.root");
+	TFile *inputBtt  =   TFile::Open("/home/hep/wilken/CandReaderForTaus/src/UserCode/wilken/OptiCuts/TTJets.root");
+	TFile *inputBzz  =   TFile::Open("/home/hep/wilken/CandReaderForTaus/src/UserCode/wilken/OptiCuts/ZZ.root");
+	TFile *inputtw   =  TFile::Open("/home/hep/wilken/CandReaderForTaus/src/UserCode/wilken/OptiCuts/T_tW.root" );
+	TFile *inputtbw   =  TFile::Open("/home/hep/wilken/CandReaderForTaus/src/UserCode/wilken/OptiCuts/Tbar_tW.root" );
+	TFile *inputww   =   TFile::Open("/home/hep/wilken/CandReaderForTaus/src/UserCode/wilken/OptiCuts/WW.root");
+	TFile *inputwz   =   TFile::Open("/home/hep/wilken/CandReaderForTaus/src/UserCode/wilken/OptiCuts/WZ.root");
+	TFile *inputwj   =   TFile::Open("/home/hep/wilken/CandReaderForTaus/src/UserCode/wilken/OptiCuts/WJets.root");
+	TFile *inputBzj   =  TFile::Open("/home/hep/wilken/CandReaderForTaus/src/UserCode/wilken/OptiCuts/DY_M50.root");
+	TFile *inputBzj2   = TFile::Open("/home/hep/wilken/CandReaderForTaus/src/UserCode/wilken/OptiCuts/DY_PtZ.root");
+	TFile *inputS = TFile::Open("/home/hep/wilken/CandReaderForTaus/src/UserCode/wilken/OptiCuts/ZH_M125_Summer11.root");
 
    
    std::cout << "--- TMVAClassification       : Using input file: " << inputS->GetName() << std::endl;
@@ -247,7 +245,7 @@ void BDTemuTMVA_tau( TString myMethodList = "" )
 	TTree *backgroundwz  = (TTree*) inputwz ->Get("TMVA_tree");
 	TTree *backgroundwj  = (TTree*) inputwj ->Get("TMVA_tree");
 	
-	  factory->AddSignalTree    ( signal	    , lumi/(lumiZH115/2.0)  );
+	factory->AddSignalTree    ( signal	    , lumi/(lumiZH125/2.0)  );
 	     
    // You can add an arbitrary number of signal or background trees
 	if(backgroundtbw->GetEntries() > 0)    factory->AddBackgroundTree(backgroundtbw, lumi/(lumiTtWb/2.0));
@@ -305,10 +303,12 @@ void BDTemuTMVA_tau( TString myMethodList = "" )
    //factory->SetBackgroundWeightExpression( "weight" );
 
    // Apply additional cuts on the signal and background samples (can be different)
-   TCut mycuts = "abs(DphiZMET) < 1.25 && (ZmassSVD < 0 || (ZmassSVD > 30 && ZmassSVD< 100)) && CSV0 > 0.244 && Emumass > 10 && Emumass < 75 && Hmass > 80 && Hmass < 150 && Hpt > 20"; 
+   TCut mycuts = "Hmass<300"; 
    // for example: TCut mycuts = "abs(var1)<0.5 && abs(var2-0.5)<1";
-   TCut mycutb = "abs(DphiZMET) < 1.25 && (ZmassSVD < 0 || (ZmassSVD > 30 && ZmassSVD< 100)) && CSV0 > 0.244 && Emumass > 10 && Emumass < 75 && Hmass > 80 && Hmass < 150 && Hpt > 20"; 
+   TCut mycutb = "Hmass<300"; 
    // for example: TCut mycutb = "abs(var1)<0.5";
+//factory->SetSignalWeightExpression    ("Trigweight");
+//factory->SetBackgroundWeightExpression("Trigweight");
 
    // Tell the factory how to use the training and testing events
    //

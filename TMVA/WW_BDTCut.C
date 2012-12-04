@@ -138,7 +138,7 @@ void WW_BDTCut( TString myMethodList = "" )
 
    // Create a set of variables and declare them to the reader
    // - the variable names MUST corresponds in name and type to those given in the weight file(s) used
-   Float_t Hmass, Emumass;
+   Float_t Hmass, Emumass, oldHmass;
 	Float_t Hpt, Zpt;
 	Float_t CSV0, CSV1;
 	Float_t DeltaPhiHV, DetaJJ;
@@ -157,7 +157,7 @@ void WW_BDTCut( TString myMethodList = "" )
 	
 	Float_t dphiEMU, dphiZMET;
 	
-	reader->AddVariable( "Hmass", &Hmass );
+	reader->AddVariable( "oldHmass", &oldHmass );
 	//reader->AddVariable( "Naj", &Naj );
 	reader->AddVariable( "CSV0", &CSV0 );
 	reader->AddVariable( "Emumass", &Emumass );
@@ -257,6 +257,7 @@ void WW_BDTCut( TString myMethodList = "" )
 	treeWithBDT->Branch("CSV1",&CSV1, "CSV1/F");
 	treeWithBDT->Branch("Emumass",&Emumass, "Emumass/F");
 	treeWithBDT->Branch("Hmass",&Hmass, "Hmass/F");
+	treeWithBDT->Branch("oldHmass",&oldHmass, "oldHmass/F");
 	treeWithBDT->Branch("DeltaPhiHV",&DeltaPhiHV, "DeltaPhiHV/F");
 	treeWithBDT->Branch("Hpt",&Hpt, "Hpt/F");
 	treeWithBDT->Branch("Zpt",&Zpt, "Zpt/F");
@@ -375,9 +376,10 @@ void WW_BDTCut( TString myMethodList = "" )
    // we'll later on use only the "signal" events for the test in this example.
    //   
    TFile *input(0);
-   TString fname = "/home/hep/wilken/taus/CMSSW_4_4_2_patch8/src/UserCode/wilken/V21/WW.root"; 
+   TString fname = "../FirstPlots/WW.root"; 
 	double lumi = 4.457;
-	Double_t  WW_weight = lumi/(lumiWW/2.0); //WW_TuneZ2_7TeV_pythia6_tauola
+//	Double_t  WW_weight = lumi/(lumiWW/2.0); //WW_TuneZ2_7TeV_pythia6_tauola
+	Double_t  WW_weight = 1.0; //WW_TuneZ2_7TeV_pythia6_tauola
   
    if (!gSystem->AccessPathName( fname )) 
       input = TFile::Open( fname ); // check if file in local directory exists
@@ -538,13 +540,6 @@ Nevents++;
          rarityHistFi->Fill( reader->GetRarity( "Fisher method" ) );
       }
    
-	  // std::cout << "Ht is "<< Ht << endl;
-	   if (Hpt > 20 ) { NpassHpt++;
-		   if (Emumass > 10 && Emumass < 85) { NpassMemu++;
-			   if (ZmassSVD < 0 || (ZmassSVD > 30 && ZmassSVD< 100)){NpassZmassSVD++;
-				   if (CSV0 > 0.244) { NpassCSV++;
-					   if(fabs(DphiZMET) < 1.25){NpassDphiZMET++;
-						   if (Hmass > 80 && Hmass < 150){NpassMjj++;
 	   if(BDTvalue>-1.50){
 NpassBDT++;
 hMjj_OpenSelection->Fill(Hmass,WW_weight*Trigweight*B2011PUweight );
@@ -595,7 +590,7 @@ hPtmu0_OpenSelection->Fill(lep0pt,WW_weight*Trigweight*B2011PUweight );
 		   hZmass_OpenSelection->Fill(Zmass, WW_weight*Trigweight*B2011PUweight );
 		   hZmassNegInclu_OpenSelection->Fill(ZmassNegInclu, WW_weight*Trigweight*B2011PUweight );
 
-	   } }}}}}}
+	   }
 	   treeWithBDT->Fill();
 	   
    }//end event loop

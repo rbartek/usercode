@@ -39,7 +39,22 @@
   <use   name="rootgraphics"/>
   <use   name="UserCode/wilken"/>
 </bin>
-<bin   name="Zbb_JetStudy" file="Zbb_JetStudy.cc">
+<bin   name="Hbb_JetStudy" file="Hbb_JetStudy.cc">
+  <use   name="root"/>
+  <use   name="rootgraphics"/>
+  <use   name="UserCode/wilken"/>
+</bin>
+<bin   name="Hbb_TauemuTuples" file="Hbb_TauemuTuples.cc">
+  <use   name="root"/>
+  <use   name="rootgraphics"/>
+  <use   name="UserCode/wilken"/>
+</bin>
+<bin   name="Hbb_RegVar" file="Hbb_RegVar.cc">
+  <use   name="root"/>
+  <use   name="rootgraphics"/>
+  <use   name="UserCode/wilken"/>
+</bin>
+<bin   name="CheckRunNumbers" file="CheckRunNumbers.cc">
   <use   name="root"/>
   <use   name="rootgraphics"/>
   <use   name="UserCode/wilken"/>

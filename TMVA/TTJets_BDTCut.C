@@ -138,7 +138,7 @@ void TTJets_BDTCut( TString myMethodList = "" )
 
    // Create a set of variables and declare them to the reader
    // - the variable names MUST corresponds in name and type to those given in the weight file(s) used
-   Float_t Hmass, Emumass;
+   Float_t Hmass, Emumass, oldHmass;
 	Float_t Hpt, Zpt;
 	Float_t CSV0, CSV1;
 	Float_t DeltaPhiHV, DetaJJ;
@@ -157,7 +157,7 @@ void TTJets_BDTCut( TString myMethodList = "" )
 	
 	Float_t dphiEMU, dphiZMET;
 	
-	reader->AddVariable( "Hmass", &Hmass );
+	reader->AddVariable( "oldHmass", &oldHmass );
 	//reader->AddVariable( "Naj", &Naj );
 	reader->AddVariable( "CSV0", &CSV0 );
 	reader->AddVariable( "Emumass", &Emumass );
@@ -257,6 +257,7 @@ void TTJets_BDTCut( TString myMethodList = "" )
 	treeWithBDT->Branch("CSV1",&CSV1, "CSV1/F");
 	treeWithBDT->Branch("Emumass",&Emumass, "Emumass/F");
 	treeWithBDT->Branch("Hmass",&Hmass, "Hmass/F");
+	treeWithBDT->Branch("oldHmass",&oldHmass, "oldHmass/F");
 	treeWithBDT->Branch("DeltaPhiHV",&DeltaPhiHV, "DeltaPhiHV/F");
 	treeWithBDT->Branch("Hpt",&Hpt, "Hpt/F");
 	treeWithBDT->Branch("Zpt",&Zpt, "Zpt/F");
@@ -375,9 +376,10 @@ void TTJets_BDTCut( TString myMethodList = "" )
    // we'll later on use only the "signal" events for the test in this example.
    //   
    TFile *input(0);
-   TString fname = "/home/hep/wilken/taus/CMSSW_4_4_2_patch8/src/UserCode/wilken/V21/TTJets.root"; 
+   TString fname = "../FirstPlots/TTJets.root"; 
 	double lumi = 4.457;
-	Double_t  TTJets_weight = lumi/(lumiTT/2.0); //TTJets_TuneZ2_7TeV_pythia6_tauola
+//	Double_t  TTJets_weight = lumi/(lumiWW/2.0); //WW_TuneZ2_7TeV_pythia6_tauola
+	Double_t  WW_weight = 1.0; //WW_TuneZ2_7TeV_pythia6_tauola
   
    if (!gSystem->AccessPathName( fname )) 
       input = TFile::Open( fname ); // check if file in local directory exists
@@ -470,6 +472,7 @@ void TTJets_BDTCut( TString myMethodList = "" )
    TStopwatch sw;
    sw.Start();
    int Nevents = 0, NpassBDT = 0;
+   int NpassHpt = 0, NpassMemu = 0, NpassZmassSVD = 0, NpassCSV = 0, NpassDphiZMET = 0, NpassMjj = 0;
    for (Long64_t ievt=0; ievt<theTree->GetEntries();ievt++) {
 Nevents++;
       if (ievt%1000 == 0) std::cout << "--- ... Processing event: " << ievt << std::endl;
@@ -508,8 +511,8 @@ Nevents++;
       if (Use["TMlpANN"      ])   histNnT    ->Fill( reader->EvaluateMVA( "TMlpANN method"       ) );
 	   if (Use["BDT"          ]) {
 	   BDTvalue = reader->EvaluateMVA( "BDT method"           );
-		   histMattBdt    ->Fill( BDTvalue,TTJets_weight*Trigweight*B2011PUweight );
-		   histTMVABdt    ->Fill( BDTvalue,TTJets_weight*Trigweight*B2011PUweight );
+		   histMattBdt    ->Fill( BDTvalue,WW_weight*Trigweight*B2011PUweight );
+		   histTMVABdt    ->Fill( BDTvalue,WW_weight*Trigweight*B2011PUweight );
 	   }
       if (Use["BDTD"         ])   histBdtD   ->Fill( reader->EvaluateMVA( "BDTD method"          ) );
       if (Use["BDTG"         ])   histBdtG   ->Fill( reader->EvaluateMVA( "BDTG method"          ) );
@@ -537,56 +540,55 @@ Nevents++;
          rarityHistFi->Fill( reader->GetRarity( "Fisher method" ) );
       }
    
-	  // std::cout << "Ht is "<< Ht << endl;
 	   if(BDTvalue>-1.50){
 NpassBDT++;
-hMjj_OpenSelection->Fill(Hmass,TTJets_weight*Trigweight*B2011PUweight );
-hMmumu_OpenSelection->Fill(Emumass,TTJets_weight*Trigweight*B2011PUweight );
-hPtjj_OpenSelection->Fill(Hpt,TTJets_weight*Trigweight*B2011PUweight );
-hPtmumu_OpenSelection->Fill(Zpt,TTJets_weight*Trigweight*B2011PUweight );
-hCSV0_OpenSelection->Fill(CSV0,TTJets_weight*Trigweight*B2011PUweight );
-hCSV1_OpenSelection->Fill(CSV1,TTJets_weight*Trigweight*B2011PUweight );
-hdphiVH_OpenSelection->Fill(DeltaPhiHV,TTJets_weight*Trigweight*B2011PUweight );
-hdetaJJ_OpenSelection->Fill(DetaJJ,TTJets_weight*Trigweight*B2011PUweight );
-hUnweightedEta_OpenSelection->Fill(UnweightedEta,TTJets_weight*Trigweight*B2011PUweight );
-hPtmu0_OpenSelection->Fill(lep0pt,TTJets_weight*Trigweight*B2011PUweight );
-	   hHt_OpenSelection->Fill(Ht,TTJets_weight*Trigweight*B2011PUweight );
-	   hCircularity_OpenSelection->Fill(EvntShpCircularity,TTJets_weight*Trigweight*B2011PUweight );
-	   hCHFb0_OpenSelection->Fill(jetCHF0, TTJets_weight*Trigweight*B2011PUweight );
-	   hCHFb1_OpenSelection->Fill(jetCHF1, TTJets_weight*Trigweight*B2011PUweight );
-	   hPtbalZH_OpenSelection->Fill(PtbalZH, TTJets_weight*Trigweight*B2011PUweight );
-	   hPtmu1_OpenSelection->Fill(lep1pt, TTJets_weight*Trigweight*B2011PUweight );
-	   hPFRelIsomu0_OpenSelection->Fill(lep_pfCombRelIso0, TTJets_weight*Trigweight*B2011PUweight );
-	   hPFRelIsomu1_OpenSelection->Fill(lep_pfCombRelIso1, TTJets_weight*Trigweight*B2011PUweight );
-	   hNjets_OpenSelection->Fill(nJets, TTJets_weight*Trigweight*B2011PUweight );
-	   hRMSeta_OpenSelection->Fill(RMS_eta, TTJets_weight*Trigweight*B2011PUweight );
-	   hStaDeveta_OpenSelection->Fill(EtaStandDev, TTJets_weight*Trigweight*B2011PUweight );
-	   hdphiJJ_vect_OpenSelection->Fill(DphiJJ, TTJets_weight*Trigweight*B2011PUweight );
-	   hCentrality_OpenSelection->Fill(Centrality, TTJets_weight*Trigweight*B2011PUweight );
-	   hEventPt_OpenSelection->Fill(EventPt, TTJets_weight*Trigweight*B2011PUweight );
-	   hAngleEMU_OpenSelection->Fill(AngleEMU, TTJets_weight*Trigweight*B2011PUweight );
-	   hSphericity_OpenSelection->Fill(EvntShpSphericity, TTJets_weight*Trigweight*B2011PUweight );
-	   hAplanarity_OpenSelection->Fill(EvntShpAplanarity, TTJets_weight*Trigweight*B2011PUweight );
-	   hIsotropy_OpenSelection->Fill(EvntShpIsotropy, TTJets_weight*Trigweight*B2011PUweight );
-		   hDphiDetajj_OpenSelection->Fill(DphiJJ, DetaJJ, TTJets_weight*Trigweight*B2011PUweight );
-		   hMte_OpenSelection->Fill(Mte, TTJets_weight*Trigweight*B2011PUweight );
-		   hMtmu_OpenSelection->Fill(Mtmu, TTJets_weight*Trigweight*B2011PUweight );
-		   hdPhiHMET_OpenSelection->Fill(dPhiHMET, TTJets_weight*Trigweight*B2011PUweight );
-		   hDphiemu_OpenSelection->Fill(DeltaPhijetMETmin, TTJets_weight*Trigweight*B2011PUweight );
-		   hdelRjj_OpenSelection->Fill(delRjj, TTJets_weight*Trigweight*B2011PUweight );
-		   hdelRemu_OpenSelection->Fill(delRemu, TTJets_weight*Trigweight*B2011PUweight );
-		   hDphiZMET_OpenSelection->Fill(DphiZMET, TTJets_weight*Trigweight*B2011PUweight );
-		   hDphiemu_OpenSelection->Fill(Dphiemu, TTJets_weight*Trigweight*B2011PUweight );
-		   hDeltaPhijetMETmin_OpenSelection->Fill(DeltaPhijetMETmin, TTJets_weight*Trigweight*B2011PUweight );
-		   hAngleHemu_OpenSelection->Fill(AngleHemu, TTJets_weight*Trigweight*B2011PUweight );
-		   hProjVisT_OpenSelection->Fill(ProjVisT, TTJets_weight*Trigweight*B2011PUweight );
-		   htopMass_OpenSelection->Fill(topMass, TTJets_weight*Trigweight*B2011PUweight );
-		   htopPt_OpenSelection->Fill(topPt, TTJets_weight*Trigweight*B2011PUweight );
-		   hVMt_OpenSelection->Fill(Mt, TTJets_weight*Trigweight*B2011PUweight );
-		   hZmassSVD_OpenSelection->Fill(ZmassSVD, TTJets_weight*Trigweight*B2011PUweight );
-		   hZmassSVDnegSol_OpenSelection->Fill(ZmassSVDnegSol, TTJets_weight*Trigweight*B2011PUweight );
-		   hZmass_OpenSelection->Fill(Zmass, TTJets_weight*Trigweight*B2011PUweight );
-		   hZmassNegInclu_OpenSelection->Fill(ZmassNegInclu, TTJets_weight*Trigweight*B2011PUweight );
+hMjj_OpenSelection->Fill(Hmass,WW_weight*Trigweight*B2011PUweight );
+hMmumu_OpenSelection->Fill(Emumass,WW_weight*Trigweight*B2011PUweight );
+hPtjj_OpenSelection->Fill(Hpt,WW_weight*Trigweight*B2011PUweight );
+hPtmumu_OpenSelection->Fill(Zpt,WW_weight*Trigweight*B2011PUweight );
+hCSV0_OpenSelection->Fill(CSV0,WW_weight*Trigweight*B2011PUweight );
+hCSV1_OpenSelection->Fill(CSV1,WW_weight*Trigweight*B2011PUweight );
+hdphiVH_OpenSelection->Fill(DeltaPhiHV,WW_weight*Trigweight*B2011PUweight );
+hdetaJJ_OpenSelection->Fill(DetaJJ,WW_weight*Trigweight*B2011PUweight );
+hUnweightedEta_OpenSelection->Fill(UnweightedEta,WW_weight*Trigweight*B2011PUweight );
+hPtmu0_OpenSelection->Fill(lep0pt,WW_weight*Trigweight*B2011PUweight );
+	   hHt_OpenSelection->Fill(Ht,WW_weight*Trigweight*B2011PUweight );
+	   hCircularity_OpenSelection->Fill(EvntShpCircularity,WW_weight*Trigweight*B2011PUweight );
+	   hCHFb0_OpenSelection->Fill(jetCHF0, WW_weight*Trigweight*B2011PUweight );
+	   hCHFb1_OpenSelection->Fill(jetCHF1, WW_weight*Trigweight*B2011PUweight );
+	   hPtbalZH_OpenSelection->Fill(PtbalZH, WW_weight*Trigweight*B2011PUweight );
+	   hPtmu1_OpenSelection->Fill(lep1pt, WW_weight*Trigweight*B2011PUweight );
+	   hPFRelIsomu0_OpenSelection->Fill(lep_pfCombRelIso0, WW_weight*Trigweight*B2011PUweight );
+	   hPFRelIsomu1_OpenSelection->Fill(lep_pfCombRelIso1, WW_weight*Trigweight*B2011PUweight );
+	   hNjets_OpenSelection->Fill(nJets, WW_weight*Trigweight*B2011PUweight );
+	   hRMSeta_OpenSelection->Fill(RMS_eta, WW_weight*Trigweight*B2011PUweight );
+	   hStaDeveta_OpenSelection->Fill(EtaStandDev, WW_weight*Trigweight*B2011PUweight );
+	   hdphiJJ_vect_OpenSelection->Fill(DphiJJ, WW_weight*Trigweight*B2011PUweight );
+	   hCentrality_OpenSelection->Fill(Centrality, WW_weight*Trigweight*B2011PUweight );
+	   hEventPt_OpenSelection->Fill(EventPt, WW_weight*Trigweight*B2011PUweight );
+	   hAngleEMU_OpenSelection->Fill(AngleEMU, WW_weight*Trigweight*B2011PUweight );
+	   hSphericity_OpenSelection->Fill(EvntShpSphericity, WW_weight*Trigweight*B2011PUweight );
+	   hAplanarity_OpenSelection->Fill(EvntShpAplanarity, WW_weight*Trigweight*B2011PUweight );
+	   hIsotropy_OpenSelection->Fill(EvntShpIsotropy, WW_weight*Trigweight*B2011PUweight );
+		   hDphiDetajj_OpenSelection->Fill(DphiJJ, DetaJJ, WW_weight*Trigweight*B2011PUweight );
+		   hMte_OpenSelection->Fill(Mte, WW_weight*Trigweight*B2011PUweight );
+		   hMtmu_OpenSelection->Fill(Mtmu, WW_weight*Trigweight*B2011PUweight );
+		   hdPhiHMET_OpenSelection->Fill(dPhiHMET, WW_weight*Trigweight*B2011PUweight );
+		   hDphiemu_OpenSelection->Fill(DeltaPhijetMETmin, WW_weight*Trigweight*B2011PUweight );
+		   hdelRjj_OpenSelection->Fill(delRjj, WW_weight*Trigweight*B2011PUweight );
+		   hdelRemu_OpenSelection->Fill(delRemu, WW_weight*Trigweight*B2011PUweight );
+		   hDphiZMET_OpenSelection->Fill(DphiZMET, WW_weight*Trigweight*B2011PUweight );
+		   hDphiemu_OpenSelection->Fill(Dphiemu, WW_weight*Trigweight*B2011PUweight );
+		   hDeltaPhijetMETmin_OpenSelection->Fill(DeltaPhijetMETmin, WW_weight*Trigweight*B2011PUweight );
+		   hAngleHemu_OpenSelection->Fill(AngleHemu, WW_weight*Trigweight*B2011PUweight );
+		   hProjVisT_OpenSelection->Fill(ProjVisT, WW_weight*Trigweight*B2011PUweight );
+		   htopMass_OpenSelection->Fill(topMass, WW_weight*Trigweight*B2011PUweight );
+		   htopPt_OpenSelection->Fill(topPt, WW_weight*Trigweight*B2011PUweight );
+		   hVMt_OpenSelection->Fill(Mt, WW_weight*Trigweight*B2011PUweight );
+		   hZmassSVD_OpenSelection->Fill(ZmassSVD, WW_weight*Trigweight*B2011PUweight );
+		   hZmassSVDnegSol_OpenSelection->Fill(ZmassSVDnegSol, WW_weight*Trigweight*B2011PUweight );
+		   hZmass_OpenSelection->Fill(Zmass, WW_weight*Trigweight*B2011PUweight );
+		   hZmassNegInclu_OpenSelection->Fill(ZmassNegInclu, WW_weight*Trigweight*B2011PUweight );
 
 	   }
 	   treeWithBDT->Fill();
@@ -596,7 +598,16 @@ hPtmu0_OpenSelection->Fill(lep0pt,TTJets_weight*Trigweight*B2011PUweight );
    // Get elapsed time
    sw.Stop();
    std::cout << "--- End of event loop: "; sw.Print();
-std::cout << "Number of Events: "<< Nevents << " Events passed BDT " << NpassBDT<< endl;
+
+	std::cout << "Number of Events: "<< Nevents << " Events passed BDT " << NpassBDT<< endl;
+	std::cout << "Number of events " << Nevents << endl;
+	std::cout << "Hpt: " << NpassHpt << endl;
+	std::cout << "Memu: " << NpassMemu << endl;	
+	std::cout << "ZmassSVD: " << NpassZmassSVD << endl;
+	std::cout << "CSV0: " << NpassCSV << endl;
+	std::cout << "DphiZMET: " << NpassDphiZMET << endl;
+	std::cout << "Mjj: " << NpassMjj << endl;
+	
    // Get efficiency for cuts classifier
    
    if (Use["CutsGA"]) std::cout << "--- Efficiency for CutsGA method: " << double(nSelCutsGA)/theTree->GetEntries()
@@ -628,7 +639,7 @@ std::cout << "Number of Events: "<< Nevents << " Events passed BDT " << NpassBDT
 	
 
    // --- Write histograms
-   TFile *target  = new TFile( "BDTCut_TTJets.root","RECREATE" );
+   TFile *target  = new TFile( "BDTCut_WW.root","RECREATE" );
    if (Use["Likelihood"   ])   histLk     ->Write();
    if (Use["LikelihoodD"  ])   histLkD    ->Write();
    if (Use["LikelihoodPCA"])   histLkPCA  ->Write();
@@ -783,7 +794,7 @@ treeWithBDT->Delete();
 
 	
     
-   std::cout << "==> TTJets_BDTCut is done!" << endl << std::endl;
+   std::cout << "==> WW_BDTCut is done!" << endl << std::endl;
    
    gROOT->ProcessLine(".q");
 } 

@@ -20,7 +20,7 @@
  
  */
 
-#include "Zbb_TauemuTuples.h"
+#include "Hbb_TauemuTuples.h"
 #include <iostream>
 #include <fstream>
 
@@ -63,7 +63,7 @@ int main(int argc, char** argv) {
 	}
 	
     // Create the treeReader object.
-    tautreeReader sample(ifilename, std::string("tautree"));
+    treeReader sample(ifilename, std::string("tree"));
 	
     // If the input file(s) doesn't contain any event, exit.
     if (!(sample.readEvent(0))) {

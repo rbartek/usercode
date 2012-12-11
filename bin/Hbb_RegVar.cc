@@ -380,9 +380,9 @@ int main(int argc, char** argv) {
 					CSVshapeNew = -99.99;
 				}// end k for loop
 				for (int z=0;z<sample.nSvs;z++) SVmass[z]=sample.Sv_massSv[z];
-				RegjetPt[0] = sample.hJet_genPtReg0;
-				RegjetPt[1] = sample.hJet_genPtReg1;	
-				RegHmass = sample.newHiggsMass;
+				RegjetPt[0] = -99.99;
+				RegjetPt[1] = -99.99;	
+				RegHmass = -99.99;
 				oldHmass = sample.H_mass;
 				Hmass = sample.H_mass;
 				ScalarSumJetPt = jetPt[0]+jetPt[1];
@@ -644,8 +644,8 @@ int main(int argc, char** argv) {
 				//if (indexedJetCSV[0].first == 0) RegjetPt[0] = sample.hJet_genPtReg0;
 				//if (indexedJetCSV[0].first == 1) RegjetPt[0] = sample.hJet_genPtReg1;
 				if(jetPt[0] == sample.hJet_pt[0]){
-				RegjetPt[0] = sample.hJet_genPtReg0;
-				RegjetPt[1] = sample.hJet_genPtReg1;
+				RegjetPt[0] = -99.99;
+				RegjetPt[1] = -99.99;
 			}
 				CSVNewShape[0] = indexedJetCSV[0].second;
 				if (sample.nhJets > 1) { 
@@ -677,9 +677,9 @@ int main(int argc, char** argv) {
 					DetaJJ = sample.hJet_eta[0]-sample.hJet_eta[1];				
 					Hmass = sample.H_mass;
 					oldHmass = sample.H_mass;
-					RegHmass = sample.newHiggsMass;
+					RegHmass = -99.99;
 					GenHiggsMass = sample.genH_mass;
-					Hpt = sample.newHiggsPt;
+					Hpt = sample.H_pt;
 					if(sample.svmass<999)DitauMass = sample.svmass;
 					ScalarSumHiggsJetPt = sample.hJet_pt[1] + sample.hJet_pt[0];
 					ScalarSumJetPt = ScalarSumJetPt+ sample.hJet_pt[1] + sample.hJet_pt[0];

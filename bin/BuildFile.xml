@@ -59,3 +59,8 @@
   <use   name="rootgraphics"/>
   <use   name="UserCode/wilken"/>
 </bin>
+<bin   name="tautaubbReader" file="tautaubbReader.cc">
+  <use   name="root"/>
+  <use   name="rootgraphics"/>
+  <use   name="UserCode/wilken"/>
+</bin>

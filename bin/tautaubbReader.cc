@@ -20,7 +20,7 @@
  
  */
 
-#include "Hbb_TauemuTuples.h"
+#include "tautaubbReader.h"
 #include <iostream>
 #include <fstream>
 
@@ -165,19 +165,21 @@ int main(int argc, char** argv) {
     // Set the sumw2 option for all histogram
     TH1::SetDefaultSumw2(true);
 	
-	TFile *MuonTrigWeightFile = TFile::Open("/home/hep/wilken/TriggerStudy/src/UserCode/wilken/TriggerStudy/AllRun2011Muon.root");
-	TFile *EleTrigWeightFile = TFile::Open("/home/hep/wilken/TriggerStudy/src/UserCode/wilken/TriggerStudy/AllRun2011Electron.root");
-	TFile *MuonIDWeightFile = TFile::Open("/home/hep/wilken/TauCandidates/src/VHbbAnalysis/VHbbDataFormats/bin/ScaleEffs42.root");
-	TFile *EleIDWeightFile = TFile::Open("/home/hep/wilken/TauCandidates/src/VHbbAnalysis/VHbbDataFormats/bin/PFElectronToWP95.root");
-	TFile *EleRecoWeightFile = TFile::Open("/home/hep/wilken/TauCandidates/src/VHbbAnalysis/VHbbDataFormats/bin/EleReco.root");
+	TFile *MuonTrigWeightFilelow = TFile::Open("/home/hep/wilken/CMSSW_5_3_3_patch2/src/VHbbAnalysis/VHbbDataFormats/bin/triggerRootFiles/DoubleMu8.TrigEff.2012A.root");
+	TFile *EleTrigWeightFilelow = TFile::Open("/home/hep/wilken/CMSSW_5_3_3_patch2/src/VHbbAnalysis/VHbbDataFormats/bin/triggerRootFiles/DoubleEle8.TrigEff.wp95.2012A.root");
+	TFile *MuonTrigWeightFilehigh = TFile::Open("/home/hep/wilken/CMSSW_5_3_3_patch2/src/VHbbAnalysis/VHbbDataFormats/bin/triggerRootFiles/DoubleMu17.TrigEff.2012A.root");
+	TFile *EleTrigWeightFilehigh = TFile::Open("/home/hep/wilken/CMSSW_5_3_3_patch2/src/VHbbAnalysis/VHbbDataFormats/bin/triggerRootFiles/DoubleEle17.TrigEff.wp95.2012A.root");
+	TFile *MuonIDWeightFile = TFile::Open("/home/hep/wilken/CMSSW_5_3_3_patch2/src/VHbbAnalysis/VHbbDataFormats/bin/triggerRootFiles/MuRecoId.ScaleFactor.2012A.root");
+	TFile *EleIDWeightFile = TFile::Open("/home/hep/wilken/CMSSW_5_3_3_patch2/src/VHbbAnalysis/VHbbDataFormats/bin/triggerRootFiles/EleRecoId.ScaleFactor.wp95.2012A.root");
 	TFile *lowptMuonIDWeightFile = TFile::Open("/home/hep/wilken/CandReaderForTaus/src/UserCode/wilken/ScaleFactorsMuon_lowptBoth.root");
 	TFile *lowptEleIDWeightFile = TFile::Open("/home/hep/wilken/CandReaderForTaus/src/UserCode/wilken/ScaleFactorsElectronWP95_lowpt.root");
 	
-	TTree *MuonTrigWeightTree = (TTree*) MuonTrigWeightFile->Get("tree"); 
-	TTree *EleTrigWeightTree = (TTree*) EleTrigWeightFile->Get("tree"); 
+	TTree *MuonTrigWeightTreelow = (TTree*) MuonTrigWeightFilelow->Get("tree"); 
+	TTree *EleTrigWeightTreelow = (TTree*) EleTrigWeightFilelow->Get("tree"); 
+	TTree *MuonTrigWeightTreehigh = (TTree*) MuonTrigWeightFilehigh->Get("tree"); 
+	TTree *EleTrigWeightTreehigh = (TTree*) EleTrigWeightFilehigh->Get("tree"); 
 	TTree *MuonIDWeightTree = (TTree*) MuonIDWeightFile->Get("tree"); 
 	TTree *EleIDWeightTree = (TTree*) EleIDWeightFile->Get("tree"); 
-	TTree *EleRecoWeightTree = (TTree*) EleRecoWeightFile->Get("tree"); 
 	TTree *lowptMuonIDWeightTree = (TTree*) lowptMuonIDWeightFile->Get("tree"); 
 	TTree *lowptEleIDWeightTree = (TTree*) lowptEleIDWeightFile->Get("tree"); 
 	
@@ -214,26 +216,23 @@ int main(int argc, char** argv) {
 	isdata = false;
 	isDATA = false;
 	bool LFfile = false;
+	bool TTfile = false;
 	bool HFfile = false;
 	if (findString(ifilename, "DY")) isZjets = true;
 	if (findString(ifilename, "M50")) isM50sample = true;
 	if (findString(ifilename, "M-50")) isM50sample = true;
 	if (findString(ifilename, "M_50")) isM50sample = true;
 	if (findString(ifilename, "ZJets")) isZjets = true;
-	if (findString(ifilename, "data")) {
+	if (findString(ifilename, "Run")||findString(ifilename, "Prompt")||findString(ifilename, "Aug")||
+	findString(ifilename, "Jul")||findString(ifilename, "recovered")) {
 		isdata = true;
 		isDATA = true;
 	}
-	if (findString(ifilename, "Data")) {
-		isdata = true;
-		isDATA = true;
-	}
-	if (findString(ifilename, "Run")) {
-		isdata = true;
-		isDATA = true;
-	}
+	if (findString(ofilename, "TTJets")) TTfile = true;
 	if (findString(ofilename, "LF")) LFfile = true;
 	if (findString(ofilename, "HF")) HFfile = true;
+	
+	cout << "HFfile is " << HFfile << " LumiWeight is " << LumiWeight << " isDATA " << isDATA << endl;
 	
 	
     // Check how many events and file(s) are analyzed
@@ -258,7 +257,7 @@ int main(int argc, char** argv) {
 	FOM_tree->Branch("Emumass",&Emumass, "Emumass/F");
 	FOM_tree->Branch("Hmass",&Hmass, "Hmass/F");
 	FOM_tree->Branch("oldHmass",&oldHmass, "oldHmass/F");
-	FOM_tree->Branch("RegHmass",&RegHmass, "RegHmass/F");
+	//FOM_tree->Branch("RegHmass",&RegHmass, "RegHmass/F");
 	FOM_tree->Branch("DeltaPhiHV",&DeltaPhiHV, "DeltaPhiHV/F");
 	FOM_tree->Branch("Hpt",&Hpt, "Hpt/F");
 	FOM_tree->Branch("Zpt",&Zpt, "Zpt/F");
@@ -274,8 +273,7 @@ int main(int argc, char** argv) {
 	FOM_tree->Branch("qtb1",&qtb1, "qtb1/F");
 	FOM_tree->Branch("nSV",&nSV, "nSV/I");
 	FOM_tree->Branch("Trigweight",&Trigweight, "Trigweight/F");
-	FOM_tree->Branch("B2011PUweight",&B2011PUweight, "B2011PUweight/F");
-	FOM_tree->Branch("A2011PUweight",&A2011PUweight, "A2011PUweight/F");
+	FOM_tree->Branch("PUweight2012",&PUweight2012, "PUweight2012/F");
 	FOM_tree->Branch("btag2CSF",&btag2CSF, "btag2CSF/F");
 	FOM_tree->Branch("DetaJJ",&DetaJJ, "DetaJJ/F");
 	FOM_tree->Branch("jetCHF0",&jetCHF[0], "jetCHF0/F");
@@ -385,7 +383,7 @@ int main(int argc, char** argv) {
 	TMVA_tree->Branch("Emumass",&Emumass, "Emumass/F");
 	TMVA_tree->Branch("Hmass",&Hmass, "Hmass/F");
 	TMVA_tree->Branch("oldHmass",&oldHmass, "oldHmass/F");
-	TMVA_tree->Branch("RegHmass",&RegHmass, "RegHmass/F");
+	//TMVA_tree->Branch("RegHmass",&RegHmass, "RegHmass/F");
 	TMVA_tree->Branch("DeltaPhiHV",&DeltaPhiHV, "DeltaPhiHV/F");
 	TMVA_tree->Branch("Hpt",&Hpt, "Hpt/F");
 	TMVA_tree->Branch("Zpt",&Zpt, "Zpt/F");
@@ -401,8 +399,7 @@ int main(int argc, char** argv) {
 	TMVA_tree->Branch("qtb1",&qtb1, "qtb1/F");
 	TMVA_tree->Branch("nSV",&nSV, "nSV/I");
 	TMVA_tree->Branch("Trigweight",&Trigweight, "Trigweight/F");
-	TMVA_tree->Branch("B2011PUweight",&B2011PUweight, "B2011PUweight/F");
-	TMVA_tree->Branch("A2011PUweight",&A2011PUweight, "A2011PUweight/F");
+	TMVA_tree->Branch("PUweight2012",&PUweight2012, "PUweight2012/F");
 	TMVA_tree->Branch("btag2CSF",&btag2CSF, "btag2CSF/F");
 	TMVA_tree->Branch("DetaJJ",&DetaJJ, "DetaJJ/F");
 	TMVA_tree->Branch("jetCHF0",&jetCHF[0], "jetCHF0/F");
@@ -508,7 +505,7 @@ int main(int argc, char** argv) {
 	BDT_tree->Branch("Emumass",&Emumass, "Emumass/F");
 	BDT_tree->Branch("Hmass",&Hmass, "Hmass/F");
 	BDT_tree->Branch("oldHmass",&oldHmass, "oldHmass/F");
-	BDT_tree->Branch("RegHmass",&RegHmass, "RegHmass/F");
+	//BDT_tree->Branch("RegHmass",&RegHmass, "RegHmass/F");
 	BDT_tree->Branch("DeltaPhiHV",&DeltaPhiHV, "DeltaPhiHV/F");
 	BDT_tree->Branch("Hpt",&Hpt, "Hpt/F");
 	BDT_tree->Branch("Zpt",&Zpt, "Zpt/F");
@@ -524,8 +521,7 @@ int main(int argc, char** argv) {
 	BDT_tree->Branch("qtb1",&qtb1, "qtb1/F");
 	BDT_tree->Branch("nSV",&nSV, "nSV/I");
 	BDT_tree->Branch("Trigweight",&Trigweight, "Trigweight/F");
-	BDT_tree->Branch("B2011PUweight",&B2011PUweight, "B2011PUweight/F");
-	BDT_tree->Branch("A2011PUweight",&A2011PUweight, "A2011PUweight/F");
+	BDT_tree->Branch("PUweight2012",&PUweight2012, "PUweight2012/F");
 	BDT_tree->Branch("btag2CSF",&btag2CSF, "btag2CSF/F");
 	BDT_tree->Branch("DetaJJ",&DetaJJ, "DetaJJ/F");
 	BDT_tree->Branch("jetCHF0",&jetCHF[0], "jetCHF0/F");
@@ -633,7 +629,7 @@ int main(int argc, char** argv) {
 		BDT_btree->Branch("Emumass",&Emumass, "Emumass/F");
 		BDT_btree->Branch("Hmass",&Hmass, "Hmass/F");
 		BDT_btree->Branch("oldHmass",&oldHmass, "oldHmass/F");
-		BDT_btree->Branch("RegHmass",&RegHmass, "RegHmass/F");
+		//BDT_btree->Branch("RegHmass",&RegHmass, "RegHmass/F");
 		BDT_btree->Branch("DeltaPhiHV",&DeltaPhiHV, "DeltaPhiHV/F");
 		BDT_btree->Branch("Hpt",&Hpt, "Hpt/F");
 		BDT_btree->Branch("Zpt",&Zpt, "Zpt/F");
@@ -649,8 +645,7 @@ int main(int argc, char** argv) {
 		BDT_btree->Branch("qtb1",&qtb1, "qtb1/F");
 		BDT_btree->Branch("nSV",&nSV, "nSV/I");
 		BDT_btree->Branch("Trigweight",&Trigweight, "Trigweight/F");
-		BDT_btree->Branch("B2011PUweight",&B2011PUweight, "B2011PUweight/F");
-		BDT_btree->Branch("A2011PUweight",&A2011PUweight, "A2011PUweight/F");
+		BDT_btree->Branch("PUweight2012",&PUweight2012, "PUweight2012/F");
 		BDT_btree->Branch("btag2CSF",&btag2CSF, "btag2CSF/F");
 		BDT_btree->Branch("DetaJJ",&DetaJJ, "DetaJJ/F");
 		BDT_btree->Branch("jetCHF0",&jetCHF[0], "jetCHF0/F");
@@ -775,39 +770,49 @@ int main(int argc, char** argv) {
     // see the documentation of RootTreeReader class.
 	float  N_Vtype =0.0, Ntrigger = 0.0, Npreselect =0.0, N_Mjj =0.0, N_DphiZMET =0.0, NMemu =0.0, N_Naj =0.0, N_CSV0 =0.0, N_EfakeCuts =0.0, N_jetCHF0 = 0.0;
 	float N_Mt = 0.0, N_Pzeta =0.0, N_DeltaPhiHV = 0.0;
-	int event =0, Ntree =0, N_isomu = 0, N_tightDoubleele = 0, N_loosedoubleEle = 0, N_sigleEleWP80 = 0, N_singleEleDiJet = 0;
+	int event =0, Ntree =0;
 	float N_TopCR = 0.0, N_SingleTopCR = 0.0, N_LFCR = 0.0, N_HFCR =0.0;
 	float FailedJetID=0.0, NTMVAtree =0.0, NBDTtree =0.0, NBDTbtree = 0.0;
 	int  NNegEleMissE = 0, NPosEleMissE = 0, NPosMuMissE = 0, NNegMuMissE = 0;
 	int NBothMissENeg = 0, NMixedEleMissENeg = 0, NMixedMuonMissENeg =0;
 	float SFUnc_TOPCR = 0.0, SFUnc_SingleTOP = 0.0, SFUnc_LFCR = 0.0, SFUnc_HFCR = 0.0;
 	bool firstevent = true;
-	
-	//	double Emumass = 91.1976;
-	int Ntrainingsample = 0, Nmatch = 0, NSameCandidate=0, NgoodGenInfo = 0, Njet1Bbar =0, Njet2Bbar =0, NORMatch = 0, Nmatch4 = 0, Nmatch15 = 0;
+	float Nweighted_Vtype =0.0, Nweighted_trigger = 0.0, Nweighted_preselect =0.0, Nweighted_Mjj =0.0, Nweighted_DphiZMET =0.0, Nweighted_Memu =0.0;
+	float Nweighted_Naj =0.0, Nweighted_CSV0 =0.0, Nweighted_EfakeCuts =0.0, Nweighted_jetCHF0 = 0.0;
+	float Nweighted_Mt = 0.0, Nweighted_Pzeta =0.0, Nweighted_DeltaPhiHV = 0.0, event_weighted = 0.0;
+	float Nweighted_TopCR = 0.0, Nweighted_SingleTopCR = 0.0, Nweighted_LFCR = 0.0, Nweighted_HFCR =0.0;	
 	
     do {
-		//event = event + 1;
-		event++;
+
+		if (debug)cout << "begining of event loop " << event << endl;
+
+        weight = 1.0;
 		float LFScaleFactor = 1.00;
+		float TTScaleFactor = 1.00;
 		//	if (isM50sample && sample.genZpt < 100) cout << "event cut out to remove overlap with DY_PtZ" << endl;
 		if (((isM50sample && sample.genZpt < 100) || !isM50sample) && ((HFfile && sample.eventFlav == 5)||!HFfile) && ((LFfile && sample.eventFlav!=5)||!LFfile)){
-			if (LFfile)LFScaleFactor = 0.957;
-			//cout << "Vtype is " << sample.Vtype << endl;
-			PUweight2011 = 1.0, EleTrigWeight = 1.0, MuonTrigWeight = 1.0, WP95weight = 1.0, EleRecoWeight = 1.0, MuIDweight = 1.0;
-			B2011PUweight = 1.0, A2011PUweight = 1.0;
-			B2011PUweight = sample.PUweight2011B;
-			A2011PUweight = sample.PUweight;
-			PUweight2011 = (2.268*A2011PUweight + ((lumi-2.268)*B2011PUweight))/lumi;
+			if (debug)cout << "HFfile is " << HFfile << " sample.eventFlav is " << sample.eventFlav << " isDATA " << isDATA << endl;
+
+			
+			EleTrigWeight = 1.0, MuonTrigWeight = 1.0, WP95weight = 1.0, MuIDweight = 1.0;
+			//PUweight2011 = 1.0;
+			//B2011PUweight = 1.0, A2011PUweight = 1.0;
+			//B2011PUweight = sample.PUweight2011B;
+			//A2011PUweight = sample.PUweight;
+			//PUweight2011 = (2.268*A2011PUweight + ((lumi-2.268)*B2011PUweight))/lumi;
 			//cout << "pile up weight: " << PUweight2011 << endl;
-			weight = LumiWeight*PUweight2011;
+			PUweight2012 = sample.PUweight;
+			weight = LumiWeight*PUweight2012;
 			Trigweight = 1.0;
-			//			if (!isDATA) Trigweight = sample.weightTrig;
-			//			weight = Trigweight*weight;
+			if (debug)cout << "weight is " << weight << " LumiWeight is " << LumiWeight << " PUweight2012 " << PUweight2012 << endl;
+
 			if (debug)cout << "Electron pt "<<sample.vLepton_pt[0] << " Muon pt " <<sample.vLepton_pt[1] << endl;
 			if (sample.vLepton_pt[1]>10 && sample.vLepton_pt[0]>10){
-				EleTrigWeight = AssignWeight(EleTrigWeightTree, sample.vLepton_pt[0], fabs(sample.vLepton_eta[0]));
-				MuonTrigWeight =AssignWeight(MuonTrigWeightTree, sample.vLepton_pt[1], fabs(sample.vLepton_eta[1]));
+			//Trigger weight named after leading lepton
+				EleTrigWeight = AssignWeight(EleTrigWeightTreehigh, sample.vLepton_pt[0], fabs(sample.vLepton_eta[0]));
+				MuonTrigWeight =AssignWeight(MuonTrigWeightTreehigh, sample.vLepton_pt[1], fabs(sample.vLepton_eta[1]));
+				EleTrigWeight = EleTrigWeight*AssignWeight(MuonTrigWeightTreelow, sample.vLepton_pt[0], fabs(sample.vLepton_eta[0]));
+				MuonTrigWeight = MuonTrigWeight*AssignWeight(EleTrigWeightTreelow, sample.vLepton_pt[1], fabs(sample.vLepton_eta[1]));
 				if (debug)cout << "Electron Trigger Weight is "<<EleTrigWeight<< endl;
 				if (debug)cout << "Muon trigger weight is "<<MuonTrigWeight << endl;
 				//Which trigger more likely to fire if both leptons above upper leg threshold
@@ -831,38 +836,43 @@ int main(int argc, char** argv) {
 					cout << "Electron pt "<<sample.vLepton_pt[0] << " Muon pt " <<sample.vLepton_pt[1] << endl;
 					cout << "Electron trig weight "<<  EleTrigWeight << " Muon trig weight " << MuonTrigWeight << endl;
 				}}
-			weight = weight*MuonTrigWeight*EleTrigWeight;
-			
 			// V21 VHbb electron weights
 			if(sample.vLepton_pt[0]>10) {
 				WP95weight = AssignWeight(lowptEleIDWeightTree, sample.vLepton_pt[0], sample.vLepton_eta[0]);
 				if (debug)cout << "Electron WP95ID low pt Weight is "<<WP95weight<< endl;
-				weight = weight*WP95weight;
 			}			
 			if(sample.vLepton_pt[0]>20) {
 				WP95weight = AssignWeight(EleIDWeightTree, sample.vLepton_pt[0], sample.vLepton_eta[0]);
-				EleRecoWeight = AssignWeight(EleRecoWeightTree, sample.vLepton_pt[0], sample.vLepton_eta[0]);
-				if (debug)cout << "Electron WP95ID Weight is "<<WP95weight<< endl;
-				if (debug)cout << "Electron Reco Weight is "<<EleRecoWeight<< endl;
-				weight = weight*WP95weight;
-				weight = weight*EleRecoWeight;
+				if (debug)cout << "Electron ID 95 Weight is "<<WP95weight<< endl;
 			}
 			// V21 VHbb muon weights
 			if(sample.vLepton_pt[1]>10){
 				MuIDweight = AssignWeight(lowptMuonIDWeightTree, sample.vLepton_pt[1], sample.vLepton_eta[1]);
 				if (debug)cout << "Muon ID low pt Weight is "<<MuIDweight<< endl;
-				weight = weight*MuIDweight;
 			}			
 			if(sample.vLepton_pt[1]>20){
 				MuIDweight = AssignWeight(MuonIDWeightTree, sample.vLepton_pt[1], sample.vLepton_eta[1]);
 				if (debug)cout << "Muon ID Weight is "<<MuIDweight<< endl;
-				weight = weight*MuIDweight;
 			}
+			Trigweight = MuonTrigWeight*EleTrigWeight*WP95weight*MuIDweight;
+			weight = weight*MuonTrigWeight*EleTrigWeight*WP95weight*MuIDweight;
 			
-			if (isdata||isDATA) weight = 1.0;
+			if (LFfile)LFScaleFactor = 0.957;
+			if (TTfile)TTScaleFactor = 1.029;
+			weight = weight*LFScaleFactor*TTScaleFactor;
+
+			if (isDATA) {weight = 1.0; Trigweight=1.0; }
+		if (debug)cout << "Trigweight is " << Trigweight << " weight is " << weight << " isDATA " << isDATA << endl;
 			
+			event++;
+			event_weighted = event_weighted + weight;
+			std::cout << "Looking for bug in event " << event << std::endl;
+			std::cout << "json is " << sample.EVENT_json << std::endl;
+			std::cout << "Vtype is " <<sample.Vtype << std::endl;
+
 			if (sample.Vtype == 5 && sample.EVENT_json == 1 ){
 				if (!(event%500))  std::cout << "entered event loop " << event << std::endl;
+				if (debug)  std::cout << "entered event loop " << event << std::endl;
 				isdata= false;
 				
 				std::vector< std::pair<size_t,double> > indexedJetPt;
@@ -877,6 +887,8 @@ int main(int argc, char** argv) {
 				// Analysis loop.
 				// One can access the ntuple leaves directly from sample object
 				
+				std::cout << "Before initilize variables" << std::endl;
+				
 				for (int i=0; i < 5; ++i) {
 					CSVNewShape[i] = -99.99;
 					jetPt[i] = -99.99;
@@ -884,7 +896,7 @@ int main(int argc, char** argv) {
 					jetPhi[i] = -99.99;
 					jetCSV[i] = -99.99;
 					jetCHF[i] = -99.99;
-					RegjetPt[i] = -99.99;
+					//RegjetPt[i] = -99.99;
 					jetPtRaw[i] = -99.99;
 					jetE[i] = -99.99;
 					jetVtx3dL[i] = -99.99;
@@ -925,11 +937,12 @@ int main(int argc, char** argv) {
 				
 				
 				nJets =0, nSV =-99, nMuons = 0,  nElectrons = 0,  nLeptons = 0, Na_lep= 0, nPV= -99, MET= -99.99, Naj= 0, Nab =0, eventFlavor = -99;
-				CSV0 = -1.0, CSV1 = -1.0, Emumass = -99.99, Hmass = -99.99, oldHmass = -99.99, RegHmass = -99.99, DeltaPhiHV = -99.99, Hpt = -99.99, Zpt = -99.99;
+				CSV0 = -1.0, CSV1 = -1.0, Emumass = -99.99, Hmass = -99.99, oldHmass = -99.99, DeltaPhiHV = -99.99, Hpt = -99.99, Zpt = -99.99;
 				lep0pt = -99.99, ScalarSumPt = -99.99, EtaStandDev = -99.99, UnweightedEta = -99.99, EvntShpCircularity = -99.99;
 				alpha_j = -99.99, qtb1 = 0.0, DphiJJ = -99.99,  btag2CSF = 1.0;
 				RMS_eta = -99.99, PtbalZH= -99.99, EventPt= -99.99, AngleHemu= -99.99, Centrality = -99.99;
 				qtlep1 = 0.0, alpha_lep = -99.99;
+				//RegHmass = -99.99;
 				EvntShpAplanarity = -99.99, EvntShpSphericity = -99.99, EvntShpIsotropy = -99.99;
 				DetaJJ = -99.99;
 				Zphi = -99.99, Hphi =-99.99;
@@ -965,6 +978,9 @@ int main(int argc, char** argv) {
 				AaronEleMissE = -599.99, AaronMuMissE = -599.99;
 				
 				double CSVshapeNew = -99.99;
+				
+				std::cout << "variables initialized " << std::endl;
+				
 				for (int k=0;k<sample.nhJets;k++){
 					if (debug) cout << "for "<< k << "th pass" << endl;
 					indexedJetPt.push_back(std::pair<size_t,double>(k,(double) sample.hJet_pt[k]));
@@ -985,6 +1001,7 @@ int main(int argc, char** argv) {
 				}// end k for loop
 				
 				float MinDphiaJet = 99.99;
+				std::cout << "Number additional Jets " << sample.naJets << std::endl;
 				for (int a=0;a<sample.naJets;a++){
 					hallhJet_pt.Fill(sample.aJet_pt[a]);
 					nJets++; 
@@ -1035,7 +1052,7 @@ int main(int argc, char** argv) {
 				indexedPt.push_back(std::pair<size_t,double>(3,(double) sample.vLepton_pt[1]));
 				
 				
-				if (firstevent) for (size_t i = 0 ; (i != indexedPt.size()) ; ++i) {cout << "Unsorted pt of objects: " << indexedPt[i].second << endl; }
+				if (debug) for (size_t i = 0 ; (i != indexedPt.size()) ; ++i) {cout << "Unsorted pt of objects: " << indexedPt[i].second << endl; }
 				
 				std::sort(indexedJetPt.begin(),indexedJetPt.end(),::IndexedQuantityGreaterThan<double>);
 				std::sort(indexedJetCSV.begin(),indexedJetCSV.end(),::IndexedQuantityGreaterThan<double>);
@@ -1045,7 +1062,7 @@ int main(int argc, char** argv) {
 				for (size_t i = 0 ; (i != indexedJetCSV.size()) ; ++i) {   CSVSortedJetIndex.push_back(indexedJetCSV[i].first);        }
 				for (size_t i = 0 ; (i != indexedPt.size()) ; ++i) {   PtSortedIndex.push_back(indexedPt[i].first);        }
 				
-				if (firstevent) for (size_t i = 0 ; (i != indexedPt.size()) ; ++i) {cout << "Sorted pt of objects: " << indexedPt[i].second << endl; }
+				if (debug) for (size_t i = 0 ; (i != indexedPt.size()) ; ++i) {cout << "Sorted pt of objects: " << indexedPt[i].second << endl; }
 				firstevent = false;
 				CSV0 = indexedJetCSV[0].second; 
 				jetPt[0] = sample.hJet_pt[indexedJetCSV[0].first];
@@ -1070,8 +1087,8 @@ int main(int argc, char** argv) {
 				jetGenPt[0]=sample.hJet_genPt[indexedJetCSV[0].first];
 				
 				
-				if (indexedJetCSV[0].first == 0) RegjetPt[0] = -99.99;
-				if (indexedJetCSV[0].first == 1) RegjetPt[0] = -99.99;
+				//if (indexedJetCSV[0].first == 0) RegjetPt[0] = sample.hJet_genPtReg0;
+				//if (indexedJetCSV[0].first == 1) RegjetPt[0] = sample.hJet_genPtReg1;
 				CSVNewShape[0] = indexedJetCSV[0].second;
 				if (sample.nhJets > 1) { 
 					CSV1 = indexedJetCSV[1].second;	
@@ -1153,26 +1170,26 @@ int main(int argc, char** argv) {
 					SecondJet.SetPtEtaPhiE(JER_pt_down[1],jetEta[1],jetPhi[1],JER_e_down[1]);
 					Higgs = FirstJet+SecondJet;
 					JERHmassDown = Higgs.M();
+										
+					//if (indexedJetCSV[1].first == 0) RegjetPt[1] = sample.hJet_genPtReg0;
+					//if (indexedJetCSV[1].first == 1) RegjetPt[1] = sample.hJet_genPtReg1;					
 					
-					if (JER_pt_up[1]<jetPt[2]) cout << "JER systematics change higgs candidate JER_pt_up " << JER_pt_up[1] << " jetPt " << jetPt[2] << endl;
-					if (JES_pt_up[1]<jetPt[2]) cout << "JES systematics change higgs candidate JES_pt_up " << JES_pt_up[1] << " jetPt " << jetPt[2] << endl;
-					
-					if (indexedJetCSV[1].first == 0) RegjetPt[1] = -99.99;
-					if (indexedJetCSV[1].first == 1) RegjetPt[1] = -99.99;
-  				        DetaJJ = sample.hJet_eta[indexedJetCSV[0].first]-sample.hJet_eta[indexedJetCSV[1].first];				
+					DetaJJ = sample.hJet_eta[indexedJetCSV[0].first]-sample.hJet_eta[indexedJetCSV[1].first];				
 					Hmass = sample.H_mass;
 					oldHmass = sample.H_mass;
-					RegHmass = -99.99;
+					//RegHmass = sample.newHiggsMass;
+					//Hpt = sample.newHiggsPt;
 					Hpt = sample.H_pt;
 					ScalarSumHiggsJetPt = sample.hJet_pt[indexedJetCSV[1].first] + sample.hJet_pt[indexedJetCSV[0].first];
 					ScalarSumJetPt = ScalarSumJetPt+ sample.hJet_pt[indexedJetCSV[1].first] + sample.hJet_pt[indexedJetCSV[0].first];
 					Rho25 = sample.rho25;
 					MindPhiMEThJetOR30aJet = min(sample.minDeltaPhijetMET,MinDphiaJet);
 					MinMET = min(sample.METtype1corr_et,sample.METnoPUCh_et);
-					//cout << "weight of the Jet Histograms: " << weight << endl;
+					if(debug) cout << "weight of the Jet Histograms: " << weight << endl;
 					JetDistributions("allEvts", weight);
 				}// end njet requirement			
-				
+				std::cout << "NJet information filled " << std::endl;
+
 				nSV = sample.nSvs;
 				nPV = sample.nPVs;
 				MET = sample.METtype1corr_et;
@@ -1451,30 +1468,18 @@ int main(int argc, char** argv) {
 				if (debug) cout << "done filling histograms for event: " << event << endl;
 				
 				N_Vtype++;
-				if (sample.triggerFlags[0]){//IsoMuHLT
-					N_isomu++;
-				}
-				if (sample.triggerFlags[6]){
-					N_tightDoubleele++;
-				}
-				if (sample.triggerFlags[5]){
-					N_loosedoubleEle++;
-				}
-				if (sample.triggerFlags[4]){
-					N_sigleEleWP80++;
-				}
-				if (sample.triggerFlags[17]){
-					N_singleEleDiJet++;
-				}
+				Nweighted_Vtype = Nweighted_Vtype + weight;
+				
 				float HmassMaxCut = 170, HmassMinCut = 85, CSV0cut = 0.4, DphiZMETcut = 0.85, dphiHVcut = 1.6;
 				float ZmassMinCut = 35, ZmassMaxCut = 170, CHFb0cut = 0.2, PzetaCut = 10;
 				float MtmuCut =115, MteCut = 95;
 				
 				float Pzeta = ProjMissT-(0.25*ProjVisT);
 				if ((sample.vLepton_pt[1] > 20 || sample.vLepton_pt[0] > 20) && (sample.vLepton_pt[1]>10 && sample.vLepton_pt[0]> 10)){
-					//	if (sample.triggerFlags[39]||sample.triggerFlags[40]||sample.triggerFlags[41]){
-					Ntrigger = Ntrigger + 1;
-					//cout << "PUweight2011 inside trigger requirement" << PUweight2011 << endl;
+					//	if (sample.triggerFlags[51]||sample.triggerFlags[52]||sample.triggerFlags[53]||sample.triggerFlags[54]){
+					Ntrigger++;
+					Nweighted_trigger = Nweighted_trigger + weight;
+					if (debug) cout << "PUweight2012 inside trigger requirement " << PUweight2012 << endl;
 					JetDistributions("HLT", weight);
 					LeptonDistributions("HLT", weight);
 					TH2FDistributions("HLT", weight);
@@ -1485,25 +1490,26 @@ int main(int argc, char** argv) {
 					TH2FDistributions("NoWeightHLT", LumiWeight);
 					EventShapeDistributions("NoWeightHLT", LumiWeight);
 					EventDistributions("NoWeightHLT", LumiWeight);
-					JetDistributions("PUWeightHLT", LumiWeight*PUweight2011);
-					LeptonDistributions("PUWeightHLT", LumiWeight*PUweight2011);
-					TH2FDistributions("PUWeightHLT", LumiWeight*PUweight2011);
-					EventShapeDistributions("PUWeightHLT", LumiWeight*PUweight2011);
-					EventDistributions("PUWeightHLT", LumiWeight*PUweight2011);	
+					JetDistributions("PUWeightHLT", LumiWeight*PUweight2012);
+					LeptonDistributions("PUWeightHLT", LumiWeight*PUweight2012);
+					TH2FDistributions("PUWeightHLT", LumiWeight*PUweight2012);
+					EventShapeDistributions("PUWeightHLT", LumiWeight*PUweight2012);
+					EventDistributions("PUWeightHLT", LumiWeight*PUweight2012);	
 					JetDistributions("TrigWeightHLT", LumiWeight*EleTrigWeight*MuonTrigWeight);
 					LeptonDistributions("TrigWeightHLT", LumiWeight*EleTrigWeight*MuonTrigWeight);
 					TH2FDistributions("TrigWeightHLT", LumiWeight*EleTrigWeight*MuonTrigWeight);
 					EventShapeDistributions("TrigWeightHLT", LumiWeight*EleTrigWeight*MuonTrigWeight);
 					EventDistributions("TrigWeightHLT", LumiWeight*EleTrigWeight*MuonTrigWeight);
-					JetDistributions("IDWeightHLT", LumiWeight*MuIDweight*EleRecoWeight*WP95weight);
-					LeptonDistributions("IDWeightHLT", LumiWeight*MuIDweight*EleRecoWeight*WP95weight);
-					TH2FDistributions("IDWeightHLT", LumiWeight*MuIDweight*EleRecoWeight*WP95weight);
-					EventShapeDistributions("IDWeightHLT", LumiWeight*MuIDweight*EleRecoWeight*WP95weight);
-					EventDistributions("IDWeightHLT", LumiWeight*MuIDweight*EleRecoWeight*WP95weight);					
+					JetDistributions("IDWeightHLT", LumiWeight*MuIDweight*WP95weight);
+					LeptonDistributions("IDWeightHLT", LumiWeight*MuIDweight*WP95weight);
+					TH2FDistributions("IDWeightHLT", LumiWeight*MuIDweight*WP95weight);
+					EventShapeDistributions("IDWeightHLT", LumiWeight*MuIDweight*WP95weight);
+					EventDistributions("IDWeightHLT", LumiWeight*MuIDweight*WP95weight);					
 					if ( jetPt[0] > 20 && jetPt[1] > 20 && oldHmass<300 &&
 						fabs(sample.vLepton_eta[0]) < 2.5 && fabs(sample.vLepton_eta[1]) < 2.4 && fabs(sample.hJet_eta[0]) < 2.5 &&
 						fabs(sample.hJet_eta[1]) < 2.5 && sample.hJet_id[0]==1 && sample.hJet_id[1]==1 && sample.hbhe){
-						Npreselect = Npreselect + 1;
+						Npreselect++;
+						Nweighted_preselect = Nweighted_preselect + weight;
 						isdata = false;
 						JetDistributions("PreSelect", weight);
 						LeptonDistributions("PreSelect", weight);
@@ -1513,7 +1519,8 @@ int main(int argc, char** argv) {
 						if (isDATA) isdata = true;
 						if (fabs(DphiZMET) < DphiZMETcut && (oldHmass>=HmassMinCut)&&(oldHmass<=HmassMaxCut) && CSV0>CSV0cut && DeltaPhiHV > dphiHVcut && Pzeta > PzetaCut && Emumass< 68 && DitauMass > ZmassMinCut && DitauMass < ZmassMaxCut && jetCHF[0]>CHFb0cut) hdelRemu_NotThisCut.Fill(delRemu, weight);
 						if(delRemu>0.4){
-							N_EfakeCuts = N_EfakeCuts + 1;
+						N_EfakeCuts++;
+							Nweighted_EfakeCuts = Nweighted_EfakeCuts + weight;
 							isdata = false;
 							JetDistributions("delRemu", weight);
 							LeptonDistributions("delRemu", weight);
@@ -1525,25 +1532,26 @@ int main(int argc, char** argv) {
 							TH2FDistributions("NoWeightdelRemu", LumiWeight);
 							EventShapeDistributions("NoWeightdelRemu", LumiWeight);
 							EventDistributions("NoWeightdelRemu", LumiWeight);
-							JetDistributions("PUWeightdelRemu", LumiWeight*PUweight2011);
-							LeptonDistributions("PUWeightdelRemu", LumiWeight*PUweight2011);
-							TH2FDistributions("PUWeightdelRemu", LumiWeight*PUweight2011);
-							EventShapeDistributions("PUWeightdelRemu", LumiWeight*PUweight2011);
-							EventDistributions("PUWeightdelRemu", LumiWeight*PUweight2011);	
+							JetDistributions("PUWeightdelRemu", LumiWeight*PUweight2012);
+							LeptonDistributions("PUWeightdelRemu", LumiWeight*PUweight2012);
+							TH2FDistributions("PUWeightdelRemu", LumiWeight*PUweight2012);
+							EventShapeDistributions("PUWeightdelRemu", LumiWeight*PUweight2012);
+							EventDistributions("PUWeightdelRemu", LumiWeight*PUweight2012);	
 							JetDistributions("TrigWeightdelRemu", LumiWeight*EleTrigWeight*MuonTrigWeight);
 							LeptonDistributions("TrigWeightdelRemu", LumiWeight*EleTrigWeight*MuonTrigWeight);
 							TH2FDistributions("TrigWeightdelRemu", LumiWeight*EleTrigWeight*MuonTrigWeight);
 							EventShapeDistributions("TrigWeightdelRemu", LumiWeight*EleTrigWeight*MuonTrigWeight);
 							EventDistributions("TrigWeightdelRemu", LumiWeight*EleTrigWeight*MuonTrigWeight);
-							JetDistributions("IDWeightdelRemu", LumiWeight*MuIDweight*EleRecoWeight*WP95weight);
-							LeptonDistributions("IDWeightdelRemu", LumiWeight*MuIDweight*EleRecoWeight*WP95weight);
-							TH2FDistributions("IDWeightdelRemu", LumiWeight*MuIDweight*EleRecoWeight*WP95weight);
-							EventShapeDistributions("IDWeightdelRemu", LumiWeight*MuIDweight*EleRecoWeight*WP95weight);
-							EventDistributions("IDWeightdelRemu", LumiWeight*MuIDweight*EleRecoWeight*WP95weight);												
+							JetDistributions("IDWeightdelRemu", LumiWeight*MuIDweight*WP95weight);
+							LeptonDistributions("IDWeightdelRemu", LumiWeight*MuIDweight*WP95weight);
+							TH2FDistributions("IDWeightdelRemu", LumiWeight*MuIDweight*WP95weight);
+							EventShapeDistributions("IDWeightdelRemu", LumiWeight*MuIDweight*WP95weight);
+							EventDistributions("IDWeightdelRemu", LumiWeight*MuIDweight*WP95weight);												
 							FOM_tree->Fill();
 							if (fabs(DphiZMET) < DphiZMETcut && (oldHmass>=HmassMinCut)&&(oldHmass<=HmassMaxCut) && CSV0>CSV0cut && DeltaPhiHV > dphiHVcut && Pzeta > PzetaCut && jetCHF[0]>CHFb0cut) hMemu_NotThisCut.Fill(DitauMass, weight);
 							if (Emumass< 68 && DitauMass > ZmassMinCut && DitauMass < ZmassMaxCut) { 
-								NMemu = NMemu + 1;
+							NMemu++;
+								Nweighted_Memu = Nweighted_Memu + weight;
 								if(isDATA)isdata=true;
 								JetDistributions("MemuCut", weight);
 								LeptonDistributions("MemuCut", weight);
@@ -1551,38 +1559,40 @@ int main(int argc, char** argv) {
 								EventShapeDistributions("MemuCut", weight);
 								EventDistributions("MemuCut", weight); 
 								if (fabs(DphiZMET) < DphiZMETcut && fabs(DphiSecondMET) < 1.5 && (oldHmass>HmassMinCut)&&(oldHmass<=HmassMaxCut) && DeltaPhiHV > dphiHVcut && CSV0<CSV0cut && Naj < 2 && nSV ==0){	
-									N_LFCR = N_LFCR + 1;
+									N_LFCR++;
+									Nweighted_LFCR = Nweighted_LFCR + (LumiWeight*PUweight2012*Trigweight);
 									isdata = false;
-									JetDistributions("LFCR", weight*LFScaleFactor);
-									LeptonDistributions("LFCR", weight*LFScaleFactor);
-									TH2FDistributions("LFCR", weight*LFScaleFactor);
-									EventShapeDistributions("LFCR", weight*LFScaleFactor);
-									EventDistributions("LFCR", weight*LFScaleFactor);
-									SFUnc_LFCR = SFUnc_LFCR + weight*weight;
+									JetDistributions("LFCR", weight);
+									LeptonDistributions("LFCR", weight);
+									TH2FDistributions("LFCR", weight);
+									EventShapeDistributions("LFCR", weight);
+									EventDistributions("LFCR", weight);
+									SFUnc_LFCR = SFUnc_LFCR + (LumiWeight*PUweight2012*Trigweight)*(LumiWeight*PUweight2012*Trigweight);
 									JetDistributions("NoWeightLFCR", LumiWeight);
 									LeptonDistributions("NoWeightLFCR", LumiWeight);
 									TH2FDistributions("NoWeightLFCR", LumiWeight);
 									EventShapeDistributions("NoWeightLFCR", LumiWeight);
 									EventDistributions("NoWeightLFCR", LumiWeight);	
-									JetDistributions("PUWeightLFCR", LumiWeight*PUweight2011);
-									LeptonDistributions("PUWeightLFCR", LumiWeight*PUweight2011);
-									TH2FDistributions("PUWeightLFCR", LumiWeight*PUweight2011);
-									EventShapeDistributions("PUWeightLFCR", LumiWeight*PUweight2011);
-									EventDistributions("PUWeightLFCR", LumiWeight*PUweight2011);	
+									JetDistributions("PUWeightLFCR", LumiWeight*PUweight2012);
+									LeptonDistributions("PUWeightLFCR", LumiWeight*PUweight2012);
+									TH2FDistributions("PUWeightLFCR", LumiWeight*PUweight2012);
+									EventShapeDistributions("PUWeightLFCR", LumiWeight*PUweight2012);
+									EventDistributions("PUWeightLFCR", LumiWeight*PUweight2012);	
 									JetDistributions("TrigWeightLFCR", LumiWeight*EleTrigWeight*MuonTrigWeight);
 									LeptonDistributions("TrigWeightLFCR", LumiWeight*EleTrigWeight*MuonTrigWeight);
 									TH2FDistributions("TrigWeightLFCR", LumiWeight*EleTrigWeight*MuonTrigWeight);
 									EventShapeDistributions("TrigWeightLFCR", LumiWeight*EleTrigWeight*MuonTrigWeight);
 									EventDistributions("TrigWeightLFCR", LumiWeight*EleTrigWeight*MuonTrigWeight);
-									JetDistributions("IDWeightLFCR", LumiWeight*MuIDweight*EleRecoWeight*WP95weight);
-									LeptonDistributions("IDWeightLFCR", LumiWeight*MuIDweight*EleRecoWeight*WP95weight);
-									TH2FDistributions("IDWeightLFCR", LumiWeight*MuIDweight*EleRecoWeight*WP95weight);
-									EventShapeDistributions("IDWeightLFCR", LumiWeight*MuIDweight*EleRecoWeight*WP95weight);
-									EventDistributions("IDWeightLFCR", LumiWeight*MuIDweight*EleRecoWeight*WP95weight);									
+									JetDistributions("IDWeightLFCR", LumiWeight*MuIDweight*WP95weight);
+									LeptonDistributions("IDWeightLFCR", LumiWeight*MuIDweight*WP95weight);
+									TH2FDistributions("IDWeightLFCR", LumiWeight*MuIDweight*WP95weight);
+									EventShapeDistributions("IDWeightLFCR", LumiWeight*MuIDweight*WP95weight);
+									EventDistributions("IDWeightLFCR", LumiWeight*MuIDweight*WP95weight);									
 								}// LF Control Region	
 								if (fabs(DphiZMET) < DphiZMETcut && (oldHmass>=HmassMinCut)&&(oldHmass<=HmassMaxCut) && DeltaPhiHV > dphiHVcut && jetCHF[0]>CHFb0cut && Pzeta > PzetaCut) hCSV0_NotThisCut.Fill(CSV0, weight);							
 								if(CSV0>CSV0cut){
-									N_CSV0 = N_CSV0 + 1;
+								N_CSV0++;
+									Nweighted_CSV0 = Nweighted_CSV0 + weight;
 									if(isDATA)isdata=true;
 									JetDistributions("CSV0", weight);
 									LeptonDistributions("CSV0", weight);
@@ -1591,49 +1601,52 @@ int main(int argc, char** argv) {
 									EventDistributions("CSV0", weight);							
 									if (fabs(DphiZMET) > DphiZMETcut && (oldHmass>HmassMinCut)&&(oldHmass<=HmassMaxCut) && DeltaPhiHV > dphiHVcut && jetCHF[0]>CHFb0cut ){
 										if (CSV1 > 0.5 ){
-											N_TopCR = N_TopCR + 1;
+										N_TopCR++;
+											Nweighted_TopCR = Nweighted_TopCR + (LumiWeight*PUweight2012*Trigweight);
 											isdata = false;
 											JetDistributions("TopCR", weight);
 											LeptonDistributions("TopCR", weight);
 											TH2FDistributions("TopCR", weight);
 											EventShapeDistributions("TopCR", weight);
 											EventDistributions("TopCR", weight);
-											SFUnc_TOPCR = SFUnc_TOPCR + weight*weight;
+											SFUnc_TOPCR = SFUnc_TOPCR + (LumiWeight*PUweight2012*Trigweight)*(LumiWeight*PUweight2012*Trigweight);
 											JetDistributions("NoWeightTopCR", LumiWeight);
 											LeptonDistributions("NoWeightTopCR", LumiWeight);
 											TH2FDistributions("NoWeightTopCR", LumiWeight);
 											EventShapeDistributions("NoWeightTopCR", LumiWeight);
 											EventDistributions("NoWeightTopCR", LumiWeight);									
-											JetDistributions("PUWeightTopCR", LumiWeight*PUweight2011);
-											LeptonDistributions("PUWeightTopCR", LumiWeight*PUweight2011);
-											TH2FDistributions("PUWeightTopCR", LumiWeight*PUweight2011);
-											EventShapeDistributions("PUWeightTopCR", LumiWeight*PUweight2011);
-											EventDistributions("PUWeightTopCR", LumiWeight*PUweight2011);	
+											JetDistributions("PUWeightTopCR", LumiWeight*PUweight2012);
+											LeptonDistributions("PUWeightTopCR", LumiWeight*PUweight2012);
+											TH2FDistributions("PUWeightTopCR", LumiWeight*PUweight2012);
+											EventShapeDistributions("PUWeightTopCR", LumiWeight*PUweight2012);
+											EventDistributions("PUWeightTopCR", LumiWeight*PUweight2012);	
 											JetDistributions("TrigWeightTopCR", LumiWeight*EleTrigWeight*MuonTrigWeight);
 											LeptonDistributions("TrigWeightTopCR", LumiWeight*EleTrigWeight*MuonTrigWeight);
 											TH2FDistributions("TrigWeightTopCR", LumiWeight*EleTrigWeight*MuonTrigWeight);
 											EventShapeDistributions("TrigWeightTopCR", LumiWeight*EleTrigWeight*MuonTrigWeight);
 											EventDistributions("TrigWeightTopCR", LumiWeight*EleTrigWeight*MuonTrigWeight);	
-											JetDistributions("IDWeightTopCR", LumiWeight*MuIDweight*EleRecoWeight*WP95weight);
-											LeptonDistributions("IDWeightTopCR", LumiWeight*MuIDweight*EleRecoWeight*WP95weight);
-											TH2FDistributions("IDWeightTopCR", LumiWeight*MuIDweight*EleRecoWeight*WP95weight);
-											EventShapeDistributions("IDWeightTopCR", LumiWeight*MuIDweight*EleRecoWeight*WP95weight);
-											EventDistributions("IDWeightTopCR", LumiWeight*MuIDweight*EleRecoWeight*WP95weight);	
+											JetDistributions("IDWeightTopCR", LumiWeight*MuIDweight*WP95weight);
+											LeptonDistributions("IDWeightTopCR", LumiWeight*MuIDweight*WP95weight);
+											TH2FDistributions("IDWeightTopCR", LumiWeight*MuIDweight*WP95weight);
+											EventShapeDistributions("IDWeightTopCR", LumiWeight*MuIDweight*WP95weight);
+											EventDistributions("IDWeightTopCR", LumiWeight*MuIDweight*WP95weight);	
 										}//Top CR
 										if (CSV0 > 0.679 && EvntShpAplanarity < 0.1 && CSV1 < 0.5  && Nab < 1){
-											N_SingleTopCR = N_SingleTopCR + 1;
+										N_SingleTopCR++;
+											Nweighted_SingleTopCR = Nweighted_SingleTopCR + (LumiWeight*PUweight2012*Trigweight);
 											isdata = false;
 											JetDistributions("SingleTopCR", weight);
 											LeptonDistributions("SingleTopCR", weight);
 											TH2FDistributions("SingleTopCR", weight);
 											EventShapeDistributions("SingleTopCR", weight);
 											EventDistributions("SingleTopCR", weight);
-											SFUnc_SingleTOP = SFUnc_SingleTOP + weight*weight;
+											SFUnc_SingleTOP = SFUnc_SingleTOP + (LumiWeight*PUweight2012*Trigweight)*(LumiWeight*PUweight2012*Trigweight);
 										}//Single Top CR
 									}// Top and Single Top Orthogonal to Signal, reverse DphiZMET cut																		
 									if ((oldHmass>=HmassMinCut)&&(oldHmass<=HmassMaxCut) && DeltaPhiHV > dphiHVcut && Pzeta > PzetaCut && jetCHF[0]>CHFb0cut) hDphiZMET_NotThisCut.Fill(DphiZMET, weight);
 									if (fabs(DphiZMET) < DphiZMETcut){
-										N_DphiZMET = N_DphiZMET + 1;
+									N_DphiZMET++;
+										Nweighted_DphiZMET = Nweighted_DphiZMET + weight;
 										if(isDATA)isdata=true;
 										JetDistributions("DphiZMET", weight);
 										LeptonDistributions("DphiZMET", weight);
@@ -1642,7 +1655,8 @@ int main(int argc, char** argv) {
 										EventDistributions("DphiZMET", weight);
 										if ((oldHmass>=HmassMinCut)&&(oldHmass<=HmassMaxCut) && Pzeta > PzetaCut && jetCHF[0]>CHFb0cut) hDeltaPhiHV_NotThisCut.Fill(DeltaPhiHV, weight);
 										if (DeltaPhiHV > dphiHVcut){
-											N_DeltaPhiHV = N_DeltaPhiHV + 1;
+										N_DeltaPhiHV++;
+											Nweighted_DeltaPhiHV = Nweighted_DeltaPhiHV + weight;
 											if(isDATA)isdata=true;
 											JetDistributions("DeltaPhiHV", weight);
 											LeptonDistributions("DeltaPhiHV", weight);
@@ -1651,7 +1665,8 @@ int main(int argc, char** argv) {
 											EventDistributions("DeltaPhiHV", weight);
 											if ((oldHmass>=HmassMinCut)&&(oldHmass<=HmassMaxCut) && jetCHF[0]>CHFb0cut) hPzeta_NotThisCut.Fill(Pzeta, weight);
 											if (Pzeta > PzetaCut){
-												N_Pzeta = N_Pzeta + 1;
+											N_Pzeta++;
+												Nweighted_Pzeta = Nweighted_Pzeta + weight;
 												if(isDATA)isdata=true;
 												JetDistributions("Pzeta", weight);
 												LeptonDistributions("Pzeta", weight);
@@ -1660,15 +1675,18 @@ int main(int argc, char** argv) {
 												EventDistributions("Pzeta", weight);												
 												if (Naj<2) hMjj_NotThisCut.Fill(oldHmass, weight);
 												if((oldHmass>=HmassMinCut)&&(oldHmass<=HmassMaxCut)){
-													N_Mjj = N_Mjj + 1; 
+												N_Mjj++;
+													Nweighted_Mjj = Nweighted_Mjj + weight; 
 													if(isDATA)isdata=true;
 													JetDistributions("Mjj", weight);
 													LeptonDistributions("Mjj", weight);
 													TH2FDistributions("Mjj", weight);
 													EventShapeDistributions("Mjj", weight);
 													EventDistributions("Mjj", weight);
-													if (Naj<2){
-														N_Naj = N_Naj + 1;
+													if (nJets<4){
+													//Naj
+													N_Naj++;
+														Nweighted_Naj = Nweighted_Naj + weight;
 														if(isDATA)isdata=true;
 														JetDistributions("Naj", weight);
 														LeptonDistributions("Naj", weight);
@@ -1677,7 +1695,8 @@ int main(int argc, char** argv) {
 														EventDistributions("Naj", weight);
 													}	//Naj
 													if (jetCHF[0]>CHFb0cut){
-														N_jetCHF0 = N_jetCHF0 + 1;
+													N_jetCHF0++;
+														Nweighted_jetCHF0 = Nweighted_jetCHF0 + weight;
 														if(isDATA)isdata=true;
 														JetDistributions("CHF0", weight);
 														LeptonDistributions("CHF0", weight);
@@ -1686,7 +1705,8 @@ int main(int argc, char** argv) {
 														EventDistributions("CHF0", weight);
 														if (Mte < MteCut && Mtmu < MtmuCut){
 															if(isDATA)isdata=true;
-															N_Mt = N_Mt + 1;
+															N_Mt++;
+															Nweighted_Mt = Nweighted_Mt + weight;
 															JetDistributions("Mt", weight);
 															LeptonDistributions("Mt", weight);
 															TH2FDistributions("Mt", weight);
@@ -1719,16 +1739,18 @@ int main(int argc, char** argv) {
 											} //PzetaCut
 										}//DeltaPhiHV
 									}// Delta Phi Z, MET (Z is emu vectors only)
-									if ((oldHmass<HmassMinCut || oldHmass>HmassMaxCut) && oldHmass < 300 && Mte < MteCut && Mtmu < MtmuCut&&jetCHF[0]>CHFb0cut){
-										if (Pzeta> -20 && ProjMissT > -20 && CSV1 < 0.679 && jetCEF[1]>0.5 && fabs(Dphiemu)>1.0){
-											N_HFCR = N_HFCR + 1;
+									if ((oldHmass<HmassMinCut || oldHmass>HmassMaxCut) && oldHmass < 300 && Mte < MteCut && Mtmu < MtmuCut && jetCHF[0]>CHFb0cut){
+										if (Pzeta> -25 && ProjMissT > -20 && ProjVisT < 80 && CSV1 < 0.679 && fabs(Dphiemu)>1.0){
+										N_HFCR++;
+											Nweighted_HFCR = Nweighted_HFCR + (LumiWeight*PUweight2012*Trigweight);
 											isdata = false;
 											JetDistributions("HFCR", weight);
 											LeptonDistributions("HFCR", weight);
 											TH2FDistributions("HFCR", weight);
 											EventShapeDistributions("HFCR", weight);
 											EventDistributions("HFCR", weight);	
-											SFUnc_HFCR = SFUnc_HFCR + weight*weight;
+											SFUnc_HFCR = SFUnc_HFCR + (LumiWeight*PUweight2012*Trigweight)*(LumiWeight*PUweight2012*Trigweight);
+											if(isDATA)isdata=true;
 										}// Purity cuts									
 									}// LF Control Region									
 								}//CSV
@@ -1741,7 +1763,12 @@ int main(int argc, char** argv) {
 				isdata = false;
 				EventDistributions("allEvts", weight);
 			}//end requirement Zemu event
+			if (debug) std::cout << "Vtype or json requirement " << event << std::endl;
+
 		}//end isM50sample genZpt cut
+		if(isDATA)isdata=true;
+		if (debug) std::cout << "Zpt and Flavor isDATA is " << isDATA << std::endl;
+
 	} while (sample.nextEvent());
 	
 	
@@ -1762,8 +1789,6 @@ int main(int argc, char** argv) {
 	std::cout << "Mte&Mtmu: " << N_Mt << endl;
 	std::cout << "Naj: " << N_Naj << endl;
 	
-	
-	
 	SFUnc_TOPCR = sqrt(SFUnc_TOPCR);
 	SFUnc_SingleTOP = sqrt(SFUnc_SingleTOP);
 	SFUnc_LFCR = sqrt(SFUnc_LFCR);
@@ -1782,48 +1807,37 @@ int main(int argc, char** argv) {
 	std::cout << "BDT  bjet tree: " << NBDTbtree << endl;
 	std::cout << "TMVA tree: " << NTMVAtree << endl;
 	
-	std::cout << endl << endl;
-	std::cout << "Number of Events with good Gen Info and Hmass > 0 " << NgoodGenInfo << endl;
-	std::cout << "Number of Events with nJet[1] matched to b-bar " << Njet2Bbar << endl;
-	std::cout << "Number of Events with nJet[0] matched to b-bar " << Njet1Bbar << endl;
-	std::cout << "Number of Events with one OR both jets matched " << NORMatch << endl;
-	std::cout << "Number of Events with both jets matched to same candidate " << NSameCandidate << endl;
-	std::cout << "Number of Events with both jets matched to b candidate delR<0.3 " << Nmatch << endl;
-	std::cout << "Number of Events with both jets matched to b candidate delR<0.4 " << Nmatch4 << endl;
-	std::cout << "Number of Events with both jets matched to b candidate delR<0.15 " << Nmatch15 << endl;
-	std::cout << "Number of Events with one jet matched  " << NORMatch-Nmatch << endl;
-	std::cout << "Number of Events with good matches  " << Njet2Bbar+Njet1Bbar << endl;
-	std::cout << "Number of Events in training sample  " << Ntrainingsample << endl;
-	
-	
 	ofstream myfile;
 	myfile.open(TString::Format("%sDataEntry.txt",directory.c_str()).Data());	
 	myfile<<TString::Format("\t %s",directory.c_str()).Data()<<endl;
-	//	myfile<<TString::Format("Number of events \t %f \t %0.5f",event,event*LumiWeight).Data()<<endl;
-	//	myfile<<TString::Format("Vtype 5 \t %f \t %0.5f",N_Vtype,N_Vtype*LumiWeight).Data()<<endl;
-	myfile<<TString::Format("emu trigger \t %0.5f \t %0.5f",Ntrigger,Ntrigger*LumiWeight).Data()<<endl;
-	myfile<<TString::Format("PreSelection \t %0.5f \t %0.5f",Npreselect,Npreselect*LumiWeight).Data()<<endl;
-	myfile<<TString::Format("EleFakeCuts \t %0.5f \t %0.5f",N_EfakeCuts,N_EfakeCuts*LumiWeight).Data()<<endl;
-	myfile<<TString::Format("Memu \t %0.5f \t %0.5f",NMemu,NMemu*LumiWeight).Data()<<endl;
-	myfile<<TString::Format("CSV0 \t %0.5f \t %0.5f",N_CSV0,N_CSV0*LumiWeight).Data()<<endl;
-	myfile<<TString::Format("DphiZMET \t %0.5f \t %0.5f",N_DphiZMET,N_DphiZMET*LumiWeight).Data()<<endl;
-	myfile<<TString::Format("DphiZH \t %0.5f \t %0.5f",N_DeltaPhiHV,N_DeltaPhiHV*LumiWeight).Data()<<endl;
-	myfile<<TString::Format("Pzeta \t %0.5f \t %0.5f",N_Pzeta,N_Pzeta*LumiWeight).Data()<<endl;
-	myfile<<TString::Format("Mjj \t %0.5f \t %0.5f",N_Mjj,N_Mjj*LumiWeight).Data()<<endl;
-	myfile<<TString::Format("CHF0 \t %0.5f \t %0.5f",N_jetCHF0,N_jetCHF0*LumiWeight).Data()<<endl;
-	myfile<<TString::Format("Mte&Mtmu \t %0.5f \t %0.5f",N_Mt,N_Mt*LumiWeight).Data()<<endl;
-	myfile<<TString::Format("Naj \t %0.5f \t %0.5f",N_Naj,N_Naj*LumiWeight).Data()<<endl;
+	myfile<<TString::Format("Number of events \t %0.5f \t %0.5f",(double)event,event_weighted).Data()<<endl;
+	myfile<<TString::Format("Vtype 5 \t %0.5f \t %0.5f",(double)N_Vtype,Nweighted_Vtype).Data()<<endl;
+	myfile<<TString::Format("emu trigger \t %0.5f \t %0.5f",Ntrigger,Nweighted_trigger).Data()<<endl;
+	myfile<<TString::Format("PreSelection \t %0.5f \t %0.5f",Npreselect,Nweighted_preselect).Data()<<endl;
+	myfile<<TString::Format("EleFakeCuts \t %0.5f \t %0.5f",N_EfakeCuts,Nweighted_EfakeCuts).Data()<<endl;
+	myfile<<TString::Format("Memu \t %0.5f \t %0.5f",NMemu,Nweighted_Memu).Data()<<endl;
+	myfile<<TString::Format("CSV0 \t %0.5f \t %0.5f",N_CSV0,Nweighted_CSV0).Data()<<endl;
+	myfile<<TString::Format("DphiZMET \t %0.5f \t %0.5f",N_DphiZMET,Nweighted_DphiZMET).Data()<<endl;
+	myfile<<TString::Format("DphiZH \t %0.5f \t %0.5f",N_DeltaPhiHV,Nweighted_DeltaPhiHV).Data()<<endl;
+	myfile<<TString::Format("Pzeta \t %0.5f \t %0.5f",N_Pzeta,Nweighted_Pzeta).Data()<<endl;
+	myfile<<TString::Format("Mjj \t %0.5f \t %0.5f",N_Mjj,Nweighted_Mjj).Data()<<endl;
+	myfile<<TString::Format("CHF0 \t %0.5f \t %0.5f",N_jetCHF0,Nweighted_jetCHF0).Data()<<endl;
+	myfile<<TString::Format("Mte&Mtmu \t %0.5f \t %0.5f",N_Mt,Nweighted_Mt).Data()<<endl;
+	myfile<<TString::Format("Naj \t %0.5f \t %0.5f",N_Naj,Nweighted_Naj).Data()<<endl;
 	myfile<<endl;
-	myfile<<TString::Format("Top CR \t %0.5f \t %0.5f \t %0.5f \t %0.5f",N_TopCR,N_TopCR*LumiWeight,SFUnc_TOPCR*SFUnc_TOPCR,SFUnc_TOPCR).Data()<<endl;
-	myfile<<TString::Format("Single Top CR \t %0.5f \t %0.5f \t %0.5f \t %0.5f",N_SingleTopCR,N_SingleTopCR*LumiWeight,SFUnc_SingleTOP*SFUnc_SingleTOP,SFUnc_SingleTOP).Data()<<endl;
-	myfile<<TString::Format("LF CR \t %0.5f \t %0.5f \t %0.5f \t %0.5f",N_LFCR,N_LFCR*LumiWeight,SFUnc_LFCR*SFUnc_LFCR,SFUnc_LFCR).Data()<<endl;
-	myfile<<TString::Format("HF CR \t %0.5f \t %0.5f \t %0.5f \t %0.5f",N_HFCR,N_HFCR*LumiWeight,SFUnc_HFCR*SFUnc_HFCR,SFUnc_HFCR).Data()<<endl;
+	myfile<<TString::Format("Top CR \t %0.5f \t %0.5f \t %0.5f \t %0.5f",N_TopCR,Nweighted_TopCR,SFUnc_TOPCR*SFUnc_TOPCR,SFUnc_TOPCR).Data()<<endl;
+	myfile<<TString::Format("Single Top CR \t %0.5f \t %0.5f \t %0.5f \t %0.5f",N_SingleTopCR,Nweighted_SingleTopCR,
+	SFUnc_SingleTOP*SFUnc_SingleTOP,SFUnc_SingleTOP).Data()<<endl;
+	myfile<<TString::Format("LF CR \t %0.5f \t %0.5f \t %0.5f \t %0.5f",N_LFCR,Nweighted_LFCR,SFUnc_LFCR*SFUnc_LFCR,SFUnc_LFCR).Data()<<endl;
+	myfile<<TString::Format("HF CR \t %0.5f \t %0.5f \t %0.5f \t %0.5f",N_HFCR,Nweighted_HFCR,SFUnc_HFCR*SFUnc_HFCR,SFUnc_HFCR).Data()<<endl;
 	myfile<<endl;
 	myfile<<endl;
-	myfile<<TString::Format("Events \t %s \t %0.5f \t %0.5f \t %0.5f \t %0.5f",directory.c_str(),N_TopCR,N_SingleTopCR,N_LFCR,N_HFCR).Data()<<endl;
-	myfile<<TString::Format("Errors \t %s \t %0.5f \t %0.5f \t %0.5f \t %0.5f",directory.c_str(),SFUnc_TOPCR,SFUnc_SingleTOP,SFUnc_LFCR,SFUnc_HFCR).Data()<<endl;
-	myfile<<TString::Format("Table \t %s \t %0.5fat%0.5f \t %0.5fat%0.5f \t %0.5fat%0.5f \t %0.5fat%0.5f",directory.c_str(),N_TopCR,SFUnc_TOPCR,
-							N_SingleTopCR,SFUnc_SingleTOP,N_LFCR,SFUnc_LFCR,N_HFCR,SFUnc_HFCR).Data()<<endl;
+	myfile<<TString::Format("Events \t %s \t %0.5f \t %0.5f \t %0.5f \t %0.5f",directory.c_str(),Nweighted_TopCR,Nweighted_SingleTopCR,
+	Nweighted_LFCR,Nweighted_HFCR).Data()<<endl;
+	myfile<<TString::Format("Errors \t %s \t %0.5f \t %0.5f \t %0.5f \t %0.5f",directory.c_str(),SFUnc_TOPCR,
+	SFUnc_SingleTOP,SFUnc_LFCR,SFUnc_HFCR).Data()<<endl;
+	myfile<<TString::Format("Table \t %s \t %0.2fat%0.2f \t %0.2fat%0.2f \t %0.2fat%0.2f \t %0.2fat%0.2f",
+	directory.c_str(),Nweighted_TopCR,SFUnc_TOPCR,Nweighted_SingleTopCR,SFUnc_SingleTOP,Nweighted_LFCR,SFUnc_LFCR,Nweighted_HFCR,SFUnc_HFCR).Data()<<endl;
 	myfile.close();
 	
 	
@@ -1910,31 +1924,34 @@ int main(int argc, char** argv) {
 	TMVA_tree->Delete();
 	BDT_tree->Delete();
 	FOM_tree->Delete();
-	MuonTrigWeightTree->Delete();
-	EleTrigWeightTree->Delete();
+	MuonTrigWeightTreelow->Delete();
+	EleTrigWeightTreelow->Delete();
+	MuonTrigWeightTreehigh->Delete();
+	EleTrigWeightTreehigh->Delete();
 	MuonIDWeightTree->Delete();
 	EleIDWeightTree->Delete();
-	EleRecoWeightTree->Delete();
 	lowptMuonIDWeightTree->Delete();
 	lowptEleIDWeightTree->Delete();
 	cout << "trees deleted" << endl;
 	
 	ofile.Close();
 	
-	MuonTrigWeightFile->Close();
-	EleTrigWeightFile->Close();
+	MuonTrigWeightFilelow->Close();
+	EleTrigWeightFilelow->Close();
+	MuonTrigWeightFilehigh->Close();
+	EleTrigWeightFilehigh->Close();
 	MuonIDWeightFile->Close();
 	EleIDWeightFile->Close();
-	EleRecoWeightFile->Close();
 	lowptMuonIDWeightFile->Close();
 	lowptEleIDWeightFile->Close();
 	cout << "files closed" << endl;
 	
-	MuonTrigWeightFile->Delete();
-	EleTrigWeightFile->Delete();
+	MuonTrigWeightFilelow->Delete();
+	EleTrigWeightFilelow->Delete();
+	MuonTrigWeightFilehigh->Delete();
+	EleTrigWeightFilehigh->Delete();
 	MuonIDWeightFile->Delete();
 	EleIDWeightFile->Delete();
-	EleRecoWeightFile->Delete();
 	lowptMuonIDWeightFile->Delete();
 	lowptEleIDWeightFile->Delete();
 	
@@ -1962,7 +1979,7 @@ double SetWeight( std::string filename){
 	if (findString(filename, "300to470")){ SampleWeight = lumi/lumiQCD300;}
 	if (findString(filename, "470to600")){ SampleWeight = 70.21630282*100000/ 3598283.0;}
 	if (findString(filename, "80to120")){ SampleWeight = lumi/(6397439.5000/(823744.5*1000));}
-	if (findString(filename, "TTJets")){ SampleWeight = 1.029*lumi/(lumiTT);}
+	if (findString(filename, "TTJets")){ SampleWeight = lumi/(lumiTT);}
 	if (findString(filename, "T_TuneZ2_s")){ SampleWeight = lumi/lumiTs;}
 	if (findString(filename, "T_TuneZ2_t-channel")){ SampleWeight = lumi/lumiTt;}
 	if (findString(filename, "T_tW")){ SampleWeight = lumi/lumiTtW;}
@@ -2073,27 +2090,27 @@ void JetDistributions(string cut, double ph_weight){
 	}
 	
 	string mjj = "hMjj_" + cut;
-	string mjjReg = "hMjjReg_" + cut;
+	//string mjjReg = "hMjjReg_" + cut;
 	string mjjOld = "hMjjOld_" + cut;
 	string mjjAC = "hMjjAC_" + cut;
 	string ptjj = "hPtjj_" +cut;
 	string detajj = "hdetaJJ_" +cut;
 	string scalarSumHiggsJetPt = "hScalarSumHiggsJetPt_" +cut;
 	string scalarSumJetPt = "hScalarSumJetPt_" +cut;
-	string Regressedjetpt0 = "hRegJetPt0_"+cut;
-	string Regressedjetpt1 = "hRegJetPt1_"+cut;
+	//string Regressedjetpt0 = "hRegJetPt0_"+cut;
+	//string Regressedjetpt1 = "hRegJetPt1_"+cut;
 	string rho25 = "hRho25_"+cut;
 	string hminDeltaPhijetMET = "hminDeltaPhijetMET_" +cut;
 	string hminMET = "hMinMET_"+cut;
 	string hminDeltaPhijetMETOR30aJET = "hMindPhiMEThJetOR30aJet_"+cut;
-	string RegRes = "hRegressionResolutionMjj_"+cut;
+	//string RegRes = "hRegressionResolutionMjj_"+cut;
 	string RecoRes = "hRecoResolutionMjj_"+cut;
 	string Recob0Res = "hRecoResolutionb0_"+cut;
 	string Recob1Res = "hRecoResolutionb1_"+cut;
-	string Regb0Res = "hRegResolutionb0_"+cut;
-	string Regb1Res = "hRegResolutionb1_"+cut;
+	//string Regb0Res = "hRegResolutionb0_"+cut;
+	//string Regb1Res = "hRegResolutionb1_"+cut;
 	
-	if (!isdata || (Hmass < 90 || Hmass > 150)) fillhisto(mjjReg, RegHmass, ph_weight, "Regressed Mass", 30, 0, 300);
+	//if (!isdata || (Hmass < 90 || Hmass > 150)) fillhisto(mjjReg, RegHmass, ph_weight, "Regressed Mass", 30, 0, 300);
 	if (!isdata || (oldHmass < 90 || oldHmass > 150)) fillhisto(mjjOld, oldHmass, ph_weight, "Old Higgs Mass", 30, 0, 300);
 	if (!isdata || (Hmass < 90 || Hmass > 150)) fillhisto(mjj, Hmass, ph_weight, "Invariant Mass of two Jets", 30, 0, 300);
 	if (!isdata || (Hmass < 90 || Hmass > 150)) fillhisto(mjjAC, Hmass, ph_weight, "Invariant Mass of two Jets", 20, 75, 175);
@@ -2101,17 +2118,17 @@ void JetDistributions(string cut, double ph_weight){
 	fillhisto(detajj, fabs(DetaJJ), ph_weight, "Delta eta between two jets", 10, 0, 5);
 	fillhisto(scalarSumHiggsJetPt, ScalarSumHiggsJetPt, ph_weight, "scalar sum higgs jet pt", 25, 25, 375);
 	fillhisto(scalarSumJetPt, ScalarSumJetPt, ph_weight, "scalar sum alljet pt", 25, 30, 300);
-	fillhisto(Regressedjetpt0, RegjetPt[0], ph_weight, "Regressed jet0 pT", 10, 0.0, 200);
-	fillhisto(Regressedjetpt1, RegjetPt[1], ph_weight, "Regressed jet1 pT", 10, 0.0, 200);
+	//fillhisto(Regressedjetpt0, RegjetPt[0], ph_weight, "Regressed jet0 pT", 10, 0.0, 200);
+	//fillhisto(Regressedjetpt1, RegjetPt[1], ph_weight, "Regressed jet1 pT", 10, 0.0, 200);
 	fillhisto(rho25, Rho25, ph_weight, "Energy density eta<2.5", 10, 0.0, 20);	
 	fillhisto(hminDeltaPhijetMET,DeltaPhijetMETmin, ph_weight, "Delta phi between MET and nearest jet", 16, 0, 3.14159265);
 	fillhisto(hminMET, MinMET, ph_weight, "min(METtype1corr,METnoPUCh)",		13, 0.0, 260);
 	fillhisto(hminDeltaPhijetMETOR30aJET,MindPhiMEThJetOR30aJet, ph_weight, "min(DeltaPhijetMET,Dphiajetpt30MET)", 16, 0, 3.14159265);
-	if (!isdata) fillhisto(RegRes, GenHiggsMass-RegHmass, ph_weight, "Resoltuion Higgs Regressed", 100, -100, 100);
+	//if (!isdata) fillhisto(RegRes, GenHiggsMass-RegHmass, ph_weight, "Resoltuion Higgs Regressed", 100, -100, 100);
 	if (!isdata) fillhisto(RecoRes, GenHiggsMass-oldHmass, ph_weight, "Resolution Higgs Reco", 100, -100, 100);
-	if (!isdata) fillhisto(Regb0Res, jetGenPt[0]-RegjetPt[0], ph_weight, "Resoltuion jet 0 Regressed", 100, -100, 100);
+	//if (!isdata) fillhisto(Regb0Res, jetGenPt[0]-RegjetPt[0], ph_weight, "Resoltuion jet 0 Regressed", 100, -100, 100);
 	if (!isdata) fillhisto(Recob0Res, jetGenPt[0]-jetPt[0], ph_weight, "Resolution jet 0 Reco", 100, -100, 100);
-	if (!isdata) fillhisto(Regb1Res, jetGenPt[1]-RegjetPt[1], ph_weight, "Resoltuion jet 1 Regressed", 100, -100, 100);
+	//if (!isdata) fillhisto(Regb1Res, jetGenPt[1]-RegjetPt[1], ph_weight, "Resoltuion jet 1 Regressed", 100, -100, 100);
 	if (!isdata) fillhisto(Recob1Res, jetGenPt[1]-jetPt[1], ph_weight, "Resolution jet 1 Reco", 100, -100, 100);
 }// JetDistributions
 
@@ -2155,7 +2172,7 @@ void LeptonDistributions(string cut, double ph_weight){
 		fillhisto(LeadLepPt, leptonPt[1], ph_weight, "Leading Lepton Pt", 10, 0.0, 100);
 		fillhisto(SecLepPt, leptonPt[0], ph_weight, "Second Lepton Pt", 10, 0.0, 100);
 	}
-	if (!isdata) fillhisto(DiTauRes, GenZMass-RegHmass, ph_weight, "Resoltuion Ditau Mass", 100, -100, 100);
+	//if (!isdata) fillhisto(DiTauRes, GenZMass-RegHmass, ph_weight, "Resoltuion Ditau Mass", 100, -100, 100);
 	if (!isdata) fillhisto(VisRes, GenZMass-Emumass, ph_weight, "Resolution Visible Mass", 100, -100, 100);
 	
 }// LeptonDistributions	

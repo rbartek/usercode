@@ -1251,6 +1251,11 @@ int main(int argc, char** argv) {
 				if (firstevent) for (size_t i = 0 ; (i != indexedMuPt.size()) ; ++i) {   MuonPtSortedIndex.push_back(indexedMuPt[i].first);        }
 				
 				if(firstevent) for (size_t i = 0 ; (i != indexedMuPt.size()) ; ++i) {cout << "Sorted pt of muons: " << indexedMuPt[i].second << endl; }
+				if (indexedMuPt.size()>5) {
+				  std::cerr << "There are too many muons in this event! " << indexedMuPt.size() << std::endl;
+				  std::cerr << "I'm stopping until you fix this." << std::endl;
+				  return -1;
+				}
 				for (size_t k = 0; k < indexedMuPt.size(); k++){
 					SortedMuonPt[k] = sample.hJet_pt[indexedMuPt[k].first];
 				}
@@ -1921,41 +1926,41 @@ int main(int argc, char** argv) {
 	// Write and Close the output file.
 	ofile.Write();
 	
-	TMVA_tree->Delete();
-	BDT_tree->Delete();
-	FOM_tree->Delete();
-	MuonTrigWeightTreelow->Delete();
-	EleTrigWeightTreelow->Delete();
-	MuonTrigWeightTreehigh->Delete();
-	EleTrigWeightTreehigh->Delete();
-	MuonIDWeightTree->Delete();
-	EleIDWeightTree->Delete();
-	lowptMuonIDWeightTree->Delete();
-	lowptEleIDWeightTree->Delete();
-	cout << "trees deleted" << endl;
+//	TMVA_tree->Delete();
+//	BDT_tree->Delete();
+//	FOM_tree->Delete();
+//	MuonTrigWeightTreelow->Delete();
+//	EleTrigWeightTreelow->Delete();
+//	MuonTrigWeightTreehigh->Delete();
+//	EleTrigWeightTreehigh->Delete();
+//	MuonIDWeightTree->Delete();
+//	EleIDWeightTree->Delete();
+//	lowptMuonIDWeightTree->Delete();
+//	lowptEleIDWeightTree->Delete();
+//	cout << "trees deleted" << endl;
 	
 	ofile.Close();
 	
-	MuonTrigWeightFilelow->Close();
-	EleTrigWeightFilelow->Close();
-	MuonTrigWeightFilehigh->Close();
-	EleTrigWeightFilehigh->Close();
-	MuonIDWeightFile->Close();
-	EleIDWeightFile->Close();
-	lowptMuonIDWeightFile->Close();
-	lowptEleIDWeightFile->Close();
-	cout << "files closed" << endl;
+//	MuonTrigWeightFilelow->Close();
+//	EleTrigWeightFilelow->Close();
+//	MuonTrigWeightFilehigh->Close();
+//	EleTrigWeightFilehigh->Close();
+//	MuonIDWeightFile->Close();
+//	EleIDWeightFile->Close();
+//	lowptMuonIDWeightFile->Close();
+//	lowptEleIDWeightFile->Close();
+//	cout << "files closed" << endl;
 	
-	MuonTrigWeightFilelow->Delete();
-	EleTrigWeightFilelow->Delete();
-	MuonTrigWeightFilehigh->Delete();
-	EleTrigWeightFilehigh->Delete();
-	MuonIDWeightFile->Delete();
-	EleIDWeightFile->Delete();
-	lowptMuonIDWeightFile->Delete();
-	lowptEleIDWeightFile->Delete();
+//	MuonTrigWeightFilelow->Delete();
+//	EleTrigWeightFilelow->Delete();
+//	MuonTrigWeightFilehigh->Delete();
+//	EleTrigWeightFilehigh->Delete();
+//	MuonIDWeightFile->Delete();
+//	EleIDWeightFile->Delete();
+//	lowptMuonIDWeightFile->Delete();
+//	lowptEleIDWeightFile->Delete();
 	
-	ofile.Delete();
+//	ofile.Delete();
 	
 	cout << "all I have to do is return 0" << endl;
 	

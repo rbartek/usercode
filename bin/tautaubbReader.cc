@@ -16,7 +16,7 @@
  
  @author Rachel Wilken <rachel.wilken@cern.ch>
  
- @date Fri Nov 9 2011
+ @date Fri Dec 21 2012
  
  */
 
@@ -127,10 +127,30 @@ float AssignWeight(TTree* mytree, float pt1, float ABSeta){
 	return s1;
 }
 
+void HiggsCandBuilder(int *X, int *Y, double CSV0, double CSV1, int posCSV0, int posCSV1, int pospt0, int pospt1){
+	//choose Higgs Jets with new Algo
+	int CSV44mid1 = 99, CSV44mid2 = 99;
+	if(CSV0>0.4&&CSV1>0.4){
+		CSV44mid1 = posCSV0;
+		CSV44mid2 = posCSV1;							
+	}else if (CSV0>0.4&&CSV1<0.4){
+		CSV44mid1 = posCSV0;
+		if(posCSV0!=pospt0)CSV44mid2 = pospt0;
+		if(posCSV0==pospt0)CSV44mid2 = pospt1;	
+	}else if(CSV0<0.4&&CSV1>0.4){
+		CSV44mid1 = posCSV0;
+		CSV44mid2 = posCSV1;							
+	}else{
+		CSV44mid1 = pospt0;
+		CSV44mid2 = pospt1;
+	}
+	(*X) = CSV44mid1;
+	(*Y) = CSV44mid2;
+}	
 
 int main(int argc, char** argv) {
 	
-	bool debug = false;	
+	bool debug = true;	
 	
     // There must be at least one argument, the input file.
     if (argc < 2) {
@@ -224,15 +244,15 @@ int main(int argc, char** argv) {
 	if (findString(ifilename, "M_50")) isM50sample = true;
 	if (findString(ifilename, "ZJets")) isZjets = true;
 	if (findString(ifilename, "Run")||findString(ifilename, "Prompt")||findString(ifilename, "Aug")||
-	findString(ifilename, "Jul")||findString(ifilename, "recovered")) {
+		findString(ifilename, "Jul")||findString(ifilename, "recovered")) {
 		isdata = true;
 		isDATA = true;
 	}
-	if (findString(ofilename, "TTJets")) TTfile = true;
+	if (findString(ofilename, "TT")) TTfile = true;
 	if (findString(ofilename, "LF")) LFfile = true;
 	if (findString(ofilename, "HF")) HFfile = true;
 	
-	cout << "HFfile is " << HFfile << " LumiWeight is " << LumiWeight << " isDATA " << isDATA << endl;
+	if (debug) cout << "HFfile is " << HFfile << " LumiWeight is " << LumiWeight << " isDATA " << isDATA << endl;
 	
 	
     // Check how many events and file(s) are analyzed
@@ -370,6 +390,10 @@ int main(int argc, char** argv) {
 	FOM_tree->Branch("JERHmassDown",&JERHmassDown, "JERHmassDown/F");
 	FOM_tree->Branch("JESHmassUp",&JESHmassUp, "JESHmassUp/F");
 	FOM_tree->Branch("JESHmassDown",&JESHmassDown, "JESHmassDown/F");
+	FOM_tree->Branch("CSVHmassUp",&CSVHmassUp, "CSVHmassUp/F");
+	FOM_tree->Branch("CSVHmassFUp",&CSVHmassFUp, "CSVHmassFUp/F");
+	FOM_tree->Branch("CSVHmassDown",&CSVHmassDown, "CSVHmassDown/F");
+	FOM_tree->Branch("CSVHmassFDown",&CSVHmassFDown, "CSVHmassFDown/F");
 	
 	
 	TTree *TMVA_tree = new TTree("TMVA_tree","Tree for TMVA input");
@@ -491,6 +515,14 @@ int main(int argc, char** argv) {
 	TMVA_tree->Branch("JES1PtUp",&JES_pt_up[1], "JES1PtUp/F");
 	TMVA_tree->Branch("JES0PtDown",&JES_pt_down[0], "JES0PtDown/F");
 	TMVA_tree->Branch("JES1PtDown",&JES_pt_down[1], "JES1PtDown/F");
+	TMVA_tree->Branch("JERHmassUp",&JERHmassUp, "JERHmassUp/F");
+	TMVA_tree->Branch("JERHmassDown",&JERHmassDown, "JERHmassDown/F");
+	TMVA_tree->Branch("JESHmassUp",&JESHmassUp, "JESHmassUp/F");
+	TMVA_tree->Branch("JESHmassDown",&JESHmassDown, "JESHmassDown/F");
+	TMVA_tree->Branch("CSVHmassUp",&CSVHmassUp, "CSVHmassUp/F");
+	TMVA_tree->Branch("CSVHmassFUp",&CSVHmassFUp, "CSVHmassFUp/F");
+	TMVA_tree->Branch("CSVHmassDown",&CSVHmassDown, "CSVHmassDown/F");
+	TMVA_tree->Branch("CSVHmassFDown",&CSVHmassFDown, "CSVHmassFDown/F");
 	
 	
 	
@@ -613,134 +645,14 @@ int main(int argc, char** argv) {
 	BDT_tree->Branch("JES1PtUp",&JES_pt_up[1], "JES1PtUp/F");
 	BDT_tree->Branch("JES0PtDown",&JES_pt_down[0], "JES0PtDown/F");
 	BDT_tree->Branch("JES1PtDown",&JES_pt_down[1], "JES1PtDown/F");
-	
-	
-	
-	
-	TTree *BDT_btree = new TTree("BDT_btree","Tree of b jets for BDT output");
-	if (isZjets){
-		BDT_btree->Branch("nJets",&nJets, "nJets/I");
-		BDT_btree->Branch("Naj",&Naj, "Naj/I");
-		BDT_btree->Branch("Nab",&Nab, "Nab/I");
-		BDT_btree->Branch("naJets",&naJets, "naJets/I");
-		BDT_btree->Branch("eventFlavor",&eventFlavor, "eventFlavor/I");
-		BDT_btree->Branch("CSV0",&CSV0, "CSV0/F");
-		BDT_btree->Branch("CSV1",&CSV1, "CSV1/F");
-		BDT_btree->Branch("Emumass",&Emumass, "Emumass/F");
-		BDT_btree->Branch("Hmass",&Hmass, "Hmass/F");
-		BDT_btree->Branch("oldHmass",&oldHmass, "oldHmass/F");
-		//BDT_btree->Branch("RegHmass",&RegHmass, "RegHmass/F");
-		BDT_btree->Branch("DeltaPhiHV",&DeltaPhiHV, "DeltaPhiHV/F");
-		BDT_btree->Branch("Hpt",&Hpt, "Hpt/F");
-		BDT_btree->Branch("Zpt",&Zpt, "Zpt/F");
-		BDT_btree->Branch("lep0pt",&lep0pt, "lep0pt/F");
-		BDT_btree->Branch("ScalarSumPt",&ScalarSumPt, "ScalarSumPt/F");
-		BDT_btree->Branch("ScalarSumJetPt",&ScalarSumJetPt, "ScalarSumJetPt/F");
-		BDT_btree->Branch("ScalarSumHiggsJetPt",&ScalarSumHiggsJetPt, "ScalarSumHiggsJetPt/F");
-		BDT_btree->Branch("Ht",&Ht, "Ht/F");
-		BDT_btree->Branch("EtaStandDev",&EtaStandDev, "EtaStandDev/F");
-		BDT_btree->Branch("UnweightedEta",&UnweightedEta, "UnweightedEta/F");
-		BDT_btree->Branch("EvntShpCircularity",&EvntShpCircularity, "EvntShpCircularity/F");
-		BDT_btree->Branch("alpha_j",&alpha_j, "alpha_j/F");
-		BDT_btree->Branch("qtb1",&qtb1, "qtb1/F");
-		BDT_btree->Branch("nSV",&nSV, "nSV/I");
-		BDT_btree->Branch("Trigweight",&Trigweight, "Trigweight/F");
-		BDT_btree->Branch("PUweight2012",&PUweight2012, "PUweight2012/F");
-		BDT_btree->Branch("btag2CSF",&btag2CSF, "btag2CSF/F");
-		BDT_btree->Branch("DetaJJ",&DetaJJ, "DetaJJ/F");
-		BDT_btree->Branch("jetCHF0",&jetCHF[0], "jetCHF0/F");
-		BDT_btree->Branch("jetCHF1",&jetCHF[1], "jetCHF1/F");
-		BDT_btree->Branch("jetPt0",&jetPt[0], "jetPt0/F");
-		BDT_btree->Branch("jetPt1",&jetPt[1], "jetPt1/F");
-		BDT_btree->Branch("jetEta0",&jetEta[0], "jetEta0/F");
-		BDT_btree->Branch("jetEta1",&jetEta[1], "jetEta1/F");
-		BDT_btree->Branch("CSVNewShape0",&CSVNewShape[0], "CSVNewShape0/F");
-		BDT_btree->Branch("CSVNewShape1",&CSVNewShape[1], "CSVNewShape1/F");
-		BDT_btree->Branch("lep1pt",&leptonPt[1], "lep1pt/F");
-		BDT_btree->Branch("lep_pfCombRelIso0",&lep_pfCombRelIso[0], "lep_pfCombRelIso0/F");
-		BDT_btree->Branch("lep_pfCombRelIso1",&lep_pfCombRelIso[1], "lep_pfCombRelIso1/F");
-		BDT_btree->Branch("DphiJJ",&DphiJJ, "DphiJJ/F");
-		BDT_btree->Branch("RMS_eta",&RMS_eta, "RMS_eta/F");
-		BDT_btree->Branch("PtbalZH",&PtbalZH, "PtbalZH/F");
-		BDT_btree->Branch("EventPt",&EventPt, "EventPt/F");
-		BDT_btree->Branch("EventMass",&EventMass, "EventMass/F");
-		BDT_btree->Branch("AngleHemu",&AngleHemu, "AngleHemu/F");
-		BDT_btree->Branch("Centrality",&Centrality, "Centrality/F");
-		BDT_btree->Branch("MET",&MET, "MET/F");
-		BDT_btree->Branch("EvntShpAplanarity",&EvntShpAplanarity, "EvntShpAplanarity/F");
-		BDT_btree->Branch("EvntShpSphericity",&EvntShpSphericity, "EvntShpSphericity/F");
-		BDT_btree->Branch("EvntShpIsotropy",&EvntShpIsotropy, "EvntShpIsotropy/F");
-		BDT_btree->Branch("Zphi",&Zphi, "Zphi/F");
-		BDT_btree->Branch("Hphi",&Hphi, "Hphi/F");
-		BDT_btree->Branch("SV_mass",&SV_mass, "SV_mass/F");
-		BDT_btree->Branch("Mte",&Mte, "Mte/F");
-		BDT_btree->Branch("Mtmu",&Mtmu, "Mtmu/F");
-		BDT_btree->Branch("delPullAngle",&delPullAngle, "delPullAngle/F");
-		BDT_btree->Branch("delPullAngle2",&delPullAngle2, "delPullAngle2/F");
-		BDT_btree->Branch("Mt",&Mt, "Mt/F");
-		BDT_btree->Branch("dPhiHMET",&dPhiHMET, "dPhiHMET/F");
-		BDT_btree->Branch("DeltaPhijetMETmin",&DeltaPhijetMETmin, "DeltaPhijetMETmin/F");
-		BDT_btree->Branch("DeltaPhijetMETZtaumin",&DeltaPhijetMETZtaumin, "DeltaPhijetMETZtaumin/F");
-		BDT_btree->Branch("AngleEMU",&AngleEMU, "AngleEMU/F");
-		BDT_btree->Branch("AaronEleMissE",&AaronEleMissE, "AaronEleMissE/F");
-		BDT_btree->Branch("AaronMuMissE",&AaronMuMissE, "AaronMuMissE/F");
-		BDT_btree->Branch("Dphiemu",&Dphiemu, "Dphiemu/F");
-		BDT_btree->Branch("delRjj",&delRjj, "delRjj/F");
-		BDT_btree->Branch("Detaemu",&Detaemu, "Detaemu/F");
-		BDT_btree->Branch("DphiEleMET",&DphiEleMET, "DphiEleMET/F");
-		BDT_btree->Branch("dphiMuMET",&dphiMuMET, "dphiMuMET/F");
-		BDT_btree->Branch("PtbalMETH",&PtbalMETH, "PtbalMETH/F");
-		BDT_btree->Branch("topPt",&topPt, "topPt/F");
-		BDT_btree->Branch("MassEleb0",&MassEleb0, "MassEleb0/F");
-		BDT_btree->Branch("MassMub0",&MassMub0, "MassMub0/F");
-		BDT_btree->Branch("MassEleb1",&MassEleb1, "MassEleb1/F");
-		BDT_btree->Branch("MassMub1",&MassMub1, "MassMub1/F");
-		BDT_btree->Branch("METsig",&METsig, "METsig/F");
-		BDT_btree->Branch("delRemu",&delRemu, "delRemu/F");
-		BDT_btree->Branch("PtbalZMET",&PtbalZMET, "PtbalZMET/F");
-		BDT_btree->Branch("DphiZMET",&DphiZMET, "DphiZMET/F");
-		BDT_btree->Branch("Zmass",&Zmass, "Zmass/F");
-		BDT_btree->Branch("ZmassSVD",&ZmassSVD, "ZmassSVD/F");
-		BDT_btree->Branch("ZmassSVDnegSol",&ZmassSVDnegSol, "ZmassSVDnegSol/F");
-		BDT_btree->Branch("ZmassNegInclu",&ZmassNegInclu, "ZmassNegInclu/F");
-		BDT_btree->Branch("DphiSecondMET",&DphiSecondMET, "DphiSecondMET/F");
-		BDT_btree->Branch("DphiLeadMET",&DphiLeadMET, "DphiLeadMET/F");
-		BDT_btree->Branch("topMass",&topMass, "topMass/F");
-		BDT_btree->Branch("ProjVisT",&ProjVisT, "ProjVisT/F");
-		BDT_btree->Branch("ProjMissT",&ProjMissT, "ProjMissT/F");
-		BDT_btree->Branch("DitauMass",&DitauMass, "DitauMass/F");
-		BDT_btree->Branch("pZeta25",&pZeta25, "pZeta25/F");
-		BDT_btree->Branch("pZeta45",&pZeta45, "pZeta45/F");
-		BDT_btree->Branch("pZeta65",&pZeta65, "pZeta65/F");
-		BDT_btree->Branch("pZeta85",&pZeta85, "pZeta85/F");	
-		BDT_btree->Branch("CSV0up",&CSVup[0], "CSV0up/F");
-		BDT_btree->Branch("CSV1up",&CSVup[1], "CSV1up/F");
-		BDT_btree->Branch("CSV0down",&CSVdown[0], "CSV0down/F");
-		BDT_btree->Branch("CSV1down",&CSVdown[1], "CSV1down/F");
-		BDT_btree->Branch("csv0Fup",&csvFup[0], "csv0Fup/F");
-		BDT_btree->Branch("csv1Fup",&csvFup[1], "csv1Fup/F");
-		BDT_btree->Branch("csv0Fdown",&csvFdown[0], "csv0Fdown/F");
-		BDT_btree->Branch("csv1Fdown",&csvFdown[1], "csv1Fdown/F");
-		BDT_btree->Branch("JER0Eup",&JER_e_up[0], "JER0Eup/F");
-		BDT_btree->Branch("JER1Eup",&JER_e_up[1], "JER1Eup/F");
-		BDT_btree->Branch("JER0Edown",&JER_e_down[0], "JER0Edown/F");
-		BDT_btree->Branch("JER1Edown",&JER_e_down[1], "JER1Edown/F");
-		BDT_btree->Branch("JER0PtUp",&JER_pt_up[0], "JER0PtUp/F");
-		BDT_btree->Branch("JER1PtUp",&JER_pt_up[1], "JER1PtUp/F");
-		BDT_btree->Branch("JER0PtDown",&JER_pt_down[0], "JER0PtDown/F");
-		BDT_btree->Branch("JER1PtDown",&JER_pt_down[1], "JER1PtDown/F");
-		BDT_btree->Branch("JES0Eup",&JES_e_up[0], "JES0Eup/F");
-		BDT_btree->Branch("JES1Eup",&JES_e_up[1], "JES1Eup/F");
-		BDT_btree->Branch("JES0Edown",&JES_e_down[0], "JES0Edown/F");
-		BDT_btree->Branch("JES1Edown",&JES_e_down[1], "JES1Edown/F");
-		BDT_btree->Branch("JES0PtUp",&JES_pt_up[0], "JES0PtUp/F");
-		BDT_btree->Branch("JES1PtUp",&JES_pt_up[1], "JES1PtUp/F");
-		BDT_btree->Branch("JES0PtDown",&JES_pt_down[0], "JES0PtDown/F");
-		BDT_btree->Branch("JES1PtDown",&JES_pt_down[1], "JES1PtDown/F");
-		
-		
-	}
-	
+	BDT_tree->Branch("JERHmassUp",&JERHmassUp, "JERHmassUp/F");
+	BDT_tree->Branch("JERHmassDown",&JERHmassDown, "JERHmassDown/F");
+	BDT_tree->Branch("JESHmassUp",&JESHmassUp, "JESHmassUp/F");
+	BDT_tree->Branch("JESHmassDown",&JESHmassDown, "JESHmassDown/F");
+	BDT_tree->Branch("CSVHmassUp",&CSVHmassUp, "CSVHmassUp/F");
+	BDT_tree->Branch("CSVHmassFUp",&CSVHmassFUp, "CSVHmassFUp/F");
+	BDT_tree->Branch("CSVHmassDown",&CSVHmassDown, "CSVHmassDown/F");
+	BDT_tree->Branch("CSVHmassFDown",&CSVHmassFDown, "CSVHmassFDown/F");
 	
 	
     // Here one can declare histograms
@@ -783,112 +695,148 @@ int main(int argc, char** argv) {
 	float Nweighted_TopCR = 0.0, Nweighted_SingleTopCR = 0.0, Nweighted_LFCR = 0.0, Nweighted_HFCR =0.0;	
 	
     do {
-
+		
 		if (debug)cout << "begining of event loop " << event << endl;
-
+		
         weight = 1.0;
-		float LFScaleFactor = 1.00;
-		float TTScaleFactor = 1.00;
-		//	if (isM50sample && sample.genZpt < 100) cout << "event cut out to remove overlap with DY_PtZ" << endl;
+		float LFScaleFactor = 1.100305483;
+		float TTScaleFactor = 1.073681624;
+		event++;
+		
+		EleTrigWeight = 1.0, MuonTrigWeight = 1.0, WP95weight = 1.0, MuIDweight = 1.0;
+		PUweight2012 = sample.PUweight;
+		weight = LumiWeight*PUweight2012;
+		Trigweight = 1.0;
+		if (debug)cout << "weight is " << weight << " LumiWeight is " << LumiWeight << " PUweight2012 " << PUweight2012 << endl;		
+		
+		event_weighted = event_weighted + weight;
+		
 		if (((isM50sample && sample.genZpt < 100) || !isM50sample) && ((HFfile && sample.eventFlav == 5)||!HFfile) && ((LFfile && sample.eventFlav!=5)||!LFfile)){
 			if (debug)cout << "HFfile is " << HFfile << " sample.eventFlav is " << sample.eventFlav << " isDATA " << isDATA << endl;
-
-			
-			EleTrigWeight = 1.0, MuonTrigWeight = 1.0, WP95weight = 1.0, MuIDweight = 1.0;
-			//PUweight2011 = 1.0;
-			//B2011PUweight = 1.0, A2011PUweight = 1.0;
-			//B2011PUweight = sample.PUweight2011B;
-			//A2011PUweight = sample.PUweight;
-			//PUweight2011 = (2.268*A2011PUweight + ((lumi-2.268)*B2011PUweight))/lumi;
-			//cout << "pile up weight: " << PUweight2011 << endl;
-			PUweight2012 = sample.PUweight;
-			weight = LumiWeight*PUweight2012;
-			Trigweight = 1.0;
-			if (debug)cout << "weight is " << weight << " LumiWeight is " << LumiWeight << " PUweight2012 " << PUweight2012 << endl;
-
-			if (debug)cout << "Electron pt "<<sample.vLepton_pt[0] << " Muon pt " <<sample.vLepton_pt[1] << endl;
-			if (sample.vLepton_pt[1]>10 && sample.vLepton_pt[0]>10){
-			//Trigger weight named after leading lepton
-				EleTrigWeight = AssignWeight(EleTrigWeightTreehigh, sample.vLepton_pt[0], fabs(sample.vLepton_eta[0]));
-				MuonTrigWeight =AssignWeight(MuonTrigWeightTreehigh, sample.vLepton_pt[1], fabs(sample.vLepton_eta[1]));
-				EleTrigWeight = EleTrigWeight*AssignWeight(MuonTrigWeightTreelow, sample.vLepton_pt[0], fabs(sample.vLepton_eta[0]));
-				MuonTrigWeight = MuonTrigWeight*AssignWeight(EleTrigWeightTreelow, sample.vLepton_pt[1], fabs(sample.vLepton_eta[1]));
-				if (debug)cout << "Electron Trigger Weight is "<<EleTrigWeight<< endl;
-				if (debug)cout << "Muon trigger weight is "<<MuonTrigWeight << endl;
-				//Which trigger more likely to fire if both leptons above upper leg threshold
-				if( sample.vLepton_pt[1]>20 && sample.vLepton_pt[0]>20){
-					if (EleTrigWeight>MuonTrigWeight){MuonTrigWeight = 1.0;
-					}else{ EleTrigWeight = 1.0;}
-					if (debug)cout << "Both leptons above 20 GeV "<<MuonTrigWeight << " " <<  EleTrigWeight<< endl;
-				}
-				if( sample.vLepton_pt[1]>10 && sample.vLepton_pt[1]<20){ // Muon bottom leg
-					EleTrigWeight = 1.0;
-					if (debug)cout << "Inside the Muon bottom Leg "<<MuonTrigWeight << " " <<  EleTrigWeight<< endl;
-				}
-				if( sample.vLepton_pt[0]>10 && sample.vLepton_pt[0]<20){ // Electron bottom leg
-					MuonTrigWeight = 1.0;
-					if (debug)cout << "Inside the Electron bottom Leg "<< MuonTrigWeight << " " <<  EleTrigWeight<< endl;
-				}
-			}
-			if (sample.vLepton_pt[1]>20 || sample.vLepton_pt[0]>20){
-				if (fabs(MuonTrigWeight-1.0)>0.000001 && fabs(EleTrigWeight-1.0)>0.000001) {
-					cout << "WE HAVE A BUG WITH THE TRIGGER WEIGHT" << endl;
-					cout << "Electron pt "<<sample.vLepton_pt[0] << " Muon pt " <<sample.vLepton_pt[1] << endl;
-					cout << "Electron trig weight "<<  EleTrigWeight << " Muon trig weight " << MuonTrigWeight << endl;
-				}}
-			// V21 VHbb electron weights
-			if(sample.vLepton_pt[0]>10) {
-				WP95weight = AssignWeight(lowptEleIDWeightTree, sample.vLepton_pt[0], sample.vLepton_eta[0]);
-				if (debug)cout << "Electron WP95ID low pt Weight is "<<WP95weight<< endl;
-			}			
-			if(sample.vLepton_pt[0]>20) {
-				WP95weight = AssignWeight(EleIDWeightTree, sample.vLepton_pt[0], sample.vLepton_eta[0]);
-				if (debug)cout << "Electron ID 95 Weight is "<<WP95weight<< endl;
-			}
-			// V21 VHbb muon weights
-			if(sample.vLepton_pt[1]>10){
-				MuIDweight = AssignWeight(lowptMuonIDWeightTree, sample.vLepton_pt[1], sample.vLepton_eta[1]);
-				if (debug)cout << "Muon ID low pt Weight is "<<MuIDweight<< endl;
-			}			
-			if(sample.vLepton_pt[1]>20){
-				MuIDweight = AssignWeight(MuonIDWeightTree, sample.vLepton_pt[1], sample.vLepton_eta[1]);
-				if (debug)cout << "Muon ID Weight is "<<MuIDweight<< endl;
-			}
-			Trigweight = MuonTrigWeight*EleTrigWeight*WP95weight*MuIDweight;
-			weight = weight*MuonTrigWeight*EleTrigWeight*WP95weight*MuIDweight;
-			
-			if (LFfile)LFScaleFactor = 0.957;
-			if (TTfile)TTScaleFactor = 1.029;
-			weight = weight*LFScaleFactor*TTScaleFactor;
-
-			if (isDATA) {weight = 1.0; Trigweight=1.0; }
-		if (debug)cout << "Trigweight is " << Trigweight << " weight is " << weight << " isDATA " << isDATA << endl;
-			
-			event++;
-			event_weighted = event_weighted + weight;
-			std::cout << "Looking for bug in event " << event << std::endl;
-			std::cout << "json is " << sample.EVENT_json << std::endl;
-			std::cout << "Vtype is " <<sample.Vtype << std::endl;
-
 			if (sample.Vtype == 5 && sample.EVENT_json == 1 ){
 				if (!(event%500))  std::cout << "entered event loop " << event << std::endl;
-				if (debug)  std::cout << "entered event loop " << event << std::endl;
+				if (firstevent)  std::cout << "entered event loop " << event << std::endl;
+				
+				
+				
+				if (debug)cout << "Electron pt "<<sample.vLepton_pt[0] << " Muon pt " <<sample.vLepton_pt[1] << endl;
+				if (sample.vLepton_pt[1]>10 && sample.vLepton_pt[0]>10){
+					//Trigger weight named after leading lepton
+					EleTrigWeight = AssignWeight(EleTrigWeightTreehigh, sample.vLepton_pt[0], fabs(sample.vLepton_eta[0]));
+					MuonTrigWeight =AssignWeight(MuonTrigWeightTreehigh, sample.vLepton_pt[1], fabs(sample.vLepton_eta[1]));
+					EleTrigWeight = EleTrigWeight*AssignWeight(MuonTrigWeightTreelow, sample.vLepton_pt[0], fabs(sample.vLepton_eta[0]));
+					MuonTrigWeight = MuonTrigWeight*AssignWeight(EleTrigWeightTreelow, sample.vLepton_pt[1], fabs(sample.vLepton_eta[1]));
+					if (debug)cout << "Electron Trigger Weight is "<<EleTrigWeight<< endl;
+					if (debug)cout << "Muon trigger weight is "<<MuonTrigWeight << endl;
+					//Which trigger more likely to fire if both leptons above upper leg threshold
+					if( sample.vLepton_pt[1]>20 && sample.vLepton_pt[0]>20){
+						if (EleTrigWeight>MuonTrigWeight){MuonTrigWeight = 1.0;
+						}else{ EleTrigWeight = 1.0;}
+						if (debug)cout << "Both leptons above 20 GeV "<<MuonTrigWeight << " " <<  EleTrigWeight<< endl;
+					}
+					if( sample.vLepton_pt[1]>10 && sample.vLepton_pt[1]<20){ // Muon bottom leg
+						EleTrigWeight = 1.0;
+						if (debug)cout << "Inside the Muon bottom Leg "<<MuonTrigWeight << " " <<  EleTrigWeight<< endl;
+					}
+					if( sample.vLepton_pt[0]>10 && sample.vLepton_pt[0]<20){ // Electron bottom leg
+						MuonTrigWeight = 1.0;
+						if (debug)cout << "Inside the Electron bottom Leg "<< MuonTrigWeight << " " <<  EleTrigWeight<< endl;
+					}
+				}
+				if (sample.vLepton_pt[1]>20 || sample.vLepton_pt[0]>20){
+					if (fabs(MuonTrigWeight-1.0)>0.001 && fabs(EleTrigWeight-1.0)>0.001) {
+						cout << "WE HAVE A BUG WITH THE TRIGGER WEIGHT" << endl;
+						cout << "Electron pt "<<sample.vLepton_pt[0] << " Muon pt " <<sample.vLepton_pt[1] << endl;
+						cout << "Electron trig weight "<<  EleTrigWeight << " Muon trig weight " << MuonTrigWeight << endl;
+					}}
+				// V21 VHbb electron weights
+				if(sample.vLepton_pt[0]>10) {
+					WP95weight = AssignWeight(lowptEleIDWeightTree, sample.vLepton_pt[0], sample.vLepton_eta[0]);
+					if (debug)cout << "Electron WP95ID low pt Weight is "<<WP95weight<< endl;
+					WP95weight = 1.0;
+				}			
+				if(sample.vLepton_pt[0]>20) {
+					WP95weight = AssignWeight(EleIDWeightTree, sample.vLepton_pt[0], sample.vLepton_eta[0]);
+					if (debug)cout << "Electron ID 95 Weight is "<<WP95weight<< endl;
+				}
+				// V21 VHbb muon weights
+				if(sample.vLepton_pt[1]>10){
+					MuIDweight = AssignWeight(lowptMuonIDWeightTree, sample.vLepton_pt[1], sample.vLepton_eta[1]);
+					if (debug)cout << "Muon ID low pt Weight is "<<MuIDweight<< endl;
+				}			
+				if(sample.vLepton_pt[1]>10){
+					MuIDweight = AssignWeight(MuonIDWeightTree, sample.vLepton_pt[1], sample.vLepton_eta[1]);
+					if (debug)cout << "Muon ID Weight is "<<MuIDweight<< endl;
+				}
+				Trigweight = MuonTrigWeight*EleTrigWeight*WP95weight*MuIDweight;
+				weight = weight*MuonTrigWeight*EleTrigWeight*WP95weight*MuIDweight;
+				
+				if (LFfile)LFScaleFactor = 1.00;
+				if (TTfile)TTScaleFactor = 1.00;
+				weight = weight*LFScaleFactor*TTScaleFactor;
+				
+				if (isDATA) {weight = 1.0; Trigweight=1.0; }
+				if (debug)cout << "Trigweight is " << Trigweight << " weight is " << weight << " isDATA " << isDATA << endl;
+				
 				isdata= false;
 				
 				std::vector< std::pair<size_t,double> > indexedJetPt;
 				std::vector<size_t> PtSortedJetIndex;
+				std::vector< std::pair<size_t,double> > indexedJetPtJESup;
+				std::vector<size_t> PtJESupSortedJetIndex;
+				std::vector< std::pair<size_t,double> > indexedJetPtJESdown;
+				std::vector<size_t> PtJESdownSortedJetIndex;
+				std::vector< std::pair<size_t,double> > indexedJetPtJERup;
+				std::vector<size_t> PtJERupSortedJetIndex;
+				std::vector< std::pair<size_t,double> > indexedJetPtJERdown;
+				std::vector<size_t> PtJERdownSortedJetIndex;
 				std::vector< std::pair<size_t,double> > indexedJetCSV;
 				std::vector<size_t> CSVSortedJetIndex;
+				std::vector< std::pair<size_t,double> > indexedJetCSVup;
+				std::vector<size_t> CSVupSortedJetIndex;
+				std::vector< std::pair<size_t,double> > indexedJetCSVdown;
+				std::vector<size_t> CSVdownSortedJetIndex;
+				std::vector< std::pair<size_t,double> > indexedJetCSVFup;
+				std::vector<size_t> CSVFupSortedJetIndex;
+				std::vector< std::pair<size_t,double> > indexedJetCSVFdown;
+				std::vector<size_t> CSVFdownSortedJetIndex;
 				std::vector< std::pair<size_t,double> > indexedPt;
 				std::vector<size_t> PtSortedIndex;
-				std::vector< std::pair<size_t,double> > indexedMuPt;
-				std::vector<size_t> MuonPtSortedIndex;
-				
+								
 				// Analysis loop.
 				// One can access the ntuple leaves directly from sample object
 				
-				std::cout << "Before initilize variables" << std::endl;
+				if (debug)std::cout << "Before initilize variables" << std::endl;
+				float jetPttmp[10], jetEtatmp[10], jetPhitmp[10], jetCSVtmp[10], jetCHFtmp[10], CSVNewShapetmp[10];
+				float jetPtRawtmp[10], jetEtmp[10], jetVtx3dLtmp[10], jetVtx3deLtmp[10], jetVtxPttmp[10], jetVtxMasstmp[10], jetPtLeadTracktmp[10];
+				float jetNconstintuentstmp[10], jetCEFtmp[10], jetNCHtmp[10], jetJECUnctmp[10], jetEttmp[10], jetMttmp[10], jetPtRawJERtmp[10], jetGenPttmp[10]; 
+				float jetFlavor[10];
 				
+				for (int j=0; j < 15; ++j) {
+					CSVNewShapetmp[j] = -99.99;
+					jetPttmp[j] = -99.99;
+					jetEtatmp[j] = -99.99;
+					jetPhitmp[j] = -99.99;
+					jetCSVtmp[j] = -99.99;
+					jetCHFtmp[j] = -99.99;
+					//RegjetPttmp[j] = -99.99;
+					jetPtRawtmp[j] = -99.99;
+					jetEtmp[j] = -99.99;
+					jetVtx3dLtmp[j] = -99.99;
+					jetVtx3deLtmp[j] = -99.99;
+					jetVtxPttmp[j] = -99.99;
+					jetVtxMasstmp[j] = -99.99;
+					jetPtLeadTracktmp[j] = -99.99;
+					jetNconstintuentstmp[j] = -99.99;
+					jetCEFtmp[j] = -99.99;
+					jetNCHtmp[j] = -99.99;
+					jetJECUnctmp[j] = -99.99;
+					jetEttmp[j] = -99.99;
+					jetMttmp[j] = -99.99;
+					jetPtRawJERtmp[j] = -99.99;
+					jetGenPttmp[j] = -99.99;
+					jetFlavor[j] = -99.99;
+				}					
 				for (int i=0; i < 5; ++i) {
 					CSVNewShape[i] = -99.99;
 					jetPt[i] = -99.99;
@@ -918,8 +866,9 @@ int main(int argc, char** argv) {
 					lep_pfCombRelIso[i] = -99.99;
 					lep_id95[i] = -99.99;
 					lep_flavor[i] = -99;
-					SortedMuonPt[i] = -99.99;
 				}
+				if (debug)cout << "Number of Jets " <<sample.nhJets << " " <<sample.naJets << endl;
+				if(debug)cout << "Number of Leptons " << sample.nvlep << " " << sample.nalep << endl;
 				for (int j=0; j < 5; ++j) {
 					CSVup[j] = -99.99;
 					CSVdown[j] = -99.99;
@@ -957,6 +906,8 @@ int main(int argc, char** argv) {
 				ProjVisT= -99.99, ProjMissT= -99.99;
 				ScalarSumJetPt = 0.0, ScalarSumHiggsJetPt = -99.99, EventMass = -99.99;
 				JERHmassUp = -99.99, JERHmassDown = -99.99, JESHmassUp = -99.99, JESHmassDown = -99.99;
+				CSVHmassUp = -99.99, CSVHmassFUp = -99.99, CSVHmassDown = -99.99, CSVHmassFDown = -99.99;
+
 				
 				double StandDevEta[4];
 				double AverageEta = -99.99;
@@ -979,15 +930,36 @@ int main(int argc, char** argv) {
 				
 				double CSVshapeNew = -99.99;
 				
-				std::cout << "variables initialized " << std::endl;
+				if(debug)std::cout << "variables initialized " << std::endl;
 				
 				for (int k=0;k<sample.nhJets;k++){
 					if (debug) cout << "for "<< k << "th pass" << endl;
 					indexedJetPt.push_back(std::pair<size_t,double>(k,(double) sample.hJet_pt[k]));
-					indexedPt.push_back(std::pair<size_t,double>(k,(double) sample.hJet_pt[k]));
 					hallhJet_pt.Fill(sample.hJet_pt[k]); 
 					nJets++;
 					//indexedJetCSV.push_back(std::pair<size_t,double>(k,(double) sample.hJet_csv[k]));
+					jetPttmp[k] = sample.hJet_pt[k];
+					jetEtatmp[k] = sample.hJet_eta[k];
+					jetPhitmp[k] = sample.hJet_phi[k];
+					jetCSVtmp[k] = sample.hJet_csv[k];
+					jetCHFtmp[k] = sample.hJet_chf[k];
+					jetPtRawtmp[k] = sample.hJet_ptRaw[k];
+					jetEtmp[k] = sample.hJet_e[k];
+					jetVtx3dLtmp[k] = sample.hJet_vtx3dL[k];
+					jetVtx3deLtmp[k] = sample.hJet_vtx3deL[k];
+					jetVtxPttmp[k] = sample.hJet_vtxPt[k];
+					jetVtxMasstmp[k] = sample.hJet_vtxMass[k];
+					jetPtLeadTracktmp[k] = sample.hJet_ptLeadTrack[k];
+					jetNconstintuentstmp[k] = sample.hJet_nconstituents[k];
+					jetCEFtmp[k] = sample.hJet_cef[k];
+					jetNCHtmp[k] = sample.hJet_nch[k];
+					jetJECUnctmp[k] = sample.hJet_JECUnc[k];
+					jetEttmp[k] = evalEt(jetPt[k],jetEta[k],jetPhi[k],jetE[k]);
+					jetMttmp[k] = evalMt(jetPt[k],jetEta[k],jetPhi[k],jetE[k]);
+					jetPtRawJERtmp[k] = evalJERBias(jetPtRaw[k], sample.hJet_genPt[k], jetEta[k]);
+					jetGenPttmp[k]=sample.hJet_genPt[k];
+					jetFlavor[k] = sample.hJet_flavour[k];
+					//if (indexedJetCSV[0].first == 0) RegjetPt[0] = sample.hJet_genPtReg0;
 					if (debug)	cout << "CSV discriminator: " << sample.hJet_csv[k] << endl;
 					CSVshapeNew = corrCSV(btagNew, sample.hJet_csv[k], sample.hJet_flavour[k]);
 					//if(sample.hJet_csv[k]<=0 || sample.hJet_csv[k]>=1) CSVshapeNew=sample.hJet_csv[k];
@@ -997,54 +969,63 @@ int main(int argc, char** argv) {
 					//else if(fabs(sample.hJet_flavour[k])!=5 && fabs(sample.hJet_flavour[k])!=4)  CSVshapeNew=btagNew->il->Eval(sample.hJet_csv[k]);
 					if (!(event%500)&&debug) cout << "The orignial CSV value was " << sample.hJet_csv[k] << "  the corrected value is " << CSVshapeNew << endl;
 					indexedJetCSV.push_back(std::pair<size_t,double>(k,(double) CSVshapeNew));
+					CSVNewShapetmp[k] = CSVshapeNew;
+					CSVshapeNew = -99.99;
+					indexedJetCSVup.push_back(std::pair<size_t,double>(k,(double) corrCSV(btagUp, sample.hJet_csv[k],sample.hJet_flavour[k])));
+					indexedJetCSVdown.push_back(std::pair<size_t,double>(k,(double) corrCSV(btagDown, sample.hJet_csv[k],sample.hJet_flavour[k])));
+					indexedJetCSVFup.push_back(std::pair<size_t,double>(k,(double) corrCSV(btagFUp, sample.hJet_csv[k],sample.hJet_flavour[k])));
+					indexedJetCSVFdown.push_back(std::pair<size_t,double>(k,(double) corrCSV(btagFDown, sample.hJet_csv[k],sample.hJet_flavour[k])));
+					indexedJetPtJESup.push_back(std::pair<size_t,double>(k,(double) sample.hJet_pt[k]*(1+sample.hJet_JECUnc[k])));
+					indexedJetPtJESdown.push_back(std::pair<size_t,double>(k,(double) sample.hJet_pt[k]*(1-sample.hJet_JECUnc[k])));
+					indexedJetPtJERup.push_back(std::pair<size_t,double>(k,(double) JERSys(true,sample.hJet_eta[k],sample.hJet_pt[k],sample.hJet_genPt[k])));
+					indexedJetPtJERdown.push_back(std::pair<size_t,double>(k,(double) JERSys(false,sample.hJet_eta[k],sample.hJet_pt[k],sample.hJet_genPt[k])));
 					CSVshapeNew = -99.99;
 				}// end k for loop
 				
 				float MinDphiaJet = 99.99;
-				std::cout << "Number additional Jets " << sample.naJets << std::endl;
+				if(debug)std::cout << "Number additional Jets " << sample.naJets << std::endl;
 				for (int a=0;a<sample.naJets;a++){
 					hallhJet_pt.Fill(sample.aJet_pt[a]);
 					nJets++; 
-					
 					//if(sample.aJet_csv[a]<=0 || sample.aJet_csv[a]>=1) CSVshapeNew=sample.aJet_csv[a];
 					//else if(sample.aJet_flavour[a]==0) CSVshapeNew=sample.aJet_csv[a];
 					//else if(fabs(sample.aJet_flavour[a])==5) CSVshapeNew=btagNew->ib->Eval(sample.aJet_csv[a]);
 					//else if(fabs(sample.aJet_flavour[a])==4) CSVshapeNew=btagNew->ic->Eval(sample.aJet_csv[a]);
-					//else if(fabs(sample.aJet_flavour[a])!=5 && fabs(sample.aJet_flavour[a])!=4)  CSVshapeNew=btagNew->il->Eval(sample.aJet_csv[a]);				
-					if (a<3){
-						jetPt[sample.nhJets+a] = sample.aJet_pt[a];
-						jetEta[sample.nhJets+a] = sample.aJet_eta[a];
-						jetPhi[sample.nhJets+a] = sample.aJet_phi[a];
-						jetCSV[sample.nhJets+a] = sample.aJet_csv[a];
-						jetCHF[sample.nhJets+a] = sample.aJet_chf[a];
-						CSVshapeNew = corrCSV(btagNew, sample.aJet_csv[a],sample.aJet_flavour[a]);
-						CSVup[sample.nhJets+a] = corrCSV(btagUp, sample.aJet_csv[a],sample.aJet_flavour[a]);
-						CSVdown[sample.nhJets+a] = corrCSV(btagDown, sample.aJet_csv[a],sample.aJet_flavour[a]);
-						csvFup[sample.nhJets+a] = corrCSV(btagFUp, sample.aJet_csv[a],sample.aJet_flavour[a]);
-						csvFdown[sample.nhJets+a] = corrCSV(btagFDown, sample.aJet_csv[a],sample.aJet_flavour[a]);
-						CSVNewShape[sample.nhJets+a] = CSVshapeNew;
-						//jetPtRaw[sample.nhJets+a] = sample.aJet_ptRaw[a];
-						jetE[sample.nhJets+a] = sample.aJet_e[a];
-						jetVtx3dL[sample.nhJets+a] = sample.aJet_vtx3dL[a];
-						jetVtx3deL[sample.nhJets+a] = sample.aJet_vtx3deL[a];
-						//jetVtxPt[sample.nhJets+a] = sample.aJet_vtxPt[a];
-						jetVtxMass[sample.nhJets+a] = sample.aJet_vtxMass[a];
-						//jetPtLeadTrack[sample.nhJets+a] = sample.aJet_ptLeadTrack[a];
-						jetNconstintuents[sample.nhJets+a] = sample.aJet_nconstituents[a];
-						jetCEF[sample.nhJets+a] = sample.aJet_cef[a];
-						jetNCH[sample.nhJets+a] = sample.aJet_nch[a];
-						jetJECUnc[sample.nhJets+a] = sample.aJet_JECUnc[a];
-						jetEt[sample.nhJets+a] = evalEt(sample.aJet_pt[a],sample.aJet_eta[a],sample.aJet_phi[a],sample.aJet_e[a]);
-						jetMt[sample.nhJets+a] = evalMt(sample.aJet_pt[a],sample.aJet_eta[a],sample.aJet_phi[a],sample.aJet_e[a]);
-						//jetPtRawJER[sample.nhJets+a] = evalJERBias(sample.aJet_ptRaw[a], sample.aJet_genPt[a], sample.aJet_eta[a]);
-						jetGenPt[sample.nhJets+a]= sample.aJet_genPt[a];
-					}
-					if(sample.aJet_pt[a]>30&&abs(sample.aJet_eta[a])<2.5) {
-						if(MinDphiaJet>deltaPhi(sample.MET_phi,sample.aJet_phi[a])) MinDphiaJet =deltaPhi(sample.MET_phi,sample.aJet_phi[a]);
-					}
-					if ( fabs(sample.aJet_eta[a]) < 2.4 && (sample.aJet_pt[a] > 20)) Naj++;
-					if (CSVshapeNew > 0.4 ) Nab++;
+					//else if(fabs(sample.aJet_flavour[a])!=5 && fabs(sample.aJet_flavour[a])!=4)  CSVshapeNew=btagNew->il->Eval(sample.aJet_csv[a]);	
+					if (a<14){			
+					jetPttmp[sample.nhJets+a] = sample.aJet_pt[a];
+					jetEtatmp[sample.nhJets+a] = sample.aJet_eta[a];
+					jetPhitmp[sample.nhJets+a] = sample.aJet_phi[a];
+					jetCSVtmp[sample.nhJets+a] = sample.aJet_csv[a];
+					jetCHFtmp[sample.nhJets+a] = sample.aJet_chf[a];
+					//jetPtRawtmp[sample.nhJets+a] = sample.aJet_ptRaw[a];
+					jetEtmp[sample.nhJets+a] = sample.aJet_e[a];
+					jetVtx3dLtmp[sample.nhJets+a] = sample.aJet_vtx3dL[a];
+					jetVtx3deLtmp[sample.nhJets+a] = sample.aJet_vtx3deL[a];
+					//jetVtxPttmp[sample.nhJets+a] = sample.aJet_vtxPt[a];
+					jetVtxMasstmp[sample.nhJets+a] = sample.aJet_vtxMass[a];
+					//jetPtLeadTracktmp[sample.nhJets+a] = sample.aJet_ptLeadTrack[a];
+					jetNconstintuentstmp[sample.nhJets+a] = sample.aJet_nconstituents[a];
+					jetCEFtmp[sample.nhJets+a] = sample.aJet_cef[a];
+					jetNCHtmp[sample.nhJets+a] = sample.aJet_nch[a];
+					jetJECUnctmp[sample.nhJets+a] = sample.aJet_JECUnc[a];
+					jetEttmp[sample.nhJets+a] = evalEt(sample.aJet_pt[a],sample.aJet_eta[a],sample.aJet_phi[a],sample.aJet_e[a]);
+					jetMttmp[sample.nhJets+a] = evalMt(sample.aJet_pt[a],sample.aJet_eta[a],sample.aJet_phi[a],sample.aJet_e[a]);
+					//jetPtRawJERtmp[sample.nhJets+a] = evalJERBias(sample.aJet_ptRaw[a], sample.aJet_genPt[a], sample.aJet_eta[a]);
+					jetGenPttmp[sample.nhJets+a]= sample.aJet_genPt[a];
+					jetFlavor[sample.nhJets+a]= sample.aJet_flavour[a];
 					indexedJetPt.push_back(std::pair<size_t,double>(sample.nhJets+a,(double) sample.aJet_pt[a]));	
+					CSVshapeNew = corrCSV(btagNew, sample.hJet_csv[a], sample.aJet_flavour[a]);
+					CSVNewShapetmp[sample.nhJets+a] = CSVshapeNew;
+						indexedJetCSVup.push_back(std::pair<size_t,double>(sample.nhJets+a,(double) corrCSV(btagUp, sample.aJet_csv[a],sample.aJet_flavour[a])));
+						indexedJetCSVdown.push_back(std::pair<size_t,double>(sample.nhJets+a,(double) corrCSV(btagDown, sample.aJet_csv[a],sample.aJet_flavour[a])));
+						indexedJetCSVFup.push_back(std::pair<size_t,double>(sample.nhJets+a,(double) corrCSV(btagFUp, sample.aJet_csv[a],sample.aJet_flavour[a])));
+						indexedJetCSVFdown.push_back(std::pair<size_t,double>(sample.nhJets+a,(double) corrCSV(btagFDown, sample.aJet_csv[a],sample.aJet_flavour[a])));
+						indexedJetPtJESup.push_back(std::pair<size_t,double>(sample.nhJets+a,(double) sample.aJet_pt[a]*(1+sample.aJet_JECUnc[a])));
+						indexedJetPtJESdown.push_back(std::pair<size_t,double>(sample.nhJets+a,(double) sample.aJet_pt[a]*(1-sample.aJet_JECUnc[a])));
+						indexedJetPtJERup.push_back(std::pair<size_t,double>(sample.nhJets+a,(double) JERSys(true,sample.aJet_eta[a],sample.aJet_pt[a],sample.aJet_genPt[a])));
+						indexedJetPtJERdown.push_back(std::pair<size_t,double>(sample.nhJets+a,(double) JERSys(false,sample.aJet_eta[a],sample.aJet_pt[a],sample.aJet_genPt[a])));						
+					}
 					CSVshapeNew = -99.99;
 					ScalarSumJetPt = ScalarSumJetPt + sample.aJet_pt[a];
 				}
@@ -1052,144 +1033,264 @@ int main(int argc, char** argv) {
 				indexedPt.push_back(std::pair<size_t,double>(3,(double) sample.vLepton_pt[1]));
 				
 				
-				if (debug) for (size_t i = 0 ; (i != indexedPt.size()) ; ++i) {cout << "Unsorted pt of objects: " << indexedPt[i].second << endl; }
 				
 				std::sort(indexedJetPt.begin(),indexedJetPt.end(),::IndexedQuantityGreaterThan<double>);
 				std::sort(indexedJetCSV.begin(),indexedJetCSV.end(),::IndexedQuantityGreaterThan<double>);
-				std::sort(indexedPt.begin(),indexedPt.end(),::IndexedQuantityGreaterThan<double>);
+				std::sort(indexedJetCSVup.begin(),indexedJetCSVup.end(),::IndexedQuantityGreaterThan<double>);
+				std::sort(indexedJetCSVdown.begin(),indexedJetCSVdown.end(),::IndexedQuantityGreaterThan<double>);
+				std::sort(indexedJetCSVFup.begin(),indexedJetCSVFup.end(),::IndexedQuantityGreaterThan<double>);
+				std::sort(indexedJetCSVFdown.begin(),indexedJetCSVFdown.end(),::IndexedQuantityGreaterThan<double>);
+				std::sort(indexedJetPtJESup.begin(),indexedJetPtJESup.end(),::IndexedQuantityGreaterThan<double>);
+				std::sort(indexedJetPtJESdown.begin(),indexedJetPtJESdown.end(),::IndexedQuantityGreaterThan<double>);
+				std::sort(indexedJetPtJERup.begin(),indexedJetPtJERup.end(),::IndexedQuantityGreaterThan<double>);
+				std::sort(indexedJetPtJERdown.begin(),indexedJetPtJERdown.end(),::IndexedQuantityGreaterThan<double>);
 				
 				for (size_t i = 0 ; (i != indexedJetPt.size()) ; ++i) {   PtSortedJetIndex.push_back(indexedJetPt[i].first);        }
 				for (size_t i = 0 ; (i != indexedJetCSV.size()) ; ++i) {   CSVSortedJetIndex.push_back(indexedJetCSV[i].first);        }
-				for (size_t i = 0 ; (i != indexedPt.size()) ; ++i) {   PtSortedIndex.push_back(indexedPt[i].first);        }
+				for (size_t i = 0 ; (i != indexedJetCSVup.size()) ; ++i) {   CSVupSortedJetIndex.push_back(indexedJetCSVup[i].first);        }
+				for (size_t i = 0 ; (i != indexedJetCSVdown.size()) ; ++i) {   CSVdownSortedJetIndex.push_back(indexedJetCSVdown[i].first);        }
+				for (size_t i = 0 ; (i != indexedJetCSVFup.size()) ; ++i) {   CSVFupSortedJetIndex.push_back(indexedJetCSVFup[i].first);        }
+				for (size_t i = 0 ; (i != indexedJetCSVFdown.size()) ; ++i) {   CSVFdownSortedJetIndex.push_back(indexedJetCSVFdown[i].first);        }
+				for (size_t i = 0 ; (i != indexedJetPtJESup.size()) ; ++i) {   PtJESupSortedJetIndex.push_back(indexedJetPtJESup[i].first);        }
+				for (size_t i = 0 ; (i != indexedJetPtJESdown.size()) ; ++i) {   PtJESdownSortedJetIndex.push_back(indexedJetPtJESdown[i].first);        }
+				for (size_t i = 0 ; (i != indexedJetPtJERup.size()) ; ++i) {   PtJERupSortedJetIndex.push_back(indexedJetPtJERup[i].first);        }
+				for (size_t i = 0 ; (i != indexedJetPtJERdown.size()) ; ++i) {   PtJERdownSortedJetIndex.push_back(indexedJetPtJERdown[i].first);        }
 				
-				if (debug) for (size_t i = 0 ; (i != indexedPt.size()) ; ++i) {cout << "Sorted pt of objects: " << indexedPt[i].second << endl; }
 				firstevent = false;
-				CSV0 = indexedJetCSV[0].second; 
-				jetPt[0] = sample.hJet_pt[indexedJetCSV[0].first];
-				jetEta[0] = sample.hJet_eta[indexedJetCSV[0].first];
-				jetPhi[0] = sample.hJet_phi[indexedJetCSV[0].first];
-				jetCSV[0] = sample.hJet_csv[indexedJetCSV[0].first];
-				jetCHF[0] = sample.hJet_chf[indexedJetCSV[0].first];
-				jetPtRaw[0] = sample.hJet_ptRaw[indexedJetCSV[0].first];
-				jetE[0] = sample.hJet_e[indexedJetCSV[0].first];
-				jetVtx3dL[0] = sample.hJet_vtx3dL[indexedJetCSV[0].first];
-				jetVtx3deL[0] = sample.hJet_vtx3deL[indexedJetCSV[0].first];
-				jetVtxPt[0] = sample.hJet_vtxPt[indexedJetCSV[0].first];
-				jetVtxMass[0] = sample.hJet_vtxMass[indexedJetCSV[0].first];
-				jetPtLeadTrack[0] = sample.hJet_ptLeadTrack[indexedJetCSV[0].first];
-				jetNconstintuents[0] = sample.hJet_nconstituents[indexedJetCSV[0].first];
-				jetCEF[0] = sample.hJet_cef[indexedJetCSV[0].first];
-				jetNCH[0] = sample.hJet_nch[indexedJetCSV[0].first];
-				jetJECUnc[0] = sample.hJet_JECUnc[indexedJetCSV[0].first];
-				jetEt[0] = evalEt(jetPt[indexedJetCSV[0].first],jetEta[indexedJetCSV[0].first],jetPhi[indexedJetCSV[0].first],jetE[indexedJetCSV[0].first]);
-				jetMt[0] = evalMt(jetPt[indexedJetCSV[0].first],jetEta[indexedJetCSV[0].first],jetPhi[indexedJetCSV[0].first],jetE[indexedJetCSV[0].first]);
-				jetPtRawJER[0] = evalJERBias(jetPtRaw[indexedJetCSV[0].first], sample.hJet_genPt[indexedJetCSV[0].first], jetEta[indexedJetCSV[0].first]);
-				jetGenPt[0]=sample.hJet_genPt[indexedJetCSV[0].first];
+				
+				//choose Higgs Jets with new Algo
+				int CSV44mid1 = 99, CSV44mid2 = 99;
+				HiggsCandBuilder(&CSV44mid1, &CSV44mid2, indexedJetCSV[0].second, indexedJetCSV[1].second, indexedJetCSV[0].first, indexedJetCSV[1].first, indexedJetPt[0].first, indexedJetPt[1].first);
+				if (debug) cout << "HiggsAlgo candidate from jet " << CSV44mid1<< " and " <<CSV44mid2 << endl;
+					
+				//Jets with CVSup Systematic
+				int CSVup44mid1 = 99, CSVup44mid2 = 99;
+				HiggsCandBuilder(&CSVup44mid1, &CSVup44mid2, indexedJetCSVup[0].second, indexedJetCSVup[1].second, indexedJetCSVup[0].first, indexedJetCSVup[1].first, indexedJetPt[0].first, indexedJetPt[1].first);
+				if (CSV44mid1 != CSVup44mid1) cout << "CVSup changes Higgs jet selection jet0 " << endl;
+				if (CSV44mid2 != CSVup44mid2) cout << "CVSup changes Higgs jet selection jet2 " << endl;
+				int CSVdown44mid1 = 99, CSVdown44mid2 = 99;
+				HiggsCandBuilder(&CSVdown44mid1, &CSVdown44mid2, indexedJetCSVdown[0].second, indexedJetCSVdown[1].second, indexedJetCSVdown[0].first, indexedJetCSVdown[1].first, indexedJetPt[0].first, indexedJetPt[1].first);
+				int CSVFup44mid1 = 99, CSVFup44mid2 = 99;
+				HiggsCandBuilder(&CSVFup44mid1, &CSVFup44mid2, indexedJetCSVFup[0].second, indexedJetCSVFup[1].second, indexedJetCSVFup[0].first, indexedJetCSVFup[1].first, indexedJetPt[0].first, indexedJetPt[1].first);
+				int CSVFdown44mid1 = 99, CSVFdown44mid2 = 99;
+				HiggsCandBuilder(&CSVFdown44mid1, &CSVFdown44mid2, indexedJetCSVFdown[0].second, indexedJetCSVFdown[1].second, indexedJetCSVFdown[0].first, indexedJetCSVFdown[1].first, indexedJetPt[0].first, indexedJetPt[1].first);
+				int PtJESup44mid1 = 99, PtJESup44mid2 = 99;
+				HiggsCandBuilder(&PtJESup44mid1, &PtJESup44mid2, indexedJetCSV[0].second, indexedJetCSV[1].second, indexedJetCSV[0].first, indexedJetCSV[1].first, indexedJetPtJESup[0].first, indexedJetPtJESup[1].first);
+				int PtJESdown44mid1 = 99, PtJESdown44mid2 = 99;
+				HiggsCandBuilder(&PtJESdown44mid1, &PtJESdown44mid2, indexedJetCSV[0].second, indexedJetCSV[1].second, indexedJetCSV[0].first, indexedJetCSV[1].first, indexedJetPtJESdown[0].first, indexedJetPtJESdown[1].first);
+				int PtJERup44mid1 = 99, PtJERup44mid2 = 99;
+				HiggsCandBuilder(&PtJERup44mid1, &PtJERup44mid2, indexedJetCSV[0].second, indexedJetCSV[1].second, indexedJetCSV[0].first, indexedJetCSV[1].first, indexedJetPtJERup[0].first, indexedJetPtJERup[1].first);
+				int PtJERdown44mid1 = 99, PtJERdown44mid2 = 99;
+				HiggsCandBuilder(&PtJERdown44mid1, &PtJERdown44mid2, indexedJetCSV[0].second, indexedJetCSV[1].second, indexedJetCSV[0].first, indexedJetCSV[1].first, indexedJetPtJERdown[0].first, indexedJetPtJERdown[1].first);
 				
 				
-				//if (indexedJetCSV[0].first == 0) RegjetPt[0] = sample.hJet_genPtReg0;
-				//if (indexedJetCSV[0].first == 1) RegjetPt[0] = sample.hJet_genPtReg1;
-				CSVNewShape[0] = indexedJetCSV[0].second;
-				if (sample.nhJets > 1) { 
-					CSV1 = indexedJetCSV[1].second;	
-					jetPt[1] = sample.hJet_pt[indexedJetCSV[1].first];
-					jetEta[1] = sample.hJet_eta[indexedJetCSV[1].first];
-					jetPhi[1] = sample.hJet_phi[indexedJetCSV[1].first];
-					jetCSV[1] = sample.hJet_csv[indexedJetCSV[1].first];
-					jetCHF[1] = sample.hJet_chf[indexedJetCSV[1].first];
-					jetPtRaw[1] = sample.hJet_ptRaw[indexedJetCSV[1].first];
-					jetE[1] = sample.hJet_e[indexedJetCSV[1].first];
-					jetVtx3dL[1] = sample.hJet_vtx3dL[indexedJetCSV[1].first];
-					jetVtx3deL[1] = sample.hJet_vtx3deL[indexedJetCSV[1].first];
-					jetVtxPt[1] = sample.hJet_vtxPt[indexedJetCSV[1].first];
-					jetVtxMass[1] = sample.hJet_vtxMass[indexedJetCSV[1].first];
-					jetPtLeadTrack[1] = sample.hJet_ptLeadTrack[indexedJetCSV[1].first];
-					jetNconstintuents[1] = sample.hJet_nconstituents[indexedJetCSV[1].first];
-					jetCEF[1] = sample.hJet_cef[indexedJetCSV[1].first];
-					jetNCH[1] = sample.hJet_nch[indexedJetCSV[1].first];
-					jetJECUnc[1] = sample.hJet_JECUnc[indexedJetCSV[1].first];
-					jetEt[1] = evalEt(jetPt[indexedJetCSV[1].first],jetEta[indexedJetCSV[1].first],jetPhi[indexedJetCSV[1].first],jetE[indexedJetCSV[1].first]);
-					jetMt[1] = evalMt(jetPt[indexedJetCSV[1].first],jetEta[indexedJetCSV[1].first],jetPhi[indexedJetCSV[1].first],jetE[indexedJetCSV[1].first]);
-					jetPtRawJER[1] = evalJERBias(jetPtRaw[indexedJetCSV[1].first], sample.hJet_genPt[indexedJetCSV[1].first], jetEta[indexedJetCSV[1].first]);
-					jetGenPt[1]=sample.hJet_genPt[indexedJetCSV[1].first];
-					CSVNewShape[1] = indexedJetCSV[1].second;
+				//Fill Pt for shape variables
+				if (debug) for (size_t i = 0 ; (i != indexedPt.size()) ; ++i) {cout << "Unsorted pt of objects: " << indexedPt[i].second << endl; }
+				
+				indexedPt.push_back(std::pair<size_t,double>(0,(double) jetPt[CSV44mid1]));
+				indexedPt.push_back(std::pair<size_t,double>(1,(double) jetPt[CSV44mid2]));
+				std::sort(indexedPt.begin(),indexedPt.end(),::IndexedQuantityGreaterThan<double>);
+				for (size_t i = 0 ; (i != indexedPt.size()) ; ++i) {   PtSortedIndex.push_back(indexedPt[i].first);        }
+				if (debug) for (size_t i = 0 ; (i != indexedPt.size()) ; ++i) {cout << "Sorted pt of objects: " << indexedPt[i].second << endl; }
+				//Fill Jets
+				
+				//if (CSV44mid1 == 1) RegjetPt[0] = sample.hJet_genPtReg1;
+				CSV0 = max(CSVNewShapetmp[CSV44mid1],CSVNewShapetmp[CSV44mid2]);
+				CSVNewShape[0] = CSVNewShapetmp[CSV44mid1];	
+				jetCSV[0] = jetCSVtmp[CSV44mid1];
+				jetPt[0] = jetPttmp[CSV44mid1];
+				jetEta[0] = jetEtatmp[CSV44mid1];
+				jetPhi[0] = jetPhitmp[CSV44mid1];
+				jetCHF[0] = jetCHFtmp[CSV44mid1];
+				jetPtRaw[0] = jetPtRawtmp[CSV44mid1];
+				jetE[0] = jetEtmp[CSV44mid1];
+				jetVtx3dL[0] = jetVtx3dLtmp[CSV44mid1];
+				jetVtx3deL[0] = jetVtx3deLtmp[CSV44mid1];
+				jetVtxPt[0] = jetVtxPttmp[CSV44mid1];
+				jetVtxMass[0] = jetVtxMasstmp[CSV44mid1];
+				jetPtLeadTrack[0] = jetPtLeadTracktmp[CSV44mid1];
+				jetNconstintuents[0] = jetNconstintuentstmp[CSV44mid1];
+				jetCEF[0] = jetCEFtmp[CSV44mid1];
+				jetNCH[0] = jetNCHtmp[CSV44mid1];
+				jetJECUnc[0] = jetJECUnctmp[CSV44mid1];
+				jetEt[0] = jetEttmp[CSV44mid1];
+				jetMt[0] = jetMttmp[CSV44mid1];
+				jetPtRawJER[0] = jetPtRawJERtmp[CSV44mid1];
+				jetGenPt[0]=jetGenPttmp[CSV44mid1];
+				
+				CSV1 = min(CSVNewShapetmp[CSV44mid1],CSVNewShapetmp[CSV44mid2]);
+				CSVNewShape[1] = CSVNewShapetmp[CSV44mid2];	
+				jetCSV[1] = jetCSVtmp[CSV44mid2];
+				jetPt[1] = jetPttmp[CSV44mid2];
+				jetEta[1] = jetEtatmp[CSV44mid2];
+				jetPhi[1] = jetPhitmp[CSV44mid2];
+				jetCHF[1] = jetCHFtmp[CSV44mid2];
+				jetPtRaw[1] = jetPtRawtmp[CSV44mid2];
+				jetE[1] = jetEtmp[CSV44mid2];
+				jetVtx3dL[1] = jetVtx3dLtmp[CSV44mid2];
+				jetVtx3deL[1] = jetVtx3deLtmp[CSV44mid2];
+				jetVtxPt[1] = jetVtxPttmp[CSV44mid2];
+				jetVtxMass[1] = jetVtxMasstmp[CSV44mid2];
+				jetPtLeadTrack[1] = jetPtLeadTracktmp[CSV44mid2];
+				jetNconstintuents[1] = jetNconstintuentstmp[CSV44mid2];
+				jetCEF[1] = jetCEFtmp[CSV44mid2];
+				jetNCH[1] = jetNCHtmp[CSV44mid2];
+				jetJECUnc[1] = jetJECUnctmp[CSV44mid2];
+				jetEt[1] = jetEttmp[CSV44mid2];
+				jetMt[1] = jetMttmp[CSV44mid2];
+				jetPtRawJER[1] = jetPtRawJERtmp[CSV44mid2];
+				jetGenPt[1]=jetGenPttmp[CSV44mid2];
+				
+				int b = 0;
+				for (int kk=0;kk<nJets;kk++){
+					if (kk == CSV44mid2) continue;
+					if (kk == CSV44mid1) continue;
+					if (b<3){
+					CSVNewShape[b+2] = CSVNewShapetmp[b];	
+					jetCSV[b+2] = jetCSVtmp[b];
+					jetPt[b+2] = jetPttmp[b];
+					jetEta[b+2] = jetEtatmp[b];
+					jetPhi[b+2] = jetPhitmp[b];
+					jetCHF[b+2] = jetCHFtmp[b];
+					jetPtRaw[b+2] = jetPtRawtmp[b];
+					jetE[b+2] = jetEtmp[b];
+					jetVtx3dL[b+2] = jetVtx3dLtmp[b];
+					jetVtx3deL[b+2] = jetVtx3deLtmp[b];
+					jetVtxPt[b+2] = jetVtxPttmp[b];
+					jetVtxMass[b+2] = jetVtxMasstmp[b];
+					jetPtLeadTrack[b+2] = jetPtLeadTracktmp[b];
+					jetNconstintuents[b+2] = jetNconstintuentstmp[b];
+					jetCEF[b+2] = jetCEFtmp[b];
+					jetNCH[b+2] = jetNCHtmp[b];
+					jetJECUnc[b+2] = jetJECUnctmp[b];
+					jetEt[b+2] = jetEttmp[b];
+					jetMt[b+2] = jetMttmp[b];
+					jetPtRawJER[b+2] = jetPtRawJERtmp[b];
+					jetGenPt[b+2]=jetGenPttmp[b];				
+					CSVup[b+2] =  corrCSV(btagUp, jetCSVtmp[b],jetFlavor[b]);
+					CSVdown[b+2] =  corrCSV(btagDown, jetCSVtmp[b],jetFlavor[b]);
+					csvFup[b+2] =  corrCSV(btagFUp, jetCSVtmp[b],jetFlavor[b]);
+					csvFdown[b+2] =  corrCSV(btagFDown, jetCSVtmp[b],jetFlavor[b]);
+						JER_pt_up[b+2] = JERSys(true,jetEta[b+2],jetPt[b+2],jetGenPt[b+2]);
+						JER_pt_down[b+2] = JERSys(false,jetEta[b+2],jetPt[b+2],jetGenPt[b+2]);
+						JES_pt_up[b+2] = jetPt[b+2]*(1+jetJECUnc[b+2]);
+						JES_pt_down[b+2] = jetPt[b+2]*(1-jetJECUnc[b+2]);
+						JER_e_up[b+2] = jetE[b+2]*(JER_pt_up[b+2]/jetPt[b+2]);
+						JER_e_down[b+2] =  jetE[b+2]*(JER_pt_down[b+2]/jetPt[b+2]);
+						JES_e_up[b+2] = jetE[b+2]*(1+jetJECUnc[b+2]);
+						JES_e_down[b+2] = jetE[b+2]*(1-jetJECUnc[b+2]);
+					}
+					b++;
+					if(jetPttmp[kk]>30&&abs(jetEtatmp[kk])<2.5) {
+						if(MinDphiaJet>deltaPhi(sample.MET_phi,jetPhitmp[kk])) MinDphiaJet =deltaPhi(sample.MET_phi,jetPhitmp[kk]);
+					}
+				}
+				for (int c=2;c<nJets;c++){
+					if ( fabs(jetEta[c]) < 2.4 && (jetPt[c] > 20)) Naj++;
+					if (CSVNewShape[c] > 0.4 ) Nab++;
+				}
+				
+				
+				//btagging systematics
+				float FirstCSVup, SecondCSVup, FirstFakeUp, SecondFakeUp;
+				float FirstCSVdown, SecondCSVdown, FirstFakedown, SecondFakedown;
+				SecondCSVup = corrCSV(btagUp, jetCSVtmp[CSVup44mid2],jetFlavor[CSVup44mid2]);
+				SecondCSVdown = corrCSV(btagDown, jetCSVtmp[CSVdown44mid2],jetFlavor[CSVdown44mid2]);
+				SecondFakeUp = corrCSV(btagFUp, jetCSVtmp[CSVFup44mid2],jetFlavor[CSVFup44mid2]);
+				SecondFakedown = corrCSV(btagFDown, jetCSVtmp[CSVFdown44mid2],jetFlavor[CSVFdown44mid2]);
+				FirstCSVup = corrCSV(btagUp, jetCSVtmp[CSVup44mid1],jetFlavor[CSVup44mid1]);
+				FirstCSVdown = corrCSV(btagDown, jetCSVtmp[CSVdown44mid1],jetFlavor[CSVdown44mid1]);
+				FirstFakeUp = corrCSV(btagFUp, jetCSVtmp[CSVFup44mid1],jetFlavor[CSVFup44mid1]);
+				FirstFakedown = corrCSV(btagFDown, jetCSVtmp[CSVFdown44mid1],jetFlavor[CSVFdown44mid1]);
+				CSVup[1] = min(FirstCSVup,SecondCSVup);
+				CSVup[0] = max(FirstCSVup,SecondCSVup);
+				FirstJet.SetPtEtaPhiE(jetPttmp[CSVup44mid1],jetEtatmp[CSVup44mid1],jetPhitmp[CSVup44mid1],jetEtmp[CSVup44mid1]);
+				SecondJet.SetPtEtaPhiE(jetPttmp[CSVup44mid2],jetEtatmp[CSVup44mid2],jetPhitmp[CSVup44mid2],jetEtmp[CSVup44mid2]);
+				Higgs = FirstJet+SecondJet;
+				CSVHmassUp = Higgs.M();				
+				csvFup[0] = max(FirstFakeUp,SecondFakeUp);
+				csvFup[1] = min(FirstFakeUp,SecondFakeUp);
+				FirstJet.SetPtEtaPhiE(jetPttmp[CSVFup44mid1],jetEtatmp[CSVFup44mid1],jetPhitmp[CSVFup44mid1],jetEtmp[CSVFup44mid1]);
+				SecondJet.SetPtEtaPhiE(jetPttmp[CSVFup44mid2],jetEtatmp[CSVFup44mid2],jetPhitmp[CSVFup44mid2],jetEtmp[CSVFup44mid2]);
+				Higgs = FirstJet+SecondJet;
+				CSVHmassFUp = Higgs.M();								
+				CSVdown[1] = min(FirstCSVdown,SecondCSVdown);
+				CSVdown[0] = max(FirstCSVdown,SecondCSVdown);
+				FirstJet.SetPtEtaPhiE(jetPttmp[CSVdown44mid1],jetEtatmp[CSVdown44mid1],jetPhitmp[CSVdown44mid1],jetEtmp[CSVdown44mid1]);
+				SecondJet.SetPtEtaPhiE(jetPttmp[CSVdown44mid2],jetEtatmp[CSVdown44mid2],jetPhitmp[CSVdown44mid2],jetEtmp[CSVdown44mid2]);
+				Higgs = FirstJet+SecondJet;
+				CSVHmassDown = Higgs.M();				
+				csvFdown[0] = max(FirstFakedown,SecondFakedown);
+				csvFdown[1] = min(FirstFakedown,SecondFakedown);
+				FirstJet.SetPtEtaPhiE(jetPttmp[CSVFdown44mid1],jetEtatmp[CSVFdown44mid1],jetPhitmp[CSVFdown44mid1],jetEtmp[CSVFdown44mid1]);
+				SecondJet.SetPtEtaPhiE(jetPttmp[CSVFdown44mid2],jetEtatmp[CSVFdown44mid2],jetPhitmp[CSVFdown44mid2],jetEtmp[CSVFdown44mid2]);
+				Higgs = FirstJet+SecondJet;
+				CSVHmassFDown = Higgs.M();								
+								
+				//Jet energy scale systematics
+				JES_pt_up[0] = jetPttmp[PtJESup44mid1]*(1+jetJECUnctmp[PtJESup44mid1]);
+				JES_e_up[0] = jetEtmp[PtJESup44mid1]*(1+jetJECUnctmp[PtJESup44mid1]);
+				JES_pt_down[0] = jetPttmp[PtJESdown44mid1]*(1-jetJECUnctmp[PtJESdown44mid1]);
+				JES_e_down[0] = jetEtmp[PtJESdown44mid1]*(1-jetJECUnctmp[PtJESdown44mid1]);
+				JES_pt_up[1] = jetPttmp[PtJESup44mid2]*(1+jetJECUnctmp[PtJESup44mid2]);
+				JES_e_up[1] = jetEtmp[PtJESup44mid2]*(1+jetJECUnctmp[PtJESup44mid2]);
+				JES_pt_down[1] = jetPttmp[PtJESdown44mid2]*(1-jetJECUnctmp[PtJESdown44mid2]);
+				JES_e_down[1] = jetEtmp[PtJESdown44mid2]*(1-jetJECUnctmp[PtJESdown44mid2]);
+				FirstJet.SetPtEtaPhiE(JES_pt_up[0],jetEtatmp[PtJESup44mid1],jetPhitmp[PtJESup44mid1],JES_e_up[0]);
+				SecondJet.SetPtEtaPhiE(JES_pt_up[1],jetEtatmp[PtJESup44mid2],jetPhitmp[PtJESup44mid2],JES_e_up[1]);
+				Higgs = FirstJet+SecondJet;
+				JESHmassUp = Higgs.M();
+				FirstJet.SetPtEtaPhiE(JES_pt_down[0],jetEtatmp[PtJESdown44mid1],jetPhitmp[PtJESdown44mid1],JES_e_down[0]);
+				SecondJet.SetPtEtaPhiE(JES_pt_down[1],jetEtatmp[PtJESdown44mid2],jetPhitmp[PtJESdown44mid2],JES_e_down[1]);
+				Higgs = FirstJet+SecondJet;
+				JESHmassDown = Higgs.M();
+				
+				//jet energy resoltuion systematics
+				JER_pt_up[0] = JERSys(true,jetEtatmp[PtJERup44mid1],jetPttmp[PtJERup44mid1],jetGenPttmp[PtJERup44mid1]);
+				JER_pt_down[0] = JERSys(false,jetEtatmp[PtJERdown44mid1],jetPttmp[PtJERdown44mid1],jetGenPttmp[PtJERdown44mid1]);
+				JER_e_up[0] = jetEtmp[PtJERup44mid1]*(JER_pt_up[0]/jetPttmp[PtJERup44mid1]);
+				JER_e_down[0] = jetEtmp[PtJERdown44mid1]*(JER_pt_down[0]/jetPttmp[PtJERdown44mid1]);
+				JER_pt_up[1] = JERSys(true,jetEtatmp[PtJERup44mid2],jetPttmp[PtJERup44mid2],jetGenPttmp[PtJERup44mid2]);
+				JER_pt_down[1] = JERSys(false,jetEtatmp[PtJERdown44mid2],jetPttmp[PtJERdown44mid2],jetGenPttmp[PtJERdown44mid2]);
+				JER_e_up[1] = jetEtmp[PtJERup44mid2]*(JER_pt_up[1]/jetPttmp[PtJERup44mid2]);
+				JER_e_down[1] = jetEtmp[PtJERdown44mid2]*(JER_pt_down[1]/jetPttmp[PtJERdown44mid2]);
+				FirstJet.SetPtEtaPhiE(JER_pt_up[0],jetEtatmp[PtJERup44mid1],jetPhitmp[PtJERup44mid1],JER_e_up[0]);
+				SecondJet.SetPtEtaPhiE(JER_pt_up[1],jetEtatmp[PtJERup44mid2],jetPhitmp[PtJERup44mid2],JER_e_up[1]);
+				Higgs = FirstJet+SecondJet;
+				JERHmassUp = Higgs.M();
+				FirstJet.SetPtEtaPhiE(JER_pt_down[0],jetEtatmp[PtJERdown44mid1],jetPhitmp[PtJERdown44mid1],JER_e_down[0]);
+				SecondJet.SetPtEtaPhiE(JER_pt_down[1],jetEtatmp[PtJERdown44mid2],jetPhitmp[PtJERdown44mid2],JER_e_down[1]);
+				Higgs = FirstJet+SecondJet;
+				JERHmassDown = Higgs.M();
+				
+				//if (CSV44mid2 == 0) RegjetPt[1] = sample.hJet_genPtReg0;
+				//if (CSV44mid2 == 1) RegjetPt[1] = sample.hJet_genPtReg1;					
+				
+				DetaJJ = jetEta[0]-jetEta[1];	
+				FirstJet.SetPtEtaPhiM(jetPt[0],jetEta[0],jetPhi[0],4.2/1000.0);
+				SecondJet.SetPtEtaPhiM(jetPt[1],jetEta[1],jetPhi[1],4.2/1000.0);
+				Higgs = FirstJet+SecondJet;
+				if (debug&&Higgs.M()<20) {
+					cout << "pt " << jetPt[0] << " eta " << jetEta[0] << " phi " << jetPhi[0] << " csv " << CSVNewShapetmp[0]<< endl;
+					cout << "pt " << jetPt[1] << " eta " << jetEta[1] << " phi " << jetPhi[1] << " csv " << CSVNewShapetmp[1]<< endl;
+				}
 
-					
-					//btagging systematics
-					float FirstCSVup, SecondCSVup, FirstFakeUp, SecondFakeUp;
-					float FirstCSVdown, SecondCSVdown, FirstFakedown, SecondFakedown;
-					SecondCSVup = corrCSV(btagUp, sample.hJet_csv[indexedJetCSV[1].first],sample.hJet_flavour[indexedJetCSV[1].first]);
-					SecondCSVdown = corrCSV(btagDown, sample.hJet_csv[indexedJetCSV[1].first],sample.hJet_flavour[indexedJetCSV[1].first]);
-					SecondFakeUp = corrCSV(btagFUp, sample.hJet_csv[indexedJetCSV[1].first],sample.hJet_flavour[indexedJetCSV[1].first]);
-					SecondFakedown = corrCSV(btagFDown, sample.hJet_csv[indexedJetCSV[1].first],sample.hJet_flavour[indexedJetCSV[1].first]);
-					FirstCSVup = corrCSV(btagUp, sample.hJet_csv[indexedJetCSV[0].first],sample.hJet_flavour[indexedJetCSV[0].first]);
-					FirstCSVdown = corrCSV(btagDown, sample.hJet_csv[indexedJetCSV[0].first],sample.hJet_flavour[indexedJetCSV[0].first]);
-					FirstFakeUp = corrCSV(btagFUp, sample.hJet_csv[indexedJetCSV[0].first],sample.hJet_flavour[indexedJetCSV[0].first]);
-					FirstFakedown = corrCSV(btagFDown, sample.hJet_csv[indexedJetCSV[0].first],sample.hJet_flavour[indexedJetCSV[0].first]);
-					CSVup[1] = min(FirstCSVup,SecondCSVup);
-					CSVup[0] = max(FirstCSVup,SecondCSVup);
-					csvFup[0] = max(FirstFakeUp,SecondFakeUp);
-					csvFup[1] = min(FirstFakeUp,SecondFakeUp);
-					CSVdown[1] = min(FirstCSVdown,SecondCSVdown);
-					CSVdown[0] = max(FirstCSVdown,SecondCSVdown);
-					csvFdown[0] = max(FirstFakedown,SecondFakedown);
-					csvFdown[1] = min(FirstFakedown,SecondFakedown);
-					
-					//Jet energy scale systematics
-					JES_pt_up[0] = jetPt[0]*(1+jetJECUnc[0]);
-					JES_e_up[0] = jetE[0]*(1+jetJECUnc[0]);
-					JES_pt_down[0] = jetPt[0]*(1-jetJECUnc[0]);
-					JES_e_down[0] = jetE[0]*(1-jetJECUnc[0]);
-					JES_pt_up[1] = jetPt[1]*(1+jetJECUnc[1]);
-					JES_e_up[1] = jetE[1]*(1+jetJECUnc[1]);
-					JES_pt_down[1] = jetPt[1]*(1-jetJECUnc[1]);
-					JES_e_down[1] = jetE[1]*(1-jetJECUnc[1]);
-					FirstJet.SetPtEtaPhiE(JES_pt_up[0],jetEta[0],jetPhi[0],JES_e_up[0]);
-					SecondJet.SetPtEtaPhiE(JES_pt_up[1],jetEta[1],jetPhi[1],JES_e_up[1]);
-					Higgs = FirstJet+SecondJet;
-					JESHmassUp = Higgs.M();
-					FirstJet.SetPtEtaPhiE(JES_pt_down[0],jetEta[0],jetPhi[0],JES_e_down[0]);
-					SecondJet.SetPtEtaPhiE(JES_pt_down[1],jetEta[1],jetPhi[1],JES_e_down[1]);
-					Higgs = FirstJet+SecondJet;
-					JESHmassDown = Higgs.M();
-					
-					//jet energy resoltuion systematics
-					JER_pt_up[0] = JERSys(true,jetEta[0],jetPt[0],jetGenPt[0]);
-					JER_pt_down[0] = JERSys(false,jetEta[0],jetPt[0],jetGenPt[0]);
-					JER_e_up[0] = jetE[0]*(JER_pt_up[0]/jetPt[0]);
-					JER_e_down[0] = jetE[0]*(JER_pt_up[0]/jetPt[0]);
-					JER_pt_up[1] = JERSys(true,jetEta[1],jetPt[1],jetGenPt[1]);
-					JER_pt_down[1] = JERSys(false,jetEta[1],jetPt[1],jetGenPt[1]);
-					JER_e_up[1] = jetE[1]*(JER_pt_up[1]/jetPt[1]);
-					JER_e_down[1] = jetE[1]*(JER_pt_up[1]/jetPt[1]);
-					FirstJet.SetPtEtaPhiE(JER_pt_up[0],jetEta[0],jetPhi[0],JER_e_up[0]);
-					SecondJet.SetPtEtaPhiE(JER_pt_up[1],jetEta[1],jetPhi[1],JER_e_up[1]);
-					Higgs = FirstJet+SecondJet;
-					JERHmassUp = Higgs.M();
-					FirstJet.SetPtEtaPhiE(JER_pt_down[0],jetEta[0],jetPhi[0],JER_e_down[0]);
-					SecondJet.SetPtEtaPhiE(JER_pt_down[1],jetEta[1],jetPhi[1],JER_e_down[1]);
-					Higgs = FirstJet+SecondJet;
-					JERHmassDown = Higgs.M();
-										
-					//if (indexedJetCSV[1].first == 0) RegjetPt[1] = sample.hJet_genPtReg0;
-					//if (indexedJetCSV[1].first == 1) RegjetPt[1] = sample.hJet_genPtReg1;					
-					
-					DetaJJ = sample.hJet_eta[indexedJetCSV[0].first]-sample.hJet_eta[indexedJetCSV[1].first];				
-					Hmass = sample.H_mass;
-					oldHmass = sample.H_mass;
-					//RegHmass = sample.newHiggsMass;
-					//Hpt = sample.newHiggsPt;
-					Hpt = sample.H_pt;
-					ScalarSumHiggsJetPt = sample.hJet_pt[indexedJetCSV[1].first] + sample.hJet_pt[indexedJetCSV[0].first];
-					ScalarSumJetPt = ScalarSumJetPt+ sample.hJet_pt[indexedJetCSV[1].first] + sample.hJet_pt[indexedJetCSV[0].first];
-					Rho25 = sample.rho25;
-					MindPhiMEThJetOR30aJet = min(sample.minDeltaPhijetMET,MinDphiaJet);
-					MinMET = min(sample.METtype1corr_et,sample.METnoPUCh_et);
-					if(debug) cout << "weight of the Jet Histograms: " << weight << endl;
-					JetDistributions("allEvts", weight);
-				}// end njet requirement			
-				std::cout << "NJet information filled " << std::endl;
-
+				
+				Hmass = Higgs.M();
+				oldHmass = sample.H_mass;
+				//RegHmass = sample.newHiggsMass;
+				//Hpt = sample.newHiggsPt;
+				Hpt = Higgs.Pt();
+				ScalarSumHiggsJetPt = jetPt[1] + jetPt[0];
+				ScalarSumJetPt = ScalarSumJetPt+ jetPt[1] + jetPt[0];
+				Rho25 = sample.rho25;
+				MindPhiMEThJetOR30aJet = min(sample.minDeltaPhijetMET,MinDphiaJet);
+				MinMET = min(sample.METtype1corr_et,sample.METnoPUCh_et);
+				if(debug) cout << "weight of the Jet Histograms: " << weight << endl;
+				JetDistributions("allEvts", weight);
+				
+				if(debug)std::cout << "NJet information filled " << std::endl;
+				
 				nSV = sample.nSvs;
 				nPV = sample.nPVs;
 				MET = sample.METtype1corr_et;
@@ -1201,28 +1302,20 @@ int main(int argc, char** argv) {
 				btag2CSF = sample.btag2CSF;
 				if (debug) cout << "halfway through filling histos" << endl;
 				
-				for (int z = 0; z< sample.nvlep;z++){
+				for (int z = 0; z<sample.nvlep;z++){
 					leptonPt[z] = sample.vLepton_pt[z];
 					leptonEta[z] = sample.vLepton_eta[z];
 					leptonPhi[z] = sample.vLepton_phi[z];
 					lep_pfCombRelIso[z] = sample.vLepton_pfCombRelIso[z];
 					lep_id95[z] = sample.vLepton_id95[z];
-					if (abs(sample.aLepton_type[z] == 13)) {
-						nMuons++;
-						indexedMuPt.push_back(std::pair<size_t,double>(z,(double) sample.vLepton_pt[z]));
-					}
-					if (abs(sample.aLepton_type[z] == 11)) nElectrons++;
+					if (abs(sample.vLepton_type[z] == 13)) nMuons++;
+					if (abs(sample.vLepton_type[z] == 11)) nElectrons++;
 					nLeptons++;
 				}
 				for (int zz = 0; zz< sample.nalep;zz++){
-					if (abs(sample.aLepton_type[zz] == 13)) {
-						nMuons++;
-						indexedMuPt.push_back(std::pair<size_t,double>(zz+1,(double) sample.vLepton_pt[zz+1]));
-					}
-					if (abs(sample.aLepton_type[zz] == 11)) nElectrons++;
 					if (zz<3){
 						if ((sample.aLepton_pt[zz] == sample.vLepton_pt[0]) || (sample.aLepton_pt[zz] == sample.vLepton_pt[1])){
-							//cout << "Additional Letpon " << zz+sample.nvlep << " pt is the same as vector lepton" << endl;
+							if(debug)cout << "Additional Letpon " << zz+sample.nvlep << " pt is the same as vector lepton" << endl;
 						} else {
 							leptonPt[zz+sample.nvlep] = sample.aLepton_pt[zz];
 							nLeptons++;
@@ -1230,8 +1323,11 @@ int main(int argc, char** argv) {
 						leptonPhi[zz+sample.nvlep] = sample.aLepton_phi[zz];
 						leptonEta[zz+sample.nvlep] = sample.aLepton_eta[zz];
 						lep_pfCombRelIso[zz+sample.nvlep] = sample.aLepton_pfCombRelIso[zz];
-						Na_lep++;
 					}
+					if (abs(sample.aLepton_type[zz] == 13)) nMuons++;
+					if (abs(sample.aLepton_type[zz] == 11)) nElectrons++;
+					Na_lep++;
+					
 				}
 				if(sample.svmass<999)DitauMass = sample.svmass;
 				pZeta25=sample.Pzeta25;
@@ -1244,27 +1340,14 @@ int main(int argc, char** argv) {
 					DphiZMET = deltaPhi(sample.METtype1corr_phi,sample.V_phi);
 				}
 				
-				if(firstevent) for (size_t i = 0 ; (i != indexedMuPt.size()) ; ++i) {cout << "Unsorted pt of muons: " << indexedMuPt[i].second << endl; }
-				
-				std::sort(indexedMuPt.begin(),indexedMuPt.end(),::IndexedQuantityGreaterThan<double>);
-				
-				if (firstevent) for (size_t i = 0 ; (i != indexedMuPt.size()) ; ++i) {   MuonPtSortedIndex.push_back(indexedMuPt[i].first);        }
-				
-				if(firstevent) for (size_t i = 0 ; (i != indexedMuPt.size()) ; ++i) {cout << "Sorted pt of muons: " << indexedMuPt[i].second << endl; }
-				if (indexedMuPt.size()>5) {
-				  std::cerr << "There are too many muons in this event! " << indexedMuPt.size() << std::endl;
-				  std::cerr << "I'm stopping until you fix this." << std::endl;
-				  return -1;
-				}
-				for (size_t k = 0; k < indexedMuPt.size(); k++){
-					SortedMuonPt[k] = sample.hJet_pt[indexedMuPt[k].first];
-				}
-				
 				LeptonDistributions("allEvts", weight);
-				dPhiHMET = sample.HMETdPhi;
-				DeltaPhiHV = sample.HVdPhi;			
+				//dPhiHMET = sample.HMETdPhi;
+				//DeltaPhiHV = sample.HVdPhi;
+				dPhiHMET = deltaPhi(sample.METtype1corr_phi,Higgs.Phi());
+				DeltaPhiHV = deltaPhi(sample.V_phi,Higgs.Phi());
 				Mt = sample.VMt;
-				DeltaPhijetMETmin = sample.minDeltaPhijetMET; 
+				//DeltaPhijetMETmin = sample.minDeltaPhijetMET; 
+				DeltaPhijetMETmin = min(deltaPhi(jetPhi[0],Higgs.Phi()),deltaPhi(jetPhi[1],Higgs.Phi()));
 				DeltaPhijetMETZtaumin = sample.minDeltaPhijetMETZtau;
 				//Mte = sample.VMte;
 				//Mtmu = sample.VMtmu;
@@ -1272,32 +1355,32 @@ int main(int argc, char** argv) {
 				delPullAngle = sample.deltaPullAngle;
 				delPullAngle2 = sample.deltaPullAngle2;
 				topMass = sample.top_mass;
-				//cout << "top mass " << topMass << endl;
+				if (debug)cout << "top mass " << topMass << endl;
 				topPt = sample.top_pt;
 				topWmass = sample.top_wMass;
 				
 				if( (sample.nvlep > 1) && (sample.nhJets > 1)) {
-					RMS_eta = sample.vLepton_eta[1]*sample.vLepton_eta[1]+sample.vLepton_eta[0]*sample.vLepton_eta[0]+sample.hJet_eta[indexedJetCSV[0].first]*sample.hJet_eta[indexedJetCSV[0].first]+sample.hJet_eta[indexedJetCSV[1].first]*sample.hJet_eta[indexedJetCSV[1].first];
+					RMS_eta = sample.vLepton_eta[1]*sample.vLepton_eta[1]+sample.vLepton_eta[0]*sample.vLepton_eta[0]+jetEta[0]*jetEta[0]+jetEta[1]*jetEta[1];
 					RMS_eta = sqrt(RMS_eta/4);
 					StandDevEta[0] =sample.vLepton_eta[1];
-					StandDevEta[1] =sample.hJet_eta[indexedJetCSV[0].first];
+					StandDevEta[1] =jetEta[0];
 					StandDevEta[2] =sample.vLepton_eta[0];
-					StandDevEta[3] =sample.hJet_eta[indexedJetCSV[1].first];
+					StandDevEta[3] =jetEta[1];
 					EtaStandDev = TMath::RMS(4,StandDevEta);
-					AverageEta = sample.vLepton_eta[0]+sample.vLepton_eta[1]+sample.hJet_eta[indexedJetCSV[0].first];
-					AverageEta = (AverageEta+sample.hJet_eta[indexedJetCSV[1].first])/4;
+					AverageEta = sample.vLepton_eta[0]+sample.vLepton_eta[1]+jetEta[0];
+					AverageEta = (AverageEta+jetEta[1])/4;
 					UnweightedEta = (sample.vLepton_eta[0]-AverageEta)*(sample.vLepton_eta[0]-AverageEta);
 					UnweightedEta = UnweightedEta + (sample.vLepton_eta[1]-AverageEta)*(sample.vLepton_eta[1]-AverageEta);
-					UnweightedEta = UnweightedEta + (sample.hJet_eta[indexedJetCSV[0].first]-AverageEta)*(sample.hJet_eta[indexedJetCSV[0].first]-AverageEta);
-					UnweightedEta = UnweightedEta + (sample.hJet_eta[indexedJetCSV[1].first]-AverageEta)*(sample.hJet_eta[indexedJetCSV[1].first]-AverageEta);
+					UnweightedEta = UnweightedEta + (jetEta[0]-AverageEta)*(jetEta[0]-AverageEta);
+					UnweightedEta = UnweightedEta + (jetEta[1]-AverageEta)*(jetEta[1]-AverageEta);
 					
 					PtbalZH = (Hpt-Zpt);
 					PtbalMETH = Hpt-MET;
 					PtbalZMET = Zpt - MET;
 					lep0pt = sample.vLepton_pt[0];
 					
-					FirstJet.SetPtEtaPhiM(sample.hJet_pt[indexedJetCSV[0].first],sample.hJet_eta[indexedJetCSV[0].first],sample.hJet_phi[indexedJetCSV[0].first],4.2/1000.0);
-					SecondJet.SetPtEtaPhiM(sample.hJet_pt[indexedJetCSV[1].first],sample.hJet_eta[indexedJetCSV[1].first],sample.hJet_phi[indexedJetCSV[1].first],4.2/1000.0);
+					FirstJet.SetPtEtaPhiM(jetPt[0],jetEta[0],jetPhi[0],4.2/1000.0);
+					SecondJet.SetPtEtaPhiM(jetPt[1],jetEta[1],jetPhi[1],4.2/1000.0);
 					Muon.SetPtEtaPhiM(sample.vLepton_pt[1],sample.vLepton_eta[1],sample.vLepton_phi[1],105.65836668/1000.0);
 					Electron.SetPtEtaPhiM(sample.vLepton_pt[0],sample.vLepton_eta[0],sample.vLepton_phi[0],0.510998928/1000.0);
 					
@@ -1313,8 +1396,8 @@ int main(int argc, char** argv) {
 					Higgs = FirstJet+SecondJet;
 					ZBoson = Muon+Electron;
 					
-					Zphi = sample.H_phi;
-					Hphi = sample.V_phi;
+					Zphi = sample.V_phi;
+					Hphi = sample.H_phi;
 					
 					Dphiemu = Electron.DeltaPhi(Muon);
 					Detaemu = sample.vLepton_eta[1]-sample.vLepton_eta[0];
@@ -1383,7 +1466,7 @@ int main(int argc, char** argv) {
 					b.Use(2,ab);
 					TDecompSVD svd(A);
 					const TVectorD c_svd = svd.Solve(b,ok);
-					//cout << "Missing Energy via SVD: Electron " << c_svd(0)<< " Muon  " << c_svd(1)<< endl;
+					if(debug)cout << "Missing Energy via SVD: Electron " << c_svd(0)<< " Muon  " << c_svd(1)<< endl;
 					if(c_svd(0) < 0 || c_svd(1) < 0){
 						//cout << "Negative missing energy from SVD method. ";
 						//cout << "Angle between electron and muon " << AngleEMU << endl;
@@ -1398,7 +1481,7 @@ int main(int argc, char** argv) {
 					AaronEleMissE = (1/DetA)*((METx*CosThetaMu*sin(phimuon))-(METy*CosThetaMu*cos(phimuon)));
 					AaronMuMissE = (1/DetA)*(((-1)*METx*CosThetaEle*sin(phielectron))+(METy*CosThetaEle*cos(phielectron)));
 					if (AaronEleMissE> 0 && AaronMuMissE>0)Zmass = sqrt((2*1.77682*1.77682)+(2*(AaronEleMissE+Electron.E())*(AaronMuMissE+Muon.E())*(1-cos(AngleEMU))));
-					//cout << "Missing Energy via Aaron linear algebra: Electron " << AaronEleMissE << " Muon " << AaronMuMissE << endl;
+					if(debug)cout << "Missing Energy via Aaron linear algebra: Electron " << AaronEleMissE << " Muon " << AaronMuMissE << endl;
 					
 					if(AaronMuMissE > 0 && AaronEleMissE > 0){
 						Zmass = sqrt((2*1.77682*1.77682)+(2*(AaronEleMissE+Electron.E())*(AaronMuMissE+Muon.E())*(1-cos(AngleEMU))));
@@ -1510,9 +1593,9 @@ int main(int argc, char** argv) {
 					TH2FDistributions("IDWeightHLT", LumiWeight*MuIDweight*WP95weight);
 					EventShapeDistributions("IDWeightHLT", LumiWeight*MuIDweight*WP95weight);
 					EventDistributions("IDWeightHLT", LumiWeight*MuIDweight*WP95weight);					
-					if ( jetPt[0] > 20 && jetPt[1] > 20 && oldHmass<300 &&
-						fabs(sample.vLepton_eta[0]) < 2.5 && fabs(sample.vLepton_eta[1]) < 2.4 && fabs(sample.hJet_eta[0]) < 2.5 &&
-						fabs(sample.hJet_eta[1]) < 2.5 && sample.hJet_id[0]==1 && sample.hJet_id[1]==1 && sample.hbhe){
+					if ( jetPt[0] > 20 && jetPt[1] > 20  &&
+						fabs(sample.vLepton_eta[0]) < 2.5 && fabs(sample.vLepton_eta[1]) < 2.4 && fabs(jetEta[0]) < 2.5 &&
+						fabs(jetEta[1]) < 2.5 && sample.hJet_id[0]==1 && sample.hJet_id[1]==1 && sample.hbhe){
 						Npreselect++;
 						Nweighted_preselect = Nweighted_preselect + weight;
 						isdata = false;
@@ -1523,8 +1606,8 @@ int main(int argc, char** argv) {
 						EventDistributions("PreSelect", weight);
 						if (isDATA) isdata = true;
 						if (fabs(DphiZMET) < DphiZMETcut && (oldHmass>=HmassMinCut)&&(oldHmass<=HmassMaxCut) && CSV0>CSV0cut && DeltaPhiHV > dphiHVcut && Pzeta > PzetaCut && Emumass< 68 && DitauMass > ZmassMinCut && DitauMass < ZmassMaxCut && jetCHF[0]>CHFb0cut) hdelRemu_NotThisCut.Fill(delRemu, weight);
-						if(delRemu>0.4){
-						N_EfakeCuts++;
+						if(delRemu>0.3){
+							N_EfakeCuts++;
 							Nweighted_EfakeCuts = Nweighted_EfakeCuts + weight;
 							isdata = false;
 							JetDistributions("delRemu", weight);
@@ -1554,16 +1637,8 @@ int main(int argc, char** argv) {
 							EventDistributions("IDWeightdelRemu", LumiWeight*MuIDweight*WP95weight);												
 							FOM_tree->Fill();
 							if (fabs(DphiZMET) < DphiZMETcut && (oldHmass>=HmassMinCut)&&(oldHmass<=HmassMaxCut) && CSV0>CSV0cut && DeltaPhiHV > dphiHVcut && Pzeta > PzetaCut && jetCHF[0]>CHFb0cut) hMemu_NotThisCut.Fill(DitauMass, weight);
-							if (Emumass< 68 && DitauMass > ZmassMinCut && DitauMass < ZmassMaxCut) { 
-							NMemu++;
-								Nweighted_Memu = Nweighted_Memu + weight;
-								if(isDATA)isdata=true;
-								JetDistributions("MemuCut", weight);
-								LeptonDistributions("MemuCut", weight);
-								TH2FDistributions("MemuCut", weight);
-								EventShapeDistributions("MemuCut", weight);
-								EventDistributions("MemuCut", weight); 
-								if (fabs(DphiZMET) < DphiZMETcut && fabs(DphiSecondMET) < 1.5 && (oldHmass>HmassMinCut)&&(oldHmass<=HmassMaxCut) && DeltaPhiHV > dphiHVcut && CSV0<CSV0cut && Naj < 2 && nSV ==0){	
+//								if (fabs(DphiZMET) < DphiZMETcut && fabs(DphiSecondMET) < 1.5 && (oldHmass>HmassMinCut)&&(oldHmass<=HmassMaxCut) && DeltaPhiHV > dphiHVcut && CSV0<CSV0cut && Naj < 2 && nSV ==0){	
+							if (CSV0<CSV0cut && ProjMissT>-50 && DeltaPhiHV > dphiHVcut && fabs(DphiZMET) < DphiZMETcut ){	
 									N_LFCR++;
 									Nweighted_LFCR = Nweighted_LFCR + (LumiWeight*PUweight2012*Trigweight);
 									isdata = false;
@@ -1596,17 +1671,19 @@ int main(int argc, char** argv) {
 								}// LF Control Region	
 								if (fabs(DphiZMET) < DphiZMETcut && (oldHmass>=HmassMinCut)&&(oldHmass<=HmassMaxCut) && DeltaPhiHV > dphiHVcut && jetCHF[0]>CHFb0cut && Pzeta > PzetaCut) hCSV0_NotThisCut.Fill(CSV0, weight);							
 								if(CSV0>CSV0cut){
-								N_CSV0++;
+									N_CSV0++;
 									Nweighted_CSV0 = Nweighted_CSV0 + weight;
 									if(isDATA)isdata=true;
 									JetDistributions("CSV0", weight);
 									LeptonDistributions("CSV0", weight);
 									TH2FDistributions("CSV0", weight);
 									EventShapeDistributions("CSV0", weight);
-									EventDistributions("CSV0", weight);							
-									if (fabs(DphiZMET) > DphiZMETcut && (oldHmass>HmassMinCut)&&(oldHmass<=HmassMaxCut) && DeltaPhiHV > dphiHVcut && jetCHF[0]>CHFb0cut ){
+									EventDistributions("CSV0", weight);
+									TMVA_tree->Fill();							
+									//if (fabs(DphiZMET) > DphiZMETcut && (oldHmass>HmassMinCut)&&(oldHmass<=HmassMaxCut) && DeltaPhiHV > dphiHVcut && jetCHF[0]>CHFb0cut ){
+									if (ProjMissT<-50 && DeltaPhiHV > dphiHVcut ){
 										if (CSV1 > 0.5 ){
-										N_TopCR++;
+											N_TopCR++;
 											Nweighted_TopCR = Nweighted_TopCR + (LumiWeight*PUweight2012*Trigweight);
 											isdata = false;
 											JetDistributions("TopCR", weight);
@@ -1636,8 +1713,9 @@ int main(int argc, char** argv) {
 											EventShapeDistributions("IDWeightTopCR", LumiWeight*MuIDweight*WP95weight);
 											EventDistributions("IDWeightTopCR", LumiWeight*MuIDweight*WP95weight);	
 										}//Top CR
-										if (CSV0 > 0.679 && EvntShpAplanarity < 0.1 && CSV1 < 0.5  && Nab < 1){
-										N_SingleTopCR++;
+										if (debug)std::cout << "Looking for bug in event " << event << std::endl;
+										if (CSV1 < 0.5){
+											N_SingleTopCR++;
 											Nweighted_SingleTopCR = Nweighted_SingleTopCR + (LumiWeight*PUweight2012*Trigweight);
 											isdata = false;
 											JetDistributions("SingleTopCR", weight);
@@ -1647,10 +1725,19 @@ int main(int argc, char** argv) {
 											EventDistributions("SingleTopCR", weight);
 											SFUnc_SingleTOP = SFUnc_SingleTOP + (LumiWeight*PUweight2012*Trigweight)*(LumiWeight*PUweight2012*Trigweight);
 										}//Single Top CR
-									}// Top and Single Top Orthogonal to Signal, reverse DphiZMET cut																		
+									}// Top and Single Top Orthogonal to Signal, reverse DphiZMET cut	
+									if (Emumass< 68 && DitauMass > ZmassMinCut && DitauMass < ZmassMaxCut && oldHmass<300 ) { 
+										NMemu++;
+										Nweighted_Memu = Nweighted_Memu + weight;
+										if(isDATA)isdata=true;
+										JetDistributions("MemuCut", weight);
+										LeptonDistributions("MemuCut", weight);
+										TH2FDistributions("MemuCut", weight);
+										EventShapeDistributions("MemuCut", weight);
+										EventDistributions("MemuCut", weight); 										
 									if ((oldHmass>=HmassMinCut)&&(oldHmass<=HmassMaxCut) && DeltaPhiHV > dphiHVcut && Pzeta > PzetaCut && jetCHF[0]>CHFb0cut) hDphiZMET_NotThisCut.Fill(DphiZMET, weight);
 									if (fabs(DphiZMET) < DphiZMETcut){
-									N_DphiZMET++;
+										N_DphiZMET++;
 										Nweighted_DphiZMET = Nweighted_DphiZMET + weight;
 										if(isDATA)isdata=true;
 										JetDistributions("DphiZMET", weight);
@@ -1660,7 +1747,7 @@ int main(int argc, char** argv) {
 										EventDistributions("DphiZMET", weight);
 										if ((oldHmass>=HmassMinCut)&&(oldHmass<=HmassMaxCut) && Pzeta > PzetaCut && jetCHF[0]>CHFb0cut) hDeltaPhiHV_NotThisCut.Fill(DeltaPhiHV, weight);
 										if (DeltaPhiHV > dphiHVcut){
-										N_DeltaPhiHV++;
+											N_DeltaPhiHV++;
 											Nweighted_DeltaPhiHV = Nweighted_DeltaPhiHV + weight;
 											if(isDATA)isdata=true;
 											JetDistributions("DeltaPhiHV", weight);
@@ -1670,7 +1757,7 @@ int main(int argc, char** argv) {
 											EventDistributions("DeltaPhiHV", weight);
 											if ((oldHmass>=HmassMinCut)&&(oldHmass<=HmassMaxCut) && jetCHF[0]>CHFb0cut) hPzeta_NotThisCut.Fill(Pzeta, weight);
 											if (Pzeta > PzetaCut){
-											N_Pzeta++;
+												N_Pzeta++;
 												Nweighted_Pzeta = Nweighted_Pzeta + weight;
 												if(isDATA)isdata=true;
 												JetDistributions("Pzeta", weight);
@@ -1680,7 +1767,7 @@ int main(int argc, char** argv) {
 												EventDistributions("Pzeta", weight);												
 												if (Naj<2) hMjj_NotThisCut.Fill(oldHmass, weight);
 												if((oldHmass>=HmassMinCut)&&(oldHmass<=HmassMaxCut)){
-												N_Mjj++;
+													N_Mjj++;
 													Nweighted_Mjj = Nweighted_Mjj + weight; 
 													if(isDATA)isdata=true;
 													JetDistributions("Mjj", weight);
@@ -1689,8 +1776,8 @@ int main(int argc, char** argv) {
 													EventShapeDistributions("Mjj", weight);
 													EventDistributions("Mjj", weight);
 													if (nJets<4){
-													//Naj
-													N_Naj++;
+														//Naj
+														N_Naj++;
 														Nweighted_Naj = Nweighted_Naj + weight;
 														if(isDATA)isdata=true;
 														JetDistributions("Naj", weight);
@@ -1700,7 +1787,7 @@ int main(int argc, char** argv) {
 														EventDistributions("Naj", weight);
 													}	//Naj
 													if (jetCHF[0]>CHFb0cut){
-													N_jetCHF0++;
+														N_jetCHF0++;
 														Nweighted_jetCHF0 = Nweighted_jetCHF0 + weight;
 														if(isDATA)isdata=true;
 														JetDistributions("CHF0", weight);
@@ -1717,49 +1804,36 @@ int main(int argc, char** argv) {
 															TH2FDistributions("Mt", weight);
 															EventShapeDistributions("Mt", weight);
 															EventDistributions("Mt", weight);
-															Ntree++;
-															if (Ntree%2){
-																TMVA_tree->Fill();
-																NTMVAtree = NTMVAtree + 1;
-															}
-															BDT_tree->Fill();
-															/*else{
-															 if (isZjets){
-															 if (sample.eventFlav == 5){
-															 NBDTbtree = NBDTbtree + 1;
-															 BDT_btree->Fill();
-															 }else{
-															 BDT_tree->Fill();
-															 NBDTtree = NBDTtree + 1;
+															/*Ntree++;
+															 if (Ntree%2){
+															 TMVA_tree->Fill();
+															 NTMVAtree = NTMVAtree + 1;
 															 }
-															 }
-															 else{
-															 BDT_tree->Fill();
-															 NBDTtree = NBDTtree + 1;
-															 }	
-															 }//fill tree	*/															
+															 BDT_tree->Fill();*/
 														}	//Mte and Mtmu
 													}	//CHF0
 												}//Mjj							
 											} //PzetaCut
 										}//DeltaPhiHV
 									}// Delta Phi Z, MET (Z is emu vectors only)
-									if ((oldHmass<HmassMinCut || oldHmass>HmassMaxCut) && oldHmass < 300 && Mte < MteCut && Mtmu < MtmuCut && jetCHF[0]>CHFb0cut){
-										if (Pzeta> -25 && ProjMissT > -20 && ProjVisT < 80 && CSV1 < 0.679 && fabs(Dphiemu)>1.0){
-										N_HFCR++;
-											Nweighted_HFCR = Nweighted_HFCR + (LumiWeight*PUweight2012*Trigweight);
-											isdata = false;
-											JetDistributions("HFCR", weight);
-											LeptonDistributions("HFCR", weight);
-											TH2FDistributions("HFCR", weight);
-											EventShapeDistributions("HFCR", weight);
-											EventDistributions("HFCR", weight);	
-											SFUnc_HFCR = SFUnc_HFCR + (LumiWeight*PUweight2012*Trigweight)*(LumiWeight*PUweight2012*Trigweight);
-											if(isDATA)isdata=true;
-										}// Purity cuts									
-									}// LF Control Region									
 								}//CSV
 							}//emu mass requirement
+							//if ((oldHmass<HmassMinCut || oldHmass>HmassMaxCut) && oldHmass < 300 && Mte < MteCut && Mtmu < MtmuCut && jetCHF[0]>CHFb0cut){
+							if (CSV0>CSV0cut && ProjMissT>-50 ){	
+								BDT_tree->Fill();
+								//if (Pzeta> -20 && ProjMissT > -20 && CSV1 < 0.679 && jetCEF[1]>0.5 && fabs(Dphiemu)>1.0){
+									N_HFCR++;
+									Nweighted_HFCR = Nweighted_HFCR + (LumiWeight*PUweight2012*Trigweight);
+									isdata = false;
+									JetDistributions("HFCR", weight);
+									LeptonDistributions("HFCR", weight);
+									TH2FDistributions("HFCR", weight);
+									EventShapeDistributions("HFCR", weight);
+									EventDistributions("HFCR", weight);	
+									SFUnc_HFCR = SFUnc_HFCR + (LumiWeight*PUweight2012*Trigweight)*(LumiWeight*PUweight2012*Trigweight);
+									if(isDATA)isdata=true;
+								//}// Purity cuts									
+							}// HF Control Region																
 						}//EleFakeCuts
 					} else {
 						FailedJetID = FailedJetID + 1;
@@ -1769,11 +1843,11 @@ int main(int argc, char** argv) {
 				EventDistributions("allEvts", weight);
 			}//end requirement Zemu event
 			if (debug) std::cout << "Vtype or json requirement " << event << std::endl;
-
+			
 		}//end isM50sample genZpt cut
 		if(isDATA)isdata=true;
 		if (debug) std::cout << "Zpt and Flavor isDATA is " << isDATA << std::endl;
-
+		
 	} while (sample.nextEvent());
 	
 	
@@ -1832,17 +1906,17 @@ int main(int argc, char** argv) {
 	myfile<<endl;
 	myfile<<TString::Format("Top CR \t %0.5f \t %0.5f \t %0.5f \t %0.5f",N_TopCR,Nweighted_TopCR,SFUnc_TOPCR*SFUnc_TOPCR,SFUnc_TOPCR).Data()<<endl;
 	myfile<<TString::Format("Single Top CR \t %0.5f \t %0.5f \t %0.5f \t %0.5f",N_SingleTopCR,Nweighted_SingleTopCR,
-	SFUnc_SingleTOP*SFUnc_SingleTOP,SFUnc_SingleTOP).Data()<<endl;
+							SFUnc_SingleTOP*SFUnc_SingleTOP,SFUnc_SingleTOP).Data()<<endl;
 	myfile<<TString::Format("LF CR \t %0.5f \t %0.5f \t %0.5f \t %0.5f",N_LFCR,Nweighted_LFCR,SFUnc_LFCR*SFUnc_LFCR,SFUnc_LFCR).Data()<<endl;
 	myfile<<TString::Format("HF CR \t %0.5f \t %0.5f \t %0.5f \t %0.5f",N_HFCR,Nweighted_HFCR,SFUnc_HFCR*SFUnc_HFCR,SFUnc_HFCR).Data()<<endl;
 	myfile<<endl;
 	myfile<<endl;
 	myfile<<TString::Format("Events \t %s \t %0.5f \t %0.5f \t %0.5f \t %0.5f",directory.c_str(),Nweighted_TopCR,Nweighted_SingleTopCR,
-	Nweighted_LFCR,Nweighted_HFCR).Data()<<endl;
+							Nweighted_LFCR,Nweighted_HFCR).Data()<<endl;
 	myfile<<TString::Format("Errors \t %s \t %0.5f \t %0.5f \t %0.5f \t %0.5f",directory.c_str(),SFUnc_TOPCR,
-	SFUnc_SingleTOP,SFUnc_LFCR,SFUnc_HFCR).Data()<<endl;
+							SFUnc_SingleTOP,SFUnc_LFCR,SFUnc_HFCR).Data()<<endl;
 	myfile<<TString::Format("Table \t %s \t %0.2fat%0.2f \t %0.2fat%0.2f \t %0.2fat%0.2f \t %0.2fat%0.2f",
-	directory.c_str(),Nweighted_TopCR,SFUnc_TOPCR,Nweighted_SingleTopCR,SFUnc_SingleTOP,Nweighted_LFCR,SFUnc_LFCR,Nweighted_HFCR,SFUnc_HFCR).Data()<<endl;
+							directory.c_str(),Nweighted_TopCR,SFUnc_TOPCR,Nweighted_SingleTopCR,SFUnc_SingleTOP,Nweighted_LFCR,SFUnc_LFCR,Nweighted_HFCR,SFUnc_HFCR).Data()<<endl;
 	myfile.close();
 	
 	
@@ -1911,7 +1985,7 @@ int main(int argc, char** argv) {
 		(*it).second->Write();
 		c1.Clear();
 		(*it).second->Draw();
-		//	c1.Print((directory+"/"+(*it).first+suffixps).c_str());
+		c1.Print((directory+"/"+(*it).first+suffixps).c_str());
 		if (debug) cout << "This is the histmap string: " << (*it).first << endl;
 	}
 	for (map<string,TH2*>::iterator it2=bidimhistmap.begin(); it2!=bidimhistmap.end();it2++) {
@@ -1924,81 +1998,53 @@ int main(int argc, char** argv) {
 	
 	cout << "macro done, now clean up" << endl;
 	// Write and Close the output file.
-	ofile.Write();
-	
-//	TMVA_tree->Delete();
-//	BDT_tree->Delete();
-//	FOM_tree->Delete();
-//	MuonTrigWeightTreelow->Delete();
-//	EleTrigWeightTreelow->Delete();
-//	MuonTrigWeightTreehigh->Delete();
-//	EleTrigWeightTreehigh->Delete();
-//	MuonIDWeightTree->Delete();
-//	EleIDWeightTree->Delete();
-//	lowptMuonIDWeightTree->Delete();
-//	lowptEleIDWeightTree->Delete();
-//	cout << "trees deleted" << endl;
+	//ofile.Write();
 	
 	ofile.Close();
 	
-//	MuonTrigWeightFilelow->Close();
-//	EleTrigWeightFilelow->Close();
-//	MuonTrigWeightFilehigh->Close();
-//	EleTrigWeightFilehigh->Close();
-//	MuonIDWeightFile->Close();
-//	EleIDWeightFile->Close();
-//	lowptMuonIDWeightFile->Close();
-//	lowptEleIDWeightFile->Close();
-//	cout << "files closed" << endl;
-	
-//	MuonTrigWeightFilelow->Delete();
-//	EleTrigWeightFilelow->Delete();
-//	MuonTrigWeightFilehigh->Delete();
-//	EleTrigWeightFilehigh->Delete();
-//	MuonIDWeightFile->Delete();
-//	EleIDWeightFile->Delete();
-//	lowptMuonIDWeightFile->Delete();
-//	lowptEleIDWeightFile->Delete();
-	
-//	ofile.Delete();
-	
-	cout << "all I have to do is return 0" << endl;
-	
+	/*	MuonTrigWeightFilelow->Close();
+	 EleTrigWeightFilelow->Close();
+	 MuonTrigWeightFilehigh->Close();
+	 EleTrigWeightFilehigh->Close();
+	 MuonIDWeightFile->Close();
+	 EleIDWeightFile->Close();
+	 lowptMuonIDWeightFile->Close();
+	 lowptEleIDWeightFile->Close();
+	 cout << "files closed" << endl;
+	 */
+	cout << "all I have to do is return 0" << endl;	
 	return 0;
 }
 
 
 double SetWeight( std::string filename){
 	double SampleWeight = 1.0;
-	if (findString(filename, "ZH125_Summer11")){ 
+	if (findString(filename, "ZH_ZToLL_125HToBB")){ 
 		SampleWeight = lumi/lumiZH125;
 	cout << "found ZH_ZToLL_HToBB_M-125 string" << endl;}
-	if (findString(filename, "ZH125_Summer11")){ SampleWeight = lumi/lumiZH125;}
-	if (findString(filename, "ZH125_Fall11")){ SampleWeight = lumi/lumiZH125Fall;}
-	if (findString(filename, "Filtered115emu")){ SampleWeight = lumi/lumiZH115;}
-	if (findString(filename, "Filtered125emu")){ SampleWeight = lumi/lumiZH125Filtered;}
+	if (findString(filename, "ZH_ZToLL_115HToBB")){ SampleWeight = lumi/lumiZH115;}
+	if (findString(filename, "ZH_ZToLL_135HToBB")){ SampleWeight = lumi/lumiZH135;}
+	if (findString(filename, "ZH_ZToLL_110HToBB")){ SampleWeight = lumi/lumiZH110;}
+	if (findString(filename, "ZH_ZToLL_130HToBB")){ SampleWeight = lumi/lumiZH130;}
+	if (findString(filename, "ZH_ZToLL_120HToBB")){ SampleWeight = lumi/lumiZH120;}
 	if (findString(filename, "DYPtZ")){ SampleWeight = lumi/lumiZJH;}
 	if (findString(filename, "DYM50")){ SampleWeight = lumi/lumiZJL;}
-	if (findString(filename, "120to170")){ SampleWeight = lumi/lumiQCD120;}
-	if (findString(filename, "170to300")){ SampleWeight = lumi/lumiQCD170;}
-	if (findString(filename, "300to470")){ SampleWeight = lumi/lumiQCD300;}
-	if (findString(filename, "470to600")){ SampleWeight = 70.21630282*100000/ 3598283.0;}
-	if (findString(filename, "80to120")){ SampleWeight = lumi/(6397439.5000/(823744.5*1000));}
-	if (findString(filename, "TTJets")){ SampleWeight = lumi/(lumiTT);}
+	if (findString(filename, "120to170")){ SampleWeight = 1.0;}
+	if (findString(filename, "170to300")){ SampleWeight = 1.0;}
+	if (findString(filename, "300to470")){ SampleWeight = 1.0;}
+	if (findString(filename, "470to600")){ SampleWeight = 1.0;}
+	if (findString(filename, "80to120")){ SampleWeight = 1.0;}
+	if (findString(filename, "TT")){ SampleWeight = lumi/(lumiTT);}
 	if (findString(filename, "T_TuneZ2_s")){ SampleWeight = lumi/lumiTs;}
 	if (findString(filename, "T_TuneZ2_t-channel")){ SampleWeight = lumi/lumiTt;}
 	if (findString(filename, "T_tW")){ SampleWeight = lumi/lumiTtW;}
-	if (findString(filename, "T_TuneZ2_tW-channel-DS")){ SampleWeight = lumi/(828002.00/xsecbfTtW) ;}
 	if (findString(filename, "Tbar_TuneZ2_s")){ SampleWeight = lumi/lumiTsb;}
 	if (findString(filename, "Tbar_TuneZ2_t-channel")){ SampleWeight = lumi/lumiTtb;}
 	if (findString(filename, "Tbar_tW")){ SampleWeight = lumi/lumiTtWb;}
-	if (findString(filename, "Tbar_TuneZ2_tW-channel-DS")){ SampleWeight = lumi/(727800.6250000/xsecbfTtWb);}
-	if (findString(filename, "WJetsToLNu_Pt-100")){ SampleWeight = lumi/(18859930.0/(685.69*1000) );}
+	if (findString(filename, "WJetsToLNuPtW100")){ SampleWeight = lumi/lumiWJ100Mad;}
 	if (findString(filename, "WJets.root")){ SampleWeight = lumi/lumiWJ;}
 	if (findString(filename, "WW")){ SampleWeight = lumi/lumiWW;}
 	if (findString(filename, "WZ")){ SampleWeight = lumi/lumiWZ;}
-	if (findString(filename, "ZJetsToLL")){ SampleWeight = lumi/(2349387.0/(3048*1000));}
-	if (findString(filename, "ZJetsToNuNu")){ SampleWeight = lumi/(3643062.7500/(1.3*25.8*1000));}
 	if (findString(filename, "ZZ")){ 
 		SampleWeight = lumi/lumiZZ;
 		cout << "found ZZ string" << endl;
@@ -2031,6 +2077,7 @@ void fillhisto(string histname,double val, double hweight, string title, int nbi
 	}
 	histmap[histname]->Fill(val, hweight);
 }
+
 void fill2Dhisto(string histname,double valx, double valy, double weight, string title, int nxbins, double xmin, double xmax, int nybins, double ymin, double ymax) {
 	if (!bidimhistmap[histname]) {
 		if (nxbins==0 || nybins==0) {
@@ -2144,13 +2191,11 @@ void LeptonDistributions(string cut, double ph_weight){
 		string leptonpT = Form("hPtlep%i_", i) + cut;
 		string leptoneta = Form("hEtalep%i_", i) + cut;
 		string leptonphi = Form("hPhilep%i_", i) + cut;
-		string leptonmupt = Form("hPtMu%i_", i) + cut;
 		string leppfCombRelIso = Form("hPFRelIso%i_", i) + cut;
 		
 		fillhisto(leptonpT, leptonPt[i], ph_weight, "Lepton pT", 10, 0.0, 100);
 		fillhisto(leptoneta, leptonEta[i], ph_weight, "Lepton #eta", 13, -3, 3.5);
 		fillhisto(leptonphi, leptonPhi[i], ph_weight, "Lepton #phi", 20, -3.14159265, 4.7123889);
-		fillhisto(leptonmupt, SortedMuonPt[i], ph_weight, "Lepton pT", 30, 0.0, 150);
 		if (lep_pfCombRelIso[i] > 0 ) fillhisto(leppfCombRelIso, lep_pfCombRelIso[i], ph_weight, "PF Rel Iso of Lepton", 25, 0, 0.5);
 		
 	}

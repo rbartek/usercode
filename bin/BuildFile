@@ -1,5 +1,5 @@
 #
-# $Id: BuildFile,v 1.8 2012/12/04 16:42:14 wilken Exp $
+# $Id: BuildFile,v 1.9 2012/12/11 16:26:23 wilken Exp $
 #
 # Package  : UserCode/wilken
 # Filename : bin/BuildFile
@@ -71,6 +71,11 @@
 <bin name=tautaubbReader file=tautaubbReader.cc>
     <use name=root>
     <use name=rootgraphics>
+    <use name=UserCode/wilken>
+</bin>
+<bin name=JetStudy file=JetStudy.cc>
+    <use name=root>
+    <use name=rootgraphics>   
     <use name=UserCode/wilken>
 </bin>
 

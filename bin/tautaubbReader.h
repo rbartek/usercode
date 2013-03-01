@@ -57,7 +57,7 @@ float jetPt[5], jetEta[5], jetPhi[5], jetCSV[5], jetCHF[5], CSVNewShape[5];
 float jetPtRaw[5], jetE[5], jetVtx3dL[5], jetVtx3deL[5], jetVtxPt[5], jetVtxMass[5], jetPtLeadTrack[5];
 float jetNconstintuents[5], jetCEF[5], jetNCH[5], jetJECUnc[5], jetEt[5], jetMt[5], jetPtRawJER[5], jetGenPt[5]; 
 float SVnumTracks[5], jetNHF[5];
-float leptonPt[5], leptonEta[5], leptonPhi[5], lep_pfCombRelIso[5], lep_id95[5], SortedMuonPt[5];
+float leptonPt[5], leptonEta[5], leptonPhi[5], lep_pfCombRelIso[5], lep_id95[5];
 int lep_flavor[5];
 float DetaJJ, btag2CSF;
 float CSV0, CSV1, Emumass, Hmass, DeltaPhiHV, Hpt, Zpt, DitauMass; 
@@ -88,6 +88,7 @@ float CSVup[5], CSVdown[5], csvFup[5], csvFdown[5];
 float JER_e_up[5], JER_e_down[5], JES_e_up[5], JES_e_down[5];
 float JER_pt_up[5], JER_pt_down[5], JES_pt_up[5], JES_pt_down[5];
 float JERHmassUp, JERHmassDown, JESHmassUp, JESHmassDown;
+float CSVHmassUp, CSVHmassFUp, CSVHmassDown, CSVHmassFDown;
 
 // maps for histo function
 std::map<std::string,TH1*> histmap;

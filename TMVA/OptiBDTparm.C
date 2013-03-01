@@ -31,7 +31,7 @@
 #include <iostream>
 #include <map>
 #include <string>
-#include "UserCode/wilken/interface/xsecV42.h"
+#include "/home/hep/wilken/BDTSelection/src/UserCode/wilken/interface/xsecV42.h"
 #include "TChain.h"
 #include "TFile.h"
 #include "TTree.h"
@@ -69,7 +69,7 @@ float max(float csv1, float  csv2)
 	else return csv1;
 }
 
-void BDTemuTMVA_tau( TString myMethodList = "" )
+void OptiBDTparm( TString myMethodList = "" )
 {
 
 	double lumi = 12.21;
@@ -106,7 +106,7 @@ void BDTemuTMVA_tau( TString myMethodList = "" )
    Use["CutsSA"]          = 0;
    // 
    // --- 1-dimensional likelihood ("naive Bayes estimator")
-   Use["Likelihood"]      = 1;
+   Use["Likelihood"]      = 0;
    Use["LikelihoodD"]     = 0; // the "D" extension indicates decorrelated input variables (see option strings)
    Use["LikelihoodPCA"]   = 0; // the "PCA" extension indicates PCA-transformed input variables (see option strings)
    Use["LikelihoodKDE"]   = 0;
@@ -122,7 +122,7 @@ void BDTemuTMVA_tau( TString myMethodList = "" )
    //
    // --- Linear Discriminant Analysis
    Use["LD"]              = 0; // Linear Discriminant identical to Fisher
-   Use["Fisher"]          = 1;
+   Use["Fisher"]          = 0;
    Use["FisherG"]         = 0;
    Use["BoostedFisher"]   = 0; // uses generalised MVA method boosting
    Use["HMatrix"]         = 0;
@@ -138,7 +138,7 @@ void BDTemuTMVA_tau( TString myMethodList = "" )
    // --- Neural Networks (all are feed-forward Multilayer Perceptrons)
    Use["MLP"]             = 0; // Recommended ANN
    Use["MLPBFGS"]         = 0; // Recommended ANN with optional training method
-   Use["MLPBNN"]          = 1; // Recommended ANN with BFGS training method and bayesian regulator
+   Use["MLPBNN"]          = 0; // Recommended ANN with BFGS training method and bayesian regulator
    Use["CFMlpANN"]        = 0; // Depreciated ANN from ALEPH
    Use["TMlpANN"]         = 0; // ROOT's own ANN
    //
@@ -207,34 +207,34 @@ void BDTemuTMVA_tau( TString myMethodList = "" )
    // note that you may also use variable expressions, such as: "3*var1/var2*abs(var3)"
    // [all types of expressions that can also be parsed by TTree::Draw( "expression" )]
 //      factory->AddVariable( "oldHmass"    ,  "old H Mass"    , "GeV" , 'F' );//0
-      factory->AddVariable( "Hmass"    ,  "M(jj)"    , "GeV" , 'F' );//0
-        factory->AddVariable( "CSV0"      ,  "CSV0"     , ""           , 'F' );//2
-        factory->AddVariable( "CSV1"      ,  "CSV1"     , ""           , 'F' );//2
-        factory->AddVariable( "DitauMass"        ,  "M_{#tau#tau}"          , "GeV"      , 'F' );//3
-        factory->AddVariable( "DeltaPhiHV"   ,  "#Delta#phi(H,V)", ""      , 'F' );//4
+      factory->AddVariable( "Hmass"    ,  "H Mass"    , "GeV" , 'F' );//0
+        factory->AddVariable( "CSV0"      ,  "CSV 0"     , ""           , 'F' );//2
+        factory->AddVariable( "CSV1"      ,  "CSV 1"     , ""           , 'F' );//2
+        factory->AddVariable( "DitauMass"        ,  "DitauMass"          , "GeV"      , 'F' );//3
+        factory->AddVariable( "DeltaPhiHV"   ,  "DeltaPhiHV", ""      , 'F' );//4
 //       factory->AddVariable( "dPhiHMET"      ,  "dPhiHMET"     , ""            , 'F' );//6
 //       factory->AddVariable( "SumDphiH:=(DeltaPhiHV+dPhiHMET)"      ,  "SumDphiH"     , ""            , 'F' );//6   
-//       factory->AddVariable( "dphiEMU := abs(Dphiemu)"      ,  "#Delta#phi(e,#mu)"     , ""              , 'F' );//7
-	factory->AddVariable( "dphiZMET:=abs(DphiZMET)"      ,  "#Delta#phi(Z,MET)"     , ""            , 'F' );//8
+//       factory->AddVariable( "dphiEMU := abs(Dphiemu)"      ,  "Dphiemu"     , ""              , 'F' );//7
+	factory->AddVariable( "dphiZMET:=abs(DphiZMET)"      ,  "DphiZMET"     , ""            , 'F' );//8
 //	factory->AddVariable( "PtbalMETH"      ,  "PtbalMETH"     , ""              , 'F' );//9
 	factory->AddVariable( "EtaStandDev"      ,  "EtaStandDev"     , ""              , 'F' );//10
 //	factory->AddVariable( "ProjMissT"      ,  "ProjMissT"     , ""              , 'F' );//12
 //        factory->AddVariable( "CombDphi:=(3.14-abs(DphiZMET))+DeltaPhiHV+dPhiHMET"   ,  "CombDphi", "" , 'F' );
-//        factory->AddVariable( "jetPtmax:=max(jetPt0,jetPt1)"        ,  "Pt_j max"          , "GeV"      , 'F' );//3
-//        factory->AddVariable( "jetPtmin:=min(jetPt0,jetPt1)"        ,  "Pt_j min"          , "GeV"      , 'F' );//3
-	factory->AddVariable( "Mte"      ,  "M_{T}e"     , ""       , 'F' );//11	
-	factory->AddVariable( "Mtmu"      ,  "M_{T}#mu"     , ""     , 'F' );//11	
+//        factory->AddVariable( "jetPtmax:=max(jetPt0,jetPt1)"        ,  "jetPtmax"          , "GeV"      , 'F' );//3
+//        factory->AddVariable( "jetPtmin:=min(jetPt0,jetPt1)"        ,  "jetPtmin"          , "GeV"      , 'F' );//3
+	factory->AddVariable( "Mte"      ,  "Mte"     , ""       , 'F' );//11	
+	factory->AddVariable( "Mtmu"      ,  "Mtmu"     , ""     , 'F' );//11	
 //	factory->AddVariable( "Mtprod:=Mte*Mtmu"      ,  "Mtprod"     , ""              , 'F' );//11
 //        factory->AddVariable( "MtSum:=Mte+Mtmu"      ,  "MtSum"     , ""       , 'F' );
 ///        factory->AddVariable( "EventPt"      ,  "EventPt"     , ""              , 'F' );//11
-//        factory->AddVariable( "Ht"      ,  "H_T"     , ""              , 'F' );//11
-//        factory->AddVariable( "delRjj"      ,  "#DeltaR(jj)"     , ""              , 'F' );//11        
-//        factory->AddVariable( "ScalarSumPt"      ,  "#SigmaPt"     , ""              , 'F' );//11        
+//        factory->AddVariable( "Ht"      ,  "Ht"     , ""              , 'F' );//11
+//        factory->AddVariable( "delRjj"      ,  "delRjj"     , ""              , 'F' );//11        
+//        factory->AddVariable( "ScalarSumPt"      ,  "ScalarSumPt"     , ""              , 'F' );//11        
 //        factory->AddVariable( "DphiSecondMET"      ,  "DphiSecondMET"     , ""              , 'F' );//11        
-//        factory->AddVariable( "pZeta25"      ,  "P_{#zeta}^{Cut} 0.25"     , ""              , 'F' );//11        
+//        factory->AddVariable( "pZeta25"      ,  "pZeta25"     , ""              , 'F' );//11        
 //	factory->AddVariable( "pZeta45"      ,  "pZeta45"     , ""              , 'F' );//11        
 //	factory->AddVariable( "pZeta65"      ,  "pZeta65"     , ""              , 'F' );//11        
-//	factory->AddVariable( "pZeta85"      ,  "P_{#zeta}^{Cut} 0.85"     , ""              , 'F' );//11
+//	factory->AddVariable( "pZeta85"      ,  "pZeta85"     , ""              , 'F' );//11
 //        factory->AddVariable( "ScalarSumJetPt"      ,  "ScalarSumJetPt"     , ""     , 'F' );//11
 //        factory->AddVariable( "ScalarSumHiggsJetPt"      ,  "ScalarSumHiggsJetPt"     , ""     , 'F' );//11
 //        factory->AddVariable( "jetCHF0"      ,  "jetCHF0"     , ""              , 'F' );//11
@@ -248,7 +248,7 @@ void BDTemuTMVA_tau( TString myMethodList = "" )
 //        factory->AddVariable( "nJets"      ,  "nJets"     , ""              , 'F' );//11
 //        factory->AddVariable( "ZMET:=Zpt+MET"      ,  "ZMET"     , ""              , 'F' );//11
 //	factory->AddVariable( "Nab"      ,  "Nab"     , ""              , 'F' );//11
-        factory->AddVariable( "Emumass"      ,  "M(e,#mu)"     , ""              , 'F' );//11
+        factory->AddVariable( "Emumass"      ,  "Emumass"     , ""              , 'F' );//11
 //        factory->AddVariable( "EvntShpCircularity"      ,  "EvntShpCircularity"     , ""              , 'F' );//11
 //       factory->AddVariable( "RMS_eta"      ,  "RMS_eta"     , ""              , 'F' );//11
 //        factory->AddVariable( "PtbalZH"      ,  "PtbalZH"     , ""              , 'F' );//11
@@ -265,8 +265,8 @@ void BDTemuTMVA_tau( TString myMethodList = "" )
 //       factory->AddVariable( "delRemu"      ,  "delRemu"     , ""              , 'F' );//11
 //        factory->AddVariable( "DphiLeadMET"      ,  "DphiLeadMET"     , ""              , 'F' );//11
 //        factory->AddVariable( "topMass"      ,  "topMass"     , ""              , 'F' );//11
-        factory->AddVariable( "ProjVisT"      ,  "P_{#zeta}^{Vis}"     , ""              , 'F' );//11
-        factory->AddVariable( "ProjMissT"      ,  "P_{#zeta}^{Miss}"     , ""              , 'F' );//11
+        factory->AddVariable( "ProjVisT"      ,  "ProjVisT"     , ""              , 'F' );//11
+        factory->AddVariable( "ProjMissT"      ,  "ProjMissT"     , ""              , 'F' );//11
 //        factory->AddVariable( "topPt"      ,  "topPt"     , ""              , 'F' );//11
 //      factory->AddVariable( "ProjTSum:=ProjVisT+ProjMissT"      ,  "ProjTSum"     , ""              , 'F' );//11
 
@@ -547,24 +547,24 @@ TCut mycutb = "DitauMass>40 && DitauMass<160 && ProjMissT>-10";
    // Boosted Decision Trees
    if (Use["BDTG"]) // Gradient Boost
       factory->BookMethod( TMVA::Types::kBDT, "BDTG",
-                           "!H:!V:NTrees=1000:BoostType=Grad:Shrinkage=0.10:UseBaggedGrad:GradBaggingFraction=0.5:nCuts=20:NNodesMax=5" );
+                           "!H:!V:NTrees=5000:BoostType=Grad:Shrinkage=0.10:UseBaggedGrad:GradBaggingFraction=0.5:nCuts=20:NNodesMax=5" );
 
    if (Use["BDT"])  // Adaptive Boost
       factory->BookMethod( TMVA::Types::kBDT, "BDT",
-						  "!H:!V:NTrees=500:nEventsMin=100:MaxDepth=3:BoostType=AdaBoost:AdaBoostBeta=0.3:SeparationType=GiniIndex:nCuts=35:PruneMethod=NoPruning" );
+						  "!H:!V:NTrees=500:nEventsMin=40:MaxDepth=4:BoostType=AdaBoost:AdaBoostBeta=0.3:SeparationType=GiniIndex:nCuts=35:PruneMethod=NoPruning" );
 
 
    if (Use["BDTB"]) // Bagging
       factory->BookMethod( TMVA::Types::kBDT, "BDTB",
-                           "!H:!V:NTrees=400:BoostType=Bagging:SeparationType=GiniIndex:nCuts=20:PruneMethod=NoPruning" );
+                           "!H:!V:NTrees=500:BoostType=Bagging:SeparationType=GiniIndex:nCuts=20:PruneMethod=NoPruning" );
 
    if (Use["BDTD"]) // Decorrelation + Adaptive Boost
       factory->BookMethod( TMVA::Types::kBDT, "BDTD",
-                           "!H:!V:NTrees=400:nEventsMin=400:MaxDepth=3:BoostType=AdaBoost:SeparationType=GiniIndex:nCuts=20:PruneMethod=NoPruning:VarTransform=Decorrelate" );
+                           "!H:!V:NTrees=500:nEventsMin=40:MaxDepth=4:BoostType=AdaBoost:SeparationType=GiniIndex:nCuts=20:PruneMethod=NoPruning:VarTransform=Decorrelate" );
 
    if (Use["BDTF"])  // Allow Using Fisher discriminant in node splitting for (strong) linearly correlated variables
       factory->BookMethod( TMVA::Types::kBDT, "BDTMitFisher",
-                           "!H:!V:NTrees=50:nEventsMin=150:UseFisherCuts:MaxDepth=3:BoostType=AdaBoost:AdaBoostBeta=0.5:SeparationType=GiniIndex:nCuts=20:PruneMethod=NoPruning" );
+                           "!H:!V:NTrees=50:nEventsMin=150:UseFisherCuts:MaxDepth=4:BoostType=AdaBoost:AdaBoostBeta=0.5:SeparationType=GiniIndex:nCuts=20:PruneMethod=NoPruning" );
 
    // RuleFit -- TMVA implementation of Friedman's method
    if (Use["RuleFit"])
@@ -604,5 +604,7 @@ TCut mycutb = "DitauMass>40 && DitauMass<160 && ProjMissT>-10";
    delete factory;
 
    // Launch the GUI for the root macros
-   if (!gROOT->IsBatch()) TMVAGui( outfileName );
+//   if (!gROOT->IsBatch()) TMVAGui( outfileName );
+	gROOT->ProcessLine(".q");
+
 }

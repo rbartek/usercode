@@ -1,0 +1,9 @@
+tautaubbReader /home/hep/wilken/CMSSW_5_3_3_patch2/src/VHbbAnalysis/VHbbDataFormats/bin/AdddedRootFiles/DYM50.root RunReader/DY_HF_M50.root RunReader/DY_HF_M50 > RunReader/DY_HF_M50.out
+tautaubbReader /home/hep/wilken/CMSSW_5_3_3_patch2/src/VHbbAnalysis/VHbbDataFormats/bin/AdddedRootFiles/DYM50.root RunReader/DY_LF_M50.root RunReader/DY_LF_M50 > RunReader/DY_LF_M50.out
+tautaubbReader /home/hep/wilken/CMSSW_5_3_3_patch2/src/VHbbAnalysis/VHbbDataFormats/bin/AdddedRootFiles/DYM50.root RunReader/DY_M50.root RunReader/DY_M50 > RunReader/DY_M50.out
+tautaubbReader /home/hep/wilken/CMSSW_5_3_3_patch2/src/VHbbAnalysis/VHbbDataFormats/bin/AdddedRootFiles/QCDPt120To170.root RunReader/QCDPt120To170.root RunReader/QCDPt120To170 > RunReader/QCDPt120To170.out
+tautaubbReader /home/hep/wilken/CMSSW_5_3_3_patch2/src/VHbbAnalysis/VHbbDataFormats/bin/AdddedRootFiles/QCDPt170To300.root RunReader/QCDPt170To300.root RunReader/QCDPt170To300 > RunReader/QCDPt170To300.out
+tautaubbReader /home/hep/wilken/CMSSW_5_3_3_patch2/src/VHbbAnalysis/VHbbDataFormats/bin/AdddedRootFiles/QCDPt20Mu15Enriched.root RunReader/QCDPt20Mu15Enriched.root RunReader/QCDPt20Mu15Enriched > RunReader/QCDPt20Mu15Enriched.out
+tautaubbReader /home/hep/wilken/CMSSW_5_3_3_patch2/src/VHbbAnalysis/VHbbDataFormats/bin/AdddedRootFiles/QCDPt300To470.root RunReader/QCDPt300To470.root RunReader/QCDPt300To470 > RunReader/QCDPt300To470.out
+tautaubbReader /home/hep/wilken/CMSSW_5_3_3_patch2/src/VHbbAnalysis/VHbbDataFormats/bin/AdddedRootFiles/QCDPt470To600.root RunReader/QCDPt470To600.root RunReader/QCDPt470To600 > RunReader/QCDPt470To600.out
+tautaubbReader /home/hep/wilken/CMSSW_5_3_3_patch2/src/VHbbAnalysis/VHbbDataFormats/bin/AdddedRootFiles/QCDPt80To120.root RunReader/QCDPt80To120.root RunReader/QCDPt80To120 > RunReader/QCDPt80To120.out
